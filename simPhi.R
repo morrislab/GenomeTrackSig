@@ -89,22 +89,22 @@ plotPhis <- function(phis, clonal_freqs, num_ssms, read_depth){
   return(list(estVars, trueVars))
 }
     
-num_ssms <- 100
-clonal_freqs <- c(0.64, 0.36, 0.16)
-read_depth <- 50
-
-simDat <- generate_mutations_binom(num_ssms, clonal_freqs, read_depth)
-#hist(simDat$ref_counts)
-
-simPhis <- generate_phis(simDat$ref_counts, simDat$read_depths)
-hist(simPhis, col=4,  breaks = 50, xlim = c(0, 1),
-     main = sprintf("phis simulated with clonal frequencies [%s], read depth = %i", 
-                    paste(clonal_freqs, collapse = ", "), read_depth),
-     ylab = "number of mutations",
-     xlab = expression(phi)
-)
-
-
-plotPhis(simPhis, clonal_freqs, num_ssms, read_depth)
-
+#num_ssms <- 100
+#clonal_freqs <- c(0.64, 0.36, 0.16)
+#read_depth <- 50
+#
+#simDat <- generate_mutations_binom(num_ssms, clonal_freqs, read_depth)
+##hist(simDat$ref_counts)
+#
+#simPhis <- generate_phis(simDat$ref_counts, simDat$read_depths)
+#hist(simPhis, col=4,  breaks = 50, xlim = c(0, 1),
+#     main = sprintf("phis simulated with clonal frequencies [%s], read depth = %i", 
+#                    paste(clonal_freqs, collapse = ", "), read_depth),
+#     ylab = "number of mutations",
+#     xlab = expression(phi)
+#)
+#
+#
+#plotPhis(simPhis, clonal_freqs, num_ssms, read_depth)
+#
 #[END]

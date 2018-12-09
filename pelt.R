@@ -1,7 +1,7 @@
 # pelt.R
 # detect (segment) change points
 
-pelt <- function(phis, read_depth, scoreFun){
+pelt <- function(phis, scoreFun, read_depth = 50, no_cp_pen = 0){
   
   n <- length(phis)
   penalty <- 3 * log(n)
@@ -13,7 +13,7 @@ pelt <- function(phis, read_depth, scoreFun){
   for (size in 2:n){
     
     # Score subproblem with no cp
-    scoreMat[size, 1] <- scoreFun(phis[1:size], beta = 0)
+    scoreMat[size, 1] <- scoreFun(phis[1:size], beta = no_cp_pen)
     
     
     # If there are taus in the subproblem (minimum scorable tau interval size is 2)
@@ -50,7 +50,7 @@ score_mle2 <- function(phis, beta = 0){
 }
 
 
-score_const <- function(phis){
+score_const <- function(phis, beta){
   return(60)
 }
 
@@ -60,7 +60,7 @@ recover_changepoints <- function(sp_score_matrix){
   continue <- TRUE
   current <- dim(sp_score_matrix)[1]
   while (continue){
-    #max entry over row
+    #max entry over last row
     prev <- which.max(sp_score_matrix[current, ])
     
     #stop if reach col 1 (cp pos 1)
@@ -75,7 +75,7 @@ recover_changepoints <- function(sp_score_matrix){
       changepoints <- c(prev - 1, changepoints)
     }
     
-    #move left 1 col
+    #move up 1 row
     current <- prev - 1
   }
   return(changepoints)
@@ -84,16 +84,29 @@ recover_changepoints <- function(sp_score_matrix){
 setwd("~/Documents/BCB430/repo/")
 source("simPhi.R")
 
-sp_scores <- pelt(simPhis, read_depth, score_const)
-sp_scores[1:8,1:8]
+mutsPerPop <- 100
+readDepth <- 50
+phiIs = c(0.64, 0.15, 0.35)
 
-#lots of NaN, but some not
-length(which(is.nan(sp_scores) != 0))
-dim(sp_scores)
+simDat <- generate_mutations_binom(mutsPerPop, phiIs, readDepth)
+simPhis <- generate_phis(simDat$ref_counts, simDat$read_depths)
 
-sp_scores[300,]
+scores_0 <- pelt(simPhis, score_mle)
+scores_pen <- pelt(simPhis, score_mle, no_cp_pen = 3 * log(length(simPhis)))
 
-recover_changepoints(sp_scores)
+scores[300,]
+
+cp1 <- recover_changepoints(scores_0)
+cp2 <- recover_changepoints(scores_pen)
+cp3 <- cpt.meanvar(simPhis, penalty = "BIC", method = "PELT", class = F)
+cp4 <- cpt.mean(simPhis, penalty = "BIC", method = "PELT", class = F)
+
+plot(simPhis)
+
+abline(v = cp1, col = 2)
+abline(v = cp2, col = 3)
+abline(v = cp3, col = 4)
+abline(v = cp4, col = 5)
 
 
 
