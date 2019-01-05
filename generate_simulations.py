@@ -130,3 +130,4 @@ if __name__ == "__main__":
     read_depth = 50
     
     simulated_data = generate_mutations_binom(num_ssms, clonal_freqs, read_depth)
+    print(simulated_data)

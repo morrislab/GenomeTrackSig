@@ -4,7 +4,7 @@
 pelt <- function(phis, scoreFun, read_depth = 50, no_cp_pen = 0){
   
   n <- length(phis)
-  penalty <- 3 * log(n)
+  penalty <- 2 * log(n)
   
   # Initialize score matrix
   scoreMat <- matrix(NaN, ncol = n, nrow = n)
@@ -83,10 +83,11 @@ recover_changepoints <- function(sp_score_matrix){
 # ============================================================
 setwd("~/Documents/BCB430/repo/")
 source("simPhi.R")
+library(changepoint)
 
 mutsPerPop <- 100
-readDepth <- 50
-phiIs = c(0.64, 0.15, 0.35)
+readDepth <- 15
+phiIs = c(0.64, 0.35, 0.15)
 
 simDat <- generate_mutations_binom(mutsPerPop, phiIs, readDepth)
 simPhis <- generate_phis(simDat$ref_counts, simDat$read_depths)
@@ -94,12 +95,17 @@ simPhis <- generate_phis(simDat$ref_counts, simDat$read_depths)
 scores_0 <- pelt(simPhis, score_mle)
 scores_pen <- pelt(simPhis, score_mle, no_cp_pen = 3 * log(length(simPhis)))
 
-scores[300,]
+#sumstat method - mu set to var when passed on later?
+mu <- mean(simPhis)
+sumstat <- cbind(c(0,cumsum(simPhis)),c(0,cumsum(simPhis^2)),cumsum(c(0,(simPhis-mu)^2)))
+scores_sumstat <- pelt(sumstat, score_mle)
+
+#scores[300,]
 
 cp1 <- recover_changepoints(scores_0)
 cp2 <- recover_changepoints(scores_pen)
 cp3 <- cpt.meanvar(simPhis, penalty = "BIC", method = "PELT", class = F)
-cp4 <- cpt.mean(simPhis, penalty = "BIC", method = "PELT", class = F)
+cp4 <- recover_changepoints(scores_sumstat)
 
 plot(simPhis)
 

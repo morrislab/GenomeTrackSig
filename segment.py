@@ -308,5 +308,9 @@ def batch_run(rd_array, ssm_array):
 
 if __name__ == "__main__":
 
+    ssm_per_pop = 100
+    pop_freqs = [.64,.36,.16]
+    read_depth = 50
+
     run(100, [0.64, 0.36, 0.16], 50)
     #batch_run([300], [50])
