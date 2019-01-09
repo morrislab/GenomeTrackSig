@@ -15,6 +15,10 @@ License: file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
+    devtools,
+    reshape2,
+    ggplot2,
+    NMF
 LinkingTo: 
 Suggests:
     testthat,
