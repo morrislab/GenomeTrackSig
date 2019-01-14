@@ -1,6 +1,6 @@
 # options-TrackSig.R
 # Author: Cait Harrigan
-# Replicated from CRAN package TrackSig TrackSig.options()
+# Replicated from CRAN package MNF nmf.options()
 
 #' \code{options-TrackSig} TrackSig Package specific options
 #'
