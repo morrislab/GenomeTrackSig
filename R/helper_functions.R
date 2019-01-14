@@ -3,13 +3,13 @@
 
 #' Helper functions for \code{TrackSig}
 #'
+#' Non-exported functions called by \code{TrackSig} functions. Not intended for end-user use.
+#'
 #' @rdname helper_functions
 #' @name helper_functions
 NULL
 
 #' \code{gg_color_hue} Select colour hues for plotting
-#'
-#' @note save_data_for_samples() DEPRICATED: use load_data_for_samples() instead
 #' @rdname helper_functions
 
 gg_color_hue <- function(n) {
@@ -29,7 +29,8 @@ list <- structure(NA,class="result")
   x
 }
 
-
+#' \code{get_values_from_list} Retrieve values by name from list
+#' @rdname helper_functions
 get_values_from_list <- function(list, name_of_value, FUN=NULL, default = NULL, concat_function="cbind")
 {
   concat_function <- match.fun(concat_function)
@@ -55,7 +56,8 @@ get_values_from_list <- function(list, name_of_value, FUN=NULL, default = NULL, 
   return(res)
 }
 
-
+#' \code{toVerticalMatrix} Convert a list or vector-like object to a vertial matrix
+#' @rdname helper_functions
 toVerticalMatrix <- function(L)
 {
   if (is.vector(L))
@@ -64,7 +66,8 @@ toVerticalMatrix <- function(L)
     return(as.matrix(L))
 }
 
-
+#' \code{reset_parallelize} Select colour hues for plotting
+#' @rdname helper_functions
 reset_parallize <- function()
 {
   closeAllConnections()
