@@ -1,79 +1,55 @@
-if (file.exists("/mnt/raisin/")) {
-  DIR= "/mnt/raisin/yulia/"
-  READ_DIR = WRITE_DIR = DIR
-} else {
-  DIR <- "~/Documents/BCB430/"
-  READ_DIR = WRITE_DIR = DIR
-}
+# AUTHOR: Yulia Rubanova
+# Modified for package TrackSig by Cait Harrigan
 
-setwd(DIR)
+#' Generate simulated data for \code{TrackSig}
+#'
+#' Functions required for generating simulated data for TrackSig
+#'
+#' @rdname simulation_functions
+#' @name simulation_functions
+NULL
 
-#source("src/helper_functions.R")
+#' \code{load_sim_signatures} load and collapse (merge) the following mutational\cr
+#' signatures for simulation: SBS7 (collapsed from SBS7a, SBS7b, SBS7c, SBS7d),\cr
+#' SBS17 (collapsed from SBS17a, SBS17b), SBS2+13(collapsed from SBS2, SBS13), \cr
+#' SBS10 (collapsed from SBS10a, SBS10b)
+#' @rdname simulation_functions
 
-# When I will upload this on the server -- remove merge_signatures function -- use src/helper_functions.R
-merge_signatures <- function(mixtures, sigs_to_merge) {
-  if (!is.null(sigs_to_merge)) {
-    for (i in 1:length(sigs_to_merge)) {
-        set_name <- names(sigs_to_merge)[i]
-        sig_set = sigs_to_merge[[i]]
-        sig_set = intersect(rownames(mixtures), sig_set)
-
-        if (length(sig_set) == 0) {
-          next
-        }
-
-        new_mixture_col <- toHorizontalMatrix(apply(mixtures[sig_set,,drop=F],2,sum))
-        rownames(new_mixture_col) <- set_name
-        colnames(new_mixture_col) <- colnames(mixtures)
-
-        if (length(intersect(rownames(mixtures), sig_set)) == nrow(mixtures)) {
-          mixtures <- new_mixture_col
-        } else {
-          mixtures <- rbind(mixtures[-which(rownames(mixtures) %in% sig_set),,drop=FALSE], new_mixture_col)
-        }
-    }
-  }
-  return(mixtures)
-}
-
-
-load_signatures <- function() {
+load_sim_signatures <- function() {
 	sigs_to_merge <- list()
 	sigs_to_merge[["SBS7"]] <- c("SBS7a", "SBS7b", "SBS7c", "SBS7d")
 	sigs_to_merge[["SBS17"]] <- c("SBS17a", "SBS17b")
 	sigs_to_merge[["SBS2+13"]] <- c("SBS2", "SBS13")
 	sigs_to_merge[["SBS10"]] <- c("SBS10a", "SBS10b")
 
-	names_trinucleotide <- read.table(paste0(DIR, "data/trinucleotide.txt"), stringsAsFactors = F)
+	names_trinucleotide <- trinucData
 	names_trinucleotide <- apply(names_trinucleotide, 1, function(x) { do.call("paste", c(as.list(x), sep = "_"))})
 
-	alex <- read.csv(paste0(DIR, "data/sigProfiler_SBS_signatures.csv"), header = T, stringsAsFactors = FALSE)
-    pcawg_trinucleotides <- paste(substr(alex[,1], 2, 2), substr(alex[,1], 5, 5), substr(alex[,1], 1, 3), sep="_")
-    rownames(alex) <- pcawg_trinucleotides
-    alex <- alex[,-1]
-    alex <- alex[match(names_trinucleotide, pcawg_trinucleotides),]
+	alex <- sigProfilerData
+  pcawg_trinucleotides <- paste(substr(alex[,1], 2, 2), substr(alex[,1], 5, 5), substr(alex[,1], 1, 3), sep="_")
+  rownames(alex) <- pcawg_trinucleotides
+  alex <- alex[,-1]
+  alex <- alex[match(names_trinucleotide, pcawg_trinucleotides),]
 	alex_merged <- t(merge_signatures(t(alex), sigs_to_merge))
-  	return(alex)
+  return(alex)
 }
 
+#' \code{generate_ccf_simulation} generates simulations for mutations given\cr
+#' clusters, their CCFs, CNAs and signatures.
+#' @param n_clusters integer number of clusters of mutations to simulate
+#' @param cluster_ccfs list of cluster mean values
+#' @param n_mut_per_cluster list of number of mutations to generate per cluster
+#' @param sig_activities list of signatures and their activities for each cluster
+#' @param cluster_cna_info list of named list with elements "fractions", \cr
+#' "mut_cn", "total_cn". There should be one inner list per cluster.
+#' @param mean_depth average read depth to simulate> Defaults to 100
+#' @param to_file logical whether to save generated simulations to a file. Defaluts to TRUE
+#' @param simulation_name simulation name to appear in outputted file name. Defaults to "simulation"
+#' @rdname simulation_functions
 
-# Generate simulations for mutations given clusters, their CCFs, CNAs and signatures.
 generate_ccf_simulation <- function(n_clusters, cluster_ccfs, n_mut_per_cluster, sig_activities,
-	cluster_cna_info = list(), mean_depth = 100,
-	simulation_name = "simulation") {
-	# Inputs:
-	# n_clusters
-
-	#cluster_ccfs
-
-	#Clusters are ordered in the decreasing order of the CCF
-
-	# n_mut_per_cluster
-	# sig_activities -- list of signatures and their activities for each cluster
-	#total_CN = 2, mut_alleles = 1
-	# cluster_cna_info
-	#fraction_cna_affected = 0
-	# mean_depth
+	cluster_cna_info = list(), mean_depth = 100, to_file = TRUE,
+	simulation_name = "simulation"){
 
 	normal_mut_alleles = 1
 	normal_total_CN = 2
@@ -81,7 +57,7 @@ generate_ccf_simulation <- function(n_clusters, cluster_ccfs, n_mut_per_cluster,
 	stopifnot(length(cluster_ccfs) == n_clusters)
 	stopifnot(length(n_mut_per_cluster) == n_clusters)
 
-	alex <- load_signatures()
+	alex <- load_sim_signatures()
 	trinucl_names <- rownames(alex)
 
 	data_all_clusters <- c()
@@ -177,7 +153,7 @@ generate_ccf_simulation <- function(n_clusters, cluster_ccfs, n_mut_per_cluster,
 		print(mean(mut_ccfs))
 
 
-		pdf(paste0("tmp/mut_ccf", cl, ".pdf"), width = 8, height=5)
+		pdf(paste0("simulation_results/mut_ccf", cl, ".pdf"), width = 8, height=5)
 		hist(mut_ccfs, breaks=200)
 		dev.off()
 		##################
@@ -189,15 +165,20 @@ generate_ccf_simulation <- function(n_clusters, cluster_ccfs, n_mut_per_cluster,
 	##################
 	mut_ccfs <- data_all_clusters$n_alt_alleles / (data_all_clusters$n_alt_alleles + data_all_clusters$n_ref_alleles)
 
-	pdf("tmp/mut_ccf.pdf", width = 8, height=5)
+	pdf("simulation_results/mut_ccf.pdf", width = 8, height=5)
 	hist(mut_ccfs, breaks=200)
 	dev.off()
 	##################
 
+	if (to_file == TRUE){
 	save_as_vcf(data_all_clusters, simulation_name)
+	}
+
+	return(data_all_clusters)
 }
 
-
+#' \code{save_as_vcf} save data generated by generate_ccf_simulation() to a file
+#' @rdname simulation_functions
 save_as_vcf <- function(data, filename) {
 	n_mut = nrow(data)
 
@@ -225,11 +206,12 @@ save_as_vcf <- function(data, filename) {
 	write.table(tri_data, file = paste0(filename, "_tri.txt"), sep = "\t", row.names=F, quote=F)
 }
 
-
-
-
+#' \code{create_simulation_set} generates simulated data files
+#' @param with_CNA logical whether to simulate data with copy number abberations.
+#' @rdname create_simulation_set
+#' @export
 create_simulation_set <- function(with_CNA = FALSE) {
-	if (with_CNA == FLASE) {
+	if (with_CNA == FALSE) {
 	  # Basic simulation
 	  sig_activities = list(
 	  	list("SBS1" = 0.05, "SBS4" = 0.6, "SBS5" = 0.35),
