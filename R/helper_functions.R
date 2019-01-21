@@ -3,7 +3,8 @@
 
 #' Helper functions for \code{TrackSig}
 #'
-#' Non-exported functions called by \code{TrackSig} functions. Not intended for end-user use.
+#' Non-exported functions called by \code{TrackSig} functions. \cr
+#' Not intended for end-user use.
 #'
 #' @rdname helper_functions
 #' @name helper_functions
@@ -90,7 +91,8 @@ IgnoreVectorOrMatrix <- function(x, FUN)
 }
 
 
-
+#' \code{get_sliding_window_data} <man content>
+#' @rdname helper_functions
 get_sliding_window_data <- function (data, shift, gap = 1) {
   if (is.null(gap)) {
     gap = 1
@@ -113,7 +115,8 @@ get_sliding_window_data <- function (data, shift, gap = 1) {
 }
 
 
-
+#' \code{get_sliding_window_data} <man content>
+#' @rdname helper_functions
 merge_data_chunks <- function (vcfData) {
   vcf <- matrix(nrow = nrow(vcfData)/2, ncol = ncol(vcfData))
   for (i in 1:nrow(vcf)) {
@@ -125,6 +128,8 @@ merge_data_chunks <- function (vcfData) {
   return(vcf)
 }
 
+#' \code{get_sliding_window_data} <man content>
+#' @rdname helper_functions
 get_noise_sig <- function(noise_sig){
   if (is.null(noise_sig))
   {
@@ -141,6 +146,8 @@ get_noise_sig <- function(noise_sig){
   return(c())
 }
 
+#' \code{get_sliding_window_data} <man content>
+#' @rdname helper_functions
 get_signatures_for_current_sample <- function (id, active_signatures.our_samples, alex, noise_sig) {
   if (grepl("simulation([\\d]*)", id))
   {
@@ -180,7 +187,8 @@ get_signatures_for_current_sample <- function (id, active_signatures.our_samples
   return(list(alex.t, matched_type, current_type$tumor_type))
 }
 
-
+#' \code{save_data} <man content>
+#' @rdname helper_functions
 save_data <- function(){
   names_trinucleotide <- read.table(paste0(DIR, "trinucleotide.txt"), stringsAsFactors = F)
   names_trinucleotide <- apply(names_trinucleotide, 1, function(x) { do.call("paste", c(as.list(x), sep = "_"))})
@@ -296,6 +304,8 @@ save_data <- function(){
 
 }
 
+#' \code{toHorizontalMatrix} <man content>
+#' @rdname helper_functions
 toHorizontalMatrix <- function(L){
   if (is.vector(L))
     return(matrix(L, nrow=1))
@@ -303,7 +313,8 @@ toHorizontalMatrix <- function(L){
     return(as.matrix(L))
 }
 
-
+#' \code{gather_statistics} <man content>
+#' @rdname helper_functions
 gather_statistics <- function(mixtures, changepoints, tumor_id, dir_name, tumor_type, mixtures.rescaled=NULL){
   col_names <-  c("tumor_id", "tumor_type", "n_changepoints", "n_total_sigs", "top_signature", "max_change", "sig_with_max_change", "n_sigs_greater_03")
   if (!is.null(mixtures.rescaled))
@@ -369,6 +380,8 @@ gather_statistics <- function(mixtures, changepoints, tumor_id, dir_name, tumor_
   write.csv(summary, file=paste0(dir_name, "summary.csv"), row.names=F)
 }
 
+#' \code{extract_data_for_example} <man content>
+#' @rdname helper_functions
 extract_data_for_example <- function (example, dir_counts, tumortypes, dir_results = DIR_RESULTS, dir_create = T) {
   #example <- "1c3df485-8e75-4378-87f6-c6463a520624"
 
@@ -473,6 +486,8 @@ extract_data_for_example <- function (example, dir_counts, tumortypes, dir_resul
   return(list(tumor_id, vcfData, phis, assigns_phylo_nodes, acronym, dir_name))
 }
 
+#' \code{extract_data_for_simulation} <man content>
+#' @rdname helper_functions
 extract_data_for_simulation <- function (example, dir_counts, dir_results = DIR_RESULTS, dir_create = T) {
   #example <- "1c3df485-8e75-4378-87f6-c6463a520624"
 
@@ -506,6 +521,8 @@ extract_data_for_simulation <- function (example, dir_counts, dir_results = DIR_
   return(list(tumor_id, vcfData, phis, acronym, dir_name))
 }
 
+#' \code{extract_bootstrap_data_for_example} <man content>
+#' @rdname helper_functions
 extract_bootstrap_data_for_example <- function (example, bootstrap_counts) {
 
   vcfData.bootstrap <- list()
@@ -541,6 +558,8 @@ extract_bootstrap_data_for_example <- function (example, bootstrap_counts) {
   return(list(vcfData.bootstrap, vcfData.phis))
 }
 
+#' \code{gather_summaries_per_tissue} <man content>
+#' @rdname helper_functions
 gather_summaries_per_tissue <- function(omit_signature_information = F){
   for (dir_ in list.files(DIR_RESULTS, full.names= T))
   {
@@ -568,6 +587,8 @@ gather_summaries_per_tissue <- function(omit_signature_information = F){
   }
 }
 
+#' \code{add_noise} <man content>
+#' @rdname helper_functions
 add_noise <- function(vcfData, noise_rate = 0.05){
   sum_per_row <- apply(vcfData, 1, sum)
   n_noise <- round(sum_per_row * noise_rate)
@@ -583,7 +604,8 @@ add_noise <- function(vcfData, noise_rate = 0.05){
   return(vcfData)
 }
 
-
+#' \code{convert_window_to_indices} <man content>
+#' @rdname helper_functions
 convert_window_to_indices <- function(total_length, window_size, gap){
   window_size = window_size/100
   gap = gap/100
@@ -608,7 +630,8 @@ convert_window_to_indices <- function(total_length, window_size, gap){
   return(start_ends)
 }
 
-
+#' \code{find_indices_with_intersection} <man content>
+#' @rdname helper_functions
 find_indices_with_intersection <- function(covered_by_changepoints, intervals_for_change_histogram){
   converted_changepoints <- c()
   for (i in 1:nrow(covered_by_changepoints))
@@ -634,6 +657,8 @@ find_indices_with_intersection <- function(covered_by_changepoints, intervals_fo
   return(converted_changepoints)
 }
 
+#' \code{read_mixtures} <man content>
+#' @rdname helper_functions
 read_mixtures <-  function(m_file) {
   m <- read.csv(m_file)
   rownames(m) <- m[,1]
@@ -642,7 +667,8 @@ read_mixtures <-  function(m_file) {
   return(m)
 }
 
-
+#' \code{get_examples_group} <man content>
+#' @rdname helper_functions
 get_examples_group <- function(list_, EXAMPLES_PER_GROUP = TrackSig.options()$EXAMPLES_PER_GROUP, group = TrackSig.options()$group){
   if (group == 0)
   {
@@ -661,8 +687,10 @@ get_examples_group <- function(list_, EXAMPLES_PER_GROUP = TrackSig.options()$EX
   }
 }
 
-compute_mean_sd_err <- function(mixtures_bootstrap, sig_names, dir_name = NULL, descr = "", exclude_zero=F)
-{
+
+#' \code{compute_mean_sd_err} <man content>
+#' @rdname helper_functions
+compute_mean_sd_err <- function(mixtures_bootstrap, sig_names, dir_name = NULL, descr = "", exclude_zero=F){
   mixtures.sd <- data.frame(matrix(NA,ncol=ncol(mixtures_bootstrap[[1]]), nrow=nrow(mixtures_bootstrap[[1]])))
   mixtures.err <- data.frame(matrix(NA,ncol=ncol(mixtures_bootstrap[[1]]), nrow=nrow(mixtures_bootstrap[[1]])))
   mixtures.mean <- data.frame(matrix(NA,ncol=ncol(mixtures_bootstrap[[1]]), nrow=nrow(mixtures_bootstrap[[1]])))
@@ -697,9 +725,9 @@ compute_mean_sd_err <- function(mixtures_bootstrap, sig_names, dir_name = NULL, 
   return(list(mixtures.mean, mixtures.sd, mixtures.err,avg_phis))
 }
 
-
-get_bootstrap_mixtures <- function(bootstrap_vcfs, bootstrap_phis, alex.t, dir_name, descr, verbose=TRUE)
-{
+#' \code{get_bootstrap_mixtures} <man content>
+#' @rdname helper_functions
+get_bootstrap_mixtures <- function(bootstrap_vcfs, bootstrap_phis, alex.t, dir_name, descr, verbose=TRUE){
   mixtures_bootstrap <- list()
   changepoints_bootstrap <- list()
   for (j in 1:length(bootstrap_vcfs))
@@ -736,7 +764,8 @@ get_bootstrap_mixtures <- function(bootstrap_vcfs, bootstrap_phis, alex.t, dir_n
   return(list(mixtures_bootstrap, changepoints_bootstrap))
 }
 
-
+#' \code{add_list_by_element} <man content>
+#' @rdname helper_functions
 add_list_by_element <- function(list_total_sum, list_to_add) {
   for (name in names(list_to_add)) {
     list_total_sum[[name]] <- c(list_total_sum[[name]], list_to_add[[name]])
@@ -744,11 +773,14 @@ add_list_by_element <- function(list_total_sum, list_to_add) {
   return(list_total_sum)
 }
 
+#' \code{not_na} <man content>
+#' @rdname helper_functions
 not_na <- function(x) {
   return(x[!is.na(x)])
 }
 
-
+#' \code{truncate_to_range} <man content>
+#' @rdname helper_functions
 truncate_to_range <- function(mixtures, range_) {
   min = range_[1]
   max = range_[2]
@@ -762,6 +794,8 @@ truncate_to_range <- function(mixtures, range_) {
   return(list(x2,to_leave))
 }
 
+#' \code{load_annotation} <man content>
+#' @rdname helper_functions
 load_annotation <- function(tumortype_file, signature_file, active_signatures_file) {
   names_trinucleotide <- read.table(paste0("annotation/trinucleotide.txt"), stringsAsFactors = F)
   names_trinucleotide <- apply(names_trinucleotide, 1, function(x) { do.call("paste", c(as.list(x), sep = "_"))})
@@ -826,6 +860,8 @@ load_annotation <- function(tumortype_file, signature_file, active_signatures_fi
   return(list(alex, tumortypes, active_signatures, active_signatures.our_samples))
 }
 
+#' \code{get_sample_purity} <man content>
+#' @rdname helper_functions
 get_sample_purity <- function(tumor_id) {
   purities <-read.delim(purity_file)
 
@@ -839,3 +875,29 @@ get_sample_purity <- function(tumor_id) {
   return(sample_purity)
 }
 
+#' \code{merge_signatures} <man content>
+#' @rdname helper_functions
+merge_signatures <- function(mixtures, sigs_to_merge) {
+  if (!is.null(sigs_to_merge)) {
+    for (i in 1:length(sigs_to_merge)) {
+      set_name <- names(sigs_to_merge)[i]
+      sig_set = sigs_to_merge[[i]]
+      sig_set = intersect(rownames(mixtures), sig_set)
+
+      if (length(sig_set) == 0) {
+        next
+      }
+
+      new_mixture_col <- toHorizontalMatrix(apply(mixtures[sig_set,,drop=F],2,sum))
+      rownames(new_mixture_col) <- set_name
+      colnames(new_mixture_col) <- colnames(mixtures)
+
+      if (length(intersect(rownames(mixtures), sig_set)) == nrow(mixtures)) {
+        mixtures <- new_mixture_col
+      } else {
+        mixtures <- rbind(mixtures[-which(rownames(mixtures) %in% sig_set),,drop=FALSE], new_mixture_col)
+      }
+    }
+  }
+  return(mixtures)
+}
