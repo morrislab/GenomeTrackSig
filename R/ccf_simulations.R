@@ -49,7 +49,7 @@ load_sim_signatures <- function() {
 
 generate_ccf_simulation <- function(n_clusters, cluster_ccfs, n_mut_per_cluster, sig_activities,
 	cluster_cna_info = list(), mean_depth = 100, to_file = TRUE,
-	simulation_name = "simulation"){
+	simulation_name = "simulation", outdir = "."){
 
 	normal_mut_alleles = 1
 	normal_total_CN = 2
@@ -153,7 +153,7 @@ generate_ccf_simulation <- function(n_clusters, cluster_ccfs, n_mut_per_cluster,
 		print(mean(mut_ccfs))
 
 
-		pdf(paste0("simulation_results/mut_ccf", cl, ".pdf"), width = 8, height=5)
+		pdf(paste0(outdir, "/", simulation_name, "_mut_ccf", cl, ".pdf"), width = 8, height=5)
 		hist(mut_ccfs, breaks=200)
 		dev.off()
 		##################
@@ -165,13 +165,13 @@ generate_ccf_simulation <- function(n_clusters, cluster_ccfs, n_mut_per_cluster,
 	##################
 	mut_ccfs <- data_all_clusters$n_alt_alleles / (data_all_clusters$n_alt_alleles + data_all_clusters$n_ref_alleles)
 
-	pdf("simulation_results/mut_ccf.pdf", width = 8, height=5)
+	pdf(paste0(outdir, "/", simulation_name, "_mut_ccf.pdf"), width = 8, height=5)
 	hist(mut_ccfs, breaks=200)
 	dev.off()
 	##################
 
 	if (to_file == TRUE){
-	save_as_vcf(data_all_clusters, simulation_name)
+	save_as_vcf(data_all_clusters, paste0(outdir, "/", simulation_name))
 	}
 
 	return(data_all_clusters)
@@ -210,20 +210,21 @@ save_as_vcf <- function(data, filename) {
 #' @param with_CNA logical whether to simulate data with copy number abberations.
 #' @rdname create_simulation_set
 #' @export
-create_simulation_set <- function(with_CNA = FALSE) {
-	if (with_CNA == FALSE) {
-	  # Basic simulation
-	  sig_activities = list(
-	  	list("SBS1" = 0.05, "SBS4" = 0.6, "SBS5" = 0.35),
-	  	list("SBS1" = 0.05, "SBS4" = 0.2, "SBS5" = 0.75),
-	  	list("SBS1" = 0.05, "SBS4" = 0.3, "SBS5" = 0.65))
+create_simulation_set <- function(with_CNA = FALSE, outdir = "simulation_results") {
 
+  sig_activities = list(list("SBS1" = 0.05, "SBS4" = 0.6, "SBS5" = 0.35),
+                        list("SBS1" = 0.05, "SBS4" = 0.2, "SBS5" = 0.75),
+                        list("SBS1" = 0.05, "SBS4" = 0.3, "SBS5" = 0.65))
+
+  if (with_CNA == FALSE) {
+    # Basic simulation
 	  generate_ccf_simulation(
 	  	n_clusters = 3,
 	  	cluster_ccfs = c(1.0, 0.5, 0.3),
-	  	n_mut_per_cluster = c(10000, 5000, 3000),
+	  	n_mut_per_cluster = c(5000, 3000, 1500),
 	  	sig_activities = sig_activities,
-	  	simulation_name = "basic_simulation")
+	  	simulation_name = "basic_simulation",
+	  	outdir = outdir)
 	}
   else{
     # Simulation with mutations affected by CNA
@@ -237,9 +238,18 @@ create_simulation_set <- function(with_CNA = FALSE) {
 	  generate_ccf_simulation(
 	  	n_clusters = 3,
 	  	cluster_ccfs = c(1.0, 0.8, 0.5),
-	  	n_mut_per_cluster = c(1000, 500, 300),
+	  	n_mut_per_cluster = c(5000, 3000, 1500),
 	  	sig_activities = sig_activities,
 	  	cluster_cna_info = cluster_cna_info,
-	  	simulation_name = "cna_simulation")
+	  	simulation_name = "cna_simulation",
+	  	outdir = outdir)
   }
+}
+
+#' \code{run_simulations} Run tracksig on simulated data.
+#' @rdname simulation_functions
+#' @export
+run_simulations <- function(with_CNA = FALSE, ){
+  create_simulation_set(with_CNA = with_CNA, outdir = outdir)
+
 }
