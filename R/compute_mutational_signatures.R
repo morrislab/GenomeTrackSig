@@ -45,7 +45,7 @@ save_data_for_samples <- function(dir_counts = TrackSig.options()$DIR_COUNTS,
   {
     print(paste0("Example ", example, " (", which(examples_group == example), " out of ", length(examples_group), ")"))
 
-    if (simulated_data) {
+    if (TrackSig.options()$simulated_data) {
       list[tumor_id, vcfData, phis, acronym, dir_name] <- extract_data_for_simulation(example, dir_counts, dir_create = F)
     } else {
       list[tumor_id, vcfData, phis, assigns_phylo_nodes, acronym, dir_name] <- extract_data_for_example(example, dir_counts, tumortypes, dir_create = F)
@@ -85,7 +85,7 @@ save_data_for_samples <- function(dir_counts = TrackSig.options()$DIR_COUNTS,
       phis_for_plot <- phis_sliding_window <- phis
     }
 
-    if (!simulated_data) {
+    if (!TrackSig.options()$simulated_data) {
       purity = get_sample_purity(example)
       phis_for_plot = phis_for_plot / purity
 
@@ -139,7 +139,7 @@ save_data_for_samples <- function(dir_counts = TrackSig.options()$DIR_COUNTS,
       }
     }
 
-    if (simulated_data) {
+    if (TrackSig.options()$simulated_data) {
       dir.create(paste0(TrackSig.options()$SAVED_SAMPLES_DIR, "/", acronym, "/"), showWarnings=F, recursive=T)
       assigns_phylo_nodes = assigns_phylo_nodes_sw = bootstrap_vcfs = bootstrap_phis = bootstrap_vcfs_unsorted = NULL
     }
@@ -150,12 +150,6 @@ save_data_for_samples <- function(dir_counts = TrackSig.options()$DIR_COUNTS,
   }
 }
 
-#' \code{load_data_for_samples} Load previously computed mutation count data
-#'
-#' @rdname compute_mutational_signatures
-#' @export
-
-load_data_for_samples <- function(){return(3)}
 
 #' \code{compute_signatures_for_all_examples} Compute mutational signatures and \cr
 #' find changepoints
@@ -170,7 +164,7 @@ compute_signatures_for_all_examples <- function(dir_counts = TrackSig.options()$
 
   age_signatures <- c("S1", "S5", "L1", "1", "5a", "5b")
 
-  if (simulated_data) {
+  if (TrackSig.options()$simulated_data) {
     tumors <- list.files(dir_counts, recursive=T)
     tumors <- tumors[grepl("([^/]*)\\d\\.csv", tumors)]
     tumors <- gsub("([^/]*)\\.csv","\\1", tumors)
@@ -197,7 +191,7 @@ compute_signatures_for_all_examples <- function(dir_counts = TrackSig.options()$
       next
     }
 
-    if (simulated_data){
+    if (TrackSig.options()$simulated_data){
       active_sigs <- data.frame(tumor_type = acronym, ID = tumor_id, Name = acronym, toHorizontalMatrix(rep(0, ncol(alex))), stringsAsFactors=F)
       colnames(active_sigs) <- c("tumor_type", "ID", "Name", colnames(alex))
 
@@ -275,7 +269,7 @@ compute_signatures_for_all_examples <- function(dir_counts = TrackSig.options()$
 
     age_signatures <- intersect(rownames(mixtures), age_signatures)
 
-    if (simulated_data) {
+    if (TrackSig.options()$simulated_data) {
       plot_name <- paste0(dir_name, "/", tumor_id,  ".pdf")
     } else {
       plot_name <- paste0(dir_name, "/", acronym, "_", tumor_id, "_", sig_amount, postfix, ".pdf")
