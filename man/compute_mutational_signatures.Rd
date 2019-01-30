@@ -3,15 +3,11 @@
 \name{compute_mutational_signatures}
 \alias{compute_mutational_signatures}
 \alias{save_data_for_samples}
-\alias{load_data_for_samples}
 \alias{compute_signatures_for_all_examples}
 \alias{compute_errorbars_for_all_examples}
 \title{Functions to compute mutational signatures}
 \usage{
-save_data_for_samples(dir_counts = TrackSig.options()$DIR_COUNTS,
-  bootstrap_counts = TrackSig.options()$BOOTSTRAP_COUNTS)
-
-load_data_for_samples()
+save_data_for_samples()
 
 
   compute_signatures_for_all_examples(dir_counts = TrackSig.options()$DIR_COUNTS)
@@ -30,8 +26,6 @@ counts are located. Defaults toTrackSig.options()$BOOTSTRAP_COUNTS}
 Functions to compute mutational signatures
 
 \code{save_data_for_samples} Load previously computed mutation count data and save as RData
-
-\code{load_data_for_samples} Load previously computed mutation count data
 
 \code{compute_signatures_for_all_examples} Compute mutational signatures and \cr
 find changepoints

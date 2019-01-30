@@ -60,8 +60,8 @@ gather_statistics(mixtures, changepoints, tumor_id, dir_name, tumor_type,
 extract_data_for_example(example, dir_counts, tumortypes,
   dir_results = DIR_RESULTS, dir_create = T)
 
-extract_data_for_simulation(example, dir_counts, dir_results = DIR_RESULTS,
-  dir_create = T)
+extract_data_for_simulation(example, dir_counts,
+  dir_results = DIR_RESULTS, dir_create = T)
 
 extract_bootstrap_data_for_example(example, bootstrap_counts)
 
@@ -83,8 +83,8 @@ get_examples_group(list_,
 compute_mean_sd_err(mixtures_bootstrap, sig_names, dir_name = NULL,
   descr = "", exclude_zero = F)
 
-get_bootstrap_mixtures(bootstrap_vcfs, bootstrap_phis, alex.t, dir_name, descr,
-  verbose = TRUE)
+get_bootstrap_mixtures(bootstrap_vcfs, bootstrap_phis, alex.t, dir_name,
+  descr, verbose = TRUE)
 
 add_list_by_element(list_total_sum, list_to_add)
 
@@ -101,60 +101,4 @@ merge_signatures(mixtures, sigs_to_merge)
 \description{
 Non-exported functions called by \code{TrackSig} functions. \cr
 Not intended for end-user use.
-
-\code{gg_color_hue} Select colour hues for plotting
-
-\code{get_values_from_list} Retrieve values by name from list
-
-\code{toVerticalMatrix} Convert a list or vector-like object to a vertial matrix
-
-\code{reset_parallelize} Select colour hues for plotting
-
-\code{get_sliding_window_data} <man content>
-
-\code{get_sliding_window_data} <man content>
-
-\code{get_sliding_window_data} <man content>
-
-\code{get_sliding_window_data} <man content>
-
-\code{save_data} <man content>
-
-\code{toHorizontalMatrix} <man content>
-
-\code{gather_statistics} <man content>
-
-\code{extract_data_for_example} <man content>
-
-\code{extract_data_for_simulation} <man content>
-
-\code{extract_bootstrap_data_for_example} <man content>
-
-\code{gather_summaries_per_tissue} <man content>
-
-\code{add_noise} <man content>
-
-\code{convert_window_to_indices} <man content>
-
-\code{find_indices_with_intersection} <man content>
-
-\code{read_mixtures} <man content>
-
-\code{get_examples_group} <man content>
-
-\code{compute_mean_sd_err} <man content>
-
-\code{get_bootstrap_mixtures} <man content>
-
-\code{add_list_by_element} <man content>
-
-\code{not_na} <man content>
-
-\code{truncate_to_range} <man content>
-
-\code{load_annotation} <man content>
-
-\code{get_sample_purity} <man content>
-
-\code{merge_signatures} <man content>
 }

@@ -811,7 +811,7 @@ load_annotation <- function(tumortype_file, signature_file, active_signatures_fi
   rownames(alex) <- names_trinucleotide
   colnames(alex) <- paste0("S", 1:ncol(alex))
 
-  if (cancer_type_signatures) {
+  if (TrackSig.options()$cancer_type_signatures) {
     # Load active signatures for each tumor type
     active_signatures <- read.delim(active_signatures_file, stringsAsFactors=F)
     active_signatures[is.na(active_signatures)] <- 0

@@ -4,7 +4,8 @@
 \alias{create_simulation_set}
 \title{\code{create_simulation_set} generates simulated data files}
 \usage{
-create_simulation_set(with_CNA = FALSE)
+create_simulation_set(with_CNA = FALSE, outdir = "simulation_results",
+  simulation_name = "simulation", n_mut_per_cluster = c(100, 40, 20))
 }
 \arguments{
 \item{with_CNA}{logical whether to simulate data with copy number abberations.}
