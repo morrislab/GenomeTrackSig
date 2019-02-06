@@ -18,6 +18,9 @@ gg_color_hue <- function(n) {
   hcl(h = hues, l = 65, c = 100)[1:n]
 }
 
+#' \code{list} Succinct object assignment
+#' @rdname helper_functions
+#'
 list <- structure(NA,class="result")
 "[<-.result" <- function(x,...,value) {
   args <- as.list(match.call())
@@ -386,8 +389,10 @@ extract_data_for_example <- function (example, dir_counts, tumortypes, dir_resul
   #example <- "1c3df485-8e75-4378-87f6-c6463a520624"
 
   vcfFile <- paste0(dir_counts, "/", example, ".phi.txt")
+  quadPhisFile <- paste0(dir_counts, "/", example, ".quadraticp.txt")
 
   vcfData <- tryCatch(read.table(vcfFile), error=function(e) NULL) # 96 trinucleotide counts are read as input
+  quadratic_phis <- tryCatch(read.table(quadPhisFile)$V1, error=function(e) NULL)
 
   tumor_id <- gsub("^(.*)\\..*", "\\1", example)
 
@@ -400,14 +405,14 @@ extract_data_for_example <- function (example, dir_counts, tumortypes, dir_resul
 
   if (is.null(vcfData))
   {
-    return(list(tumor_id, vcfData, NULL, NULL, acronym, dir_name))
+    return(list(tumor_id, vcfData, NULL, NULL, NULL, acronym, dir_name))
   }
 
   assigns_phylo_nodes <- NULL
-  if (file.exists(paste0(mutation_assignments, "/", example, ".tree_clusters_by100.txt")))
+  if (file.exists(paste0(TrackSig.options()$mutation_assignments, "/", example, ".tree_clusters_by100.txt")))
   {
-    assigns_phylo_nodes <- tryCatch(read.delim(paste0(mutation_assignments, "/", example, ".tree_clusters_by100.txt"),
-                                      header=F), error=function(e) NULL)
+    assigns_phylo_nodes <- tryCatch(read.delim(paste0(TrackSig.options()$TrackSig.options()$mutation_assignments, "/", example, ".tree_clusters_by100.txt"),
+                                               header=F), error=function(e) NULL)
   }
 
 
@@ -415,12 +420,12 @@ extract_data_for_example <- function (example, dir_counts, tumortypes, dir_resul
   # Lydia's data
   if (exists("mutation_order"))
   {
-    if (file.exists(paste0(mutation_assignments, "/", example, "_ssms.txt")) &
-    file.exists(paste0(mutation_order, "/", example, ".mut_order.txt")))
+    if (file.exists(paste0(TrackSig.options()$mutation_assignments, "/", example, "_ssms.txt")) &
+        file.exists(paste0(mutation_order, "/", example, ".mut_order.txt")))
     {
 
-      assigns_phylo_nodes <- tryCatch(read.delim(paste0(mutation_assignments, "/", example, "_ssms.txt"),
-                                        header=T, stringsAsFactors=F), error=function(e) NULL)
+      assigns_phylo_nodes <- tryCatch(read.delim(paste0(TrackSig.options()$mutation_assignments, "/", example, "_ssms.txt"),
+                                                 header=T, stringsAsFactors=F), error=function(e) NULL)
 
       splitted <- sapply(assigns_phylo_nodes[,2], function(x) {strsplit(x, ":", fixed=FALSE)})
       chr <- gsub("chr([\\d]*)", "\\1", sapply(splitted, function(x) {x[2]}))
@@ -430,7 +435,7 @@ extract_data_for_example <- function (example, dir_counts, tumortypes, dir_resul
       assigns_phylo_nodes <- cbind(chr = chr, pos = pos, cluster = cluster)
 
       mut_order <- tryCatch(read.delim(paste0(mutation_order, "/", example, ".mut_order.txt"),
-                                        header=F, stringsAsFactors=F), error=function(e) NULL)
+                                       header=F, stringsAsFactors=F), error=function(e) NULL)
       mut_order <- paste(mut_order[,1], mut_order[,2])
 
       assigns_phylo_nodes_pos <- paste(assigns_phylo_nodes[,1], assigns_phylo_nodes[,2])
@@ -440,9 +445,9 @@ extract_data_for_example <- function (example, dir_counts, tumortypes, dir_resul
       clusters_ordered_by_100 = c()
       for (i in 1:n_hundreds)
       {
-          clusters_100 <- assigns_phylo_nodes[((i-1) * 100): min(length(assigns_phylo_nodes), (i * 100))]
-          max_cluster <- names(which.max(table(clusters_100)))
-          clusters_ordered_by_100 <- c(clusters_ordered_by_100, max_cluster)
+        clusters_100 <- assigns_phylo_nodes[((i-1) * 100): min(length(assigns_phylo_nodes), (i * 100))]
+        max_cluster <- names(which.max(table(clusters_100)))
+        clusters_ordered_by_100 <- c(clusters_ordered_by_100, max_cluster)
       }
       assigns_phylo_nodes <- toVerticalMatrix(as.factor(clusters_ordered_by_100))
     }
@@ -483,7 +488,7 @@ extract_data_for_example <- function (example, dir_counts, tumortypes, dir_resul
     assigns_phylo_nodes = NULL
   }
 
-  return(list(tumor_id, vcfData, phis, assigns_phylo_nodes, acronym, dir_name))
+  return(list(tumor_id, vcfData, phis, quadratic_phis, assigns_phylo_nodes, acronym, dir_name))
 }
 
 #' \code{extract_data_for_simulation} <man content>
@@ -737,7 +742,7 @@ get_bootstrap_mixtures <- function(bootstrap_vcfs, bootstrap_phis, alex.t, dir_n
     }
     if (!file.exists(paste0(dir_name,"mixtures.bootstrap_", j, descr, ".csv")) | !file.exists(paste0(dir_name, "changepoints.bootstrap_", j, descr, ".txt")))
     {
-      if (changepoint_method == "PELT") {
+      if (TrackSig.options()$changepoint_method == "PELT") {
         list[cp, m] <- find_changepoints_pelt(t(bootstrap_vcfs[[j]]), alex.t)
       } else {
         list[bics, optimal, cp, m] <- find_changepoints_over_all_signatures_one_by_one(bootstrap_vcfs[[j]], alex.t, n_signatures = ncol(alex.t))
@@ -796,7 +801,9 @@ truncate_to_range <- function(mixtures, range_) {
 
 #' \code{load_annotation} <man content>
 #' @rdname helper_functions
-load_annotation <- function(tumortype_file, signature_file, active_signatures_file) {
+#' @export
+load_annotation <- function(tumortype_file = TrackSig.options()$tumortype_file, signature_file = TrackSig.options()$signature_file,
+                            active_signatures_file = TrackSig.options()$active_signatures_file) {
   names_trinucleotide <- read.table(paste0("annotation/trinucleotide.txt"), stringsAsFactors = F)
   names_trinucleotide <- apply(names_trinucleotide, 1, function(x) { do.call("paste", c(as.list(x), sep = "_"))})
 
@@ -863,7 +870,7 @@ load_annotation <- function(tumortype_file, signature_file, active_signatures_fi
 #' \code{get_sample_purity} <man content>
 #' @rdname helper_functions
 get_sample_purity <- function(tumor_id) {
-  purities <-read.delim(purity_file)
+  purities <-read.delim(TrackSig.options()$purity_file)
 
   sample_purity = NULL
   if (!(tumor_id %in% purities$samplename)) {

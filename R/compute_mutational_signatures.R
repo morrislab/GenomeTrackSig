@@ -20,11 +20,10 @@ NULL
 #'
 #' @note save_data_for_samples() DEPRICATED: use load_data_for_samples() instead
 #' @rdname compute_mutational_signatures
-#' @export
 
 save_data_for_samples <- function(dir_counts = TrackSig.options()$DIR_COUNTS,
                                   bootstrap_counts = TrackSig.options()$BOOTSTRAP_COUNTS){
-  warning("save_data_for_samples is deprecated. Please see documention and use load_from_counts()")
+  warning("save_data_for_samples is deprecated.")
   print("Step 1: pre-processing")
 
   if (!file.exists(TrackSig.options()$SAVED_SAMPLES_DIR)) {
@@ -241,7 +240,7 @@ compute_signatures_for_all_examples <- function(dir_counts = TrackSig.options()$
 
     if (!file.exists(paste0(dir_name, "mixtures.csv")) || !file.exists(paste0(dir_name, "changepoints.txt")))
     {
-      if (changepoint_method == "PELT") {
+      if (TrackSig.options()$changepoint_method == "PELT") {
         list[changepoints, mixtures] <- find_changepoints_pelt(vcf, alex.t)
       } else {
         list[bics, optimal, changepoints, mixtures] <- find_changepoints_over_all_signatures_one_by_one(vcf, alex.t, n_signatures = ncol(alex.t))

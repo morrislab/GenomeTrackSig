@@ -2,15 +2,13 @@
 % Please edit documentation in R/load_all_samples.R
 \name{load_all_samples}
 \alias{load_all_samples}
-\alias{load_samples}
 \alias{load_sample}
 \title{\code{load_all_samples} Load previously computed mutation count data for all samples}
 \usage{
-load_samples(countsDir = TrackSig.options()$DIR_COUNTS,
-  bootstrapDir = TrackSig.options()$BOOTSTRAP_COUNTS, outDir = ".",
+load_all_samples(countsDir, bootstrapDir, outDir = ".",
   slidingWindow = FALSE)
 
-load_sample(sampleName, countsDir)
+load_sample(sample, countsDir, bootstrapDir, slidingWindow = FALSE)
 }
 \description{
 \code{load_all_samples} Load previously computed mutation count data for all samples

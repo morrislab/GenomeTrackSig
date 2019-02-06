@@ -22,10 +22,10 @@ load_sim_signatures <- function() {
 	sigs_to_merge[["SBS2+13"]] <- c("SBS2", "SBS13")
 	sigs_to_merge[["SBS10"]] <- c("SBS10a", "SBS10b")
 
-	names_trinucleotide <- trinucData
+	names_trinucleotide <- trinucleotide
 	names_trinucleotide <- apply(names_trinucleotide, 1, function(x) { do.call("paste", c(as.list(x), sep = "_"))})
 
-	alex <- sigProfilerData
+	alex <- sigProfiler_SBS_signatures
   pcawg_trinucleotides <- paste(substr(alex[,1], 2, 2), substr(alex[,1], 5, 5), substr(alex[,1], 1, 3), sep="_")
   rownames(alex) <- pcawg_trinucleotides
   alex <- alex[,-1]
@@ -213,6 +213,7 @@ save_as_vcf <- function(data, filename) {
 create_simulation_set <- function(with_CNA = FALSE, outdir = "simulation_results",
                                   simulation_name = "simulation", n_mut_per_cluster = c(100, 40, 20)) {
 
+  print(TrackSig.options()$tumortype_file)
   sig_activities = list(list("SBS1" = 0.05, "SBS4" = 0.6, "SBS5" = 0.35),
                         list("SBS1" = 0.05, "SBS4" = 0.2, "SBS5" = 0.75),
                         list("SBS1" = 0.05, "SBS4" = 0.3, "SBS5" = 0.65))
@@ -249,10 +250,3 @@ create_simulation_set <- function(with_CNA = FALSE, outdir = "simulation_results
 }
 
 
-#' \code{run_simulations} Run tracksig on simulated data.
-#' @rdname simulation_functions
-#' @export
-run_simulations <- function(with_CNA = FALSE, outdir){
-  create_simulation_set(with_CNA = with_CNA, outdir = outdir)
-
-}

@@ -5,7 +5,6 @@
 \alias{load_sim_signatures}
 \alias{generate_ccf_simulation}
 \alias{save_as_vcf}
-\alias{run_simulations}
 \title{Generate simulated data for \code{TrackSig}}
 \usage{
 load_sim_signatures()
@@ -15,8 +14,6 @@ generate_ccf_simulation(n_clusters, cluster_ccfs, n_mut_per_cluster,
   to_file = TRUE, simulation_name = "simulation", outdir = ".")
 
 save_as_vcf(data, filename)
-
-run_simulations(with_CNA = FALSE, outdir)
 }
 \arguments{
 \item{n_clusters}{integer number of clusters of mutations to simulate}
