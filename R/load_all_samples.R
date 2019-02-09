@@ -153,7 +153,7 @@ compute_signatures_for_all_examples <- function(countsDir, bootstrapDir){
 
     if (TrackSig.options()$sig_amount == "onlyKnownSignatures") {
       # Fit only known signatures
-      list[alex.t, matched_type, acronym] <- get_signatures_for_current_sample(tumor_id, active_signatures.our_samples, alex, noise_sig)
+      list[alex.t, matched_type, acronym] <- get_signatures_for_current_sample(tumor_id, active_signatures.our_samples, alex, TrackSig.options()$noise_sig)
     } else {
       alex.t <- alex
     }

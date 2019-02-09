@@ -804,6 +804,7 @@ truncate_to_range <- function(mixtures, range_) {
 #' @export
 load_annotation <- function(tumortype_file = TrackSig.options()$tumortype_file, signature_file = TrackSig.options()$signature_file,
                             active_signatures_file = TrackSig.options()$active_signatures_file) {
+
   names_trinucleotide <- read.table(paste0("annotation/trinucleotide.txt"), stringsAsFactors = F)
   names_trinucleotide <- apply(names_trinucleotide, 1, function(x) { do.call("paste", c(as.list(x), sep = "_"))})
 
@@ -811,16 +812,22 @@ load_annotation <- function(tumortype_file = TrackSig.options()$tumortype_file, 
   tumortypes <- read.delim(tumortype_file, header = T, stringsAsFactors=F)
   colnames(tumortypes) <- c("ID", "tumor_type")
 
-  # ALEX DATA
-  # The trinucleotide count matrix will be regressed on the 30 Alexandrov Mutational Signature frequencies
-  # http://cancer.sanger.ac.uk/cosmic/signatures
-  alex <- read.table(paste0(signature_file))
-  rownames(alex) <- names_trinucleotide
-  colnames(alex) <- paste0("S", 1:ncol(alex))
+  if (TrackSig.options()$sig_origin == "alex"){
+    # ALEX DATA
+    # The trinucleotide count matrix will be regressed on the 30 Alexandrov Mutational Signature frequencies
+    # http://cancer.sanger.ac.uk/cosmic/signatures
+    alex <- read.table(signature_file)
+    rownames(alex) <- names_trinucleotide
+    colnames(alex) <- paste0("S", 1:ncol(alex))
+
+  } else if (TrackSig.options()$sig_origin == "PCAWG"){
+    alex <- read.table(signature_file, header = T, row.names = 1)
+    rownames(alex) <- names_trinucleotide
+  }
 
   if (TrackSig.options()$cancer_type_signatures) {
     # Load active signatures for each tumor type
-    active_signatures <- read.delim(active_signatures_file, stringsAsFactors=F)
+    active_signatures <- read.delim(TrackSig.options()$active_signatures_file, stringsAsFactors=F)
     active_signatures[is.na(active_signatures)] <- 0
     # Removing column "Other.signatures"
     active_signatures <- active_signatures[, -ncol(active_signatures)]
@@ -850,7 +857,7 @@ load_annotation <- function(tumortype_file = TrackSig.options()$tumortype_file, 
   } else {
     active_signatures <- NULL
 
-    active_signatures.our_samples <- read.delim(active_signatures_file, stringsAsFactors=F)
+    active_signatures.our_samples <- read.table(TrackSig.options()$active_signatures_file, stringsAsFactors=F, header = F)
 
     #active_signatures.our_samples <- read.csv("PCAWG_signatures_in_samples_beta.csv")
     colnames(active_signatures.our_samples) <- c("tumor_type",  "ID", colnames(active_signatures.our_samples)[3:ncol(active_signatures.our_samples)])
