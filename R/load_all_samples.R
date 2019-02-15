@@ -54,17 +54,14 @@ load_sample <- function(sample, countsDir, bootstrapDir, slidingWindow = FALSE){
 
   if (is.null(vcfData)){
     print(paste0("No data read for sample ", sample))
-    next
   }
 
   if (nrow(vcfData) == 0){
     print(paste0("Zero rows for sample " , sample))
-    next
   }
 
   if (nrow(vcfData) < 6){ # Plots with less than 6 lines of data are meaningless so ignored
     print(paste0("Less than 6 rows per sample ", sample))
-    next
   }
 
   if (slidingWindow) {
@@ -139,7 +136,7 @@ compute_signatures_for_all_examples <- function(countsDir, bootstrapDir){
 
   examples_group <- get_examples_group(tumors)
 
-  mutation_types <- trinucleotide #data internal to package
+  mutation_types <- trinucleotide_internal #data internal to package
   mutation_types <- paste(mutation_types[,1], mutation_types[,2], mutation_types[,3], sep="_")
 
   #load annotation

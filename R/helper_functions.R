@@ -149,7 +149,7 @@ get_noise_sig <- function(noise_sig){
   return(c())
 }
 
-#' \code{get_sliding_window_data} <man content>
+#' \code{get_signatures_for_current_sample} <man content>
 #' @rdname helper_functions
 get_signatures_for_current_sample <- function (id, active_signatures.our_samples, alex, noise_sig) {
   if (grepl("simulation([\\d]*)", id))
@@ -190,9 +190,11 @@ get_signatures_for_current_sample <- function (id, active_signatures.our_samples
   return(list(alex.t, matched_type, current_type$tumor_type))
 }
 
-#' \code{save_data} <man content>
+#' \code{save_data} is depricated. See load_data instead.
 #' @rdname helper_functions
 save_data <- function(){
+  warning("save_data is depricated. See help for more")
+
   names_trinucleotide <- read.table(paste0(DIR, "trinucleotide.txt"), stringsAsFactors = F)
   names_trinucleotide <- apply(names_trinucleotide, 1, function(x) { do.call("paste", c(as.list(x), sep = "_"))})
 
@@ -799,31 +801,122 @@ truncate_to_range <- function(mixtures, range_) {
   return(list(x2,to_leave))
 }
 
-#' \code{load_annotation} <man content>
+
+#' \code{get_sample_purity} <man content>
+#' @rdname helper_functions
+get_sample_purity <- function(tumor_id) {
+  purities <-read.delim(TrackSig.options()$purity_file)
+
+  sample_purity = NULL
+  if (!(tumor_id %in% purities$samplename)) {
+    warning(paste("Tumor not found", tumor_id))
+  } else {
+    sample_purity = purities[purities$samplename == tumor_id,]$purity
+  }
+
+  return(sample_purity)
+}
+
+#' \code{merge_signatures} <man content>
+#' @rdname helper_functions
+merge_signatures <- function(mixtures, sigs_to_merge) {
+  if (!is.null(sigs_to_merge)) {
+    for (i in 1:length(sigs_to_merge)) {
+      set_name <- names(sigs_to_merge)[i]
+      sig_set = sigs_to_merge[[i]]
+      sig_set = intersect(rownames(mixtures), sig_set)
+
+      if (length(sig_set) == 0) {
+        next
+      }
+
+      new_mixture_col <- toHorizontalMatrix(apply(mixtures[sig_set,,drop=F],2,sum))
+      rownames(new_mixture_col) <- set_name
+      colnames(new_mixture_col) <- colnames(mixtures)
+
+      if (length(intersect(rownames(mixtures), sig_set)) == nrow(mixtures)) {
+        mixtures <- new_mixture_col
+      } else {
+        mixtures <- rbind(mixtures[-which(rownames(mixtures) %in% sig_set),,drop=FALSE], new_mixture_col)
+      }
+    }
+  }
+  return(mixtures)
+}
+
+#' \code{extract_exposures_per_mutation} <man content>
+#' @rdname helper_functions
+extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir, bin_size = 100) {
+  # activities_dir: path to the
+  # sorted_mutations_dir: folder with files for each tumour sample (or simulations). Each file has a list of mutations SORTED BY CCF
+  tumor_list <- list.dirs(activities_dir, recursive = F, full.names=F)
+
+  for (tumor in tumor_list) {
+    sorted_mut_file = paste0(sorted_mutations_dir, "/", tumor, ".mut_types.txt")
+    if (!file.exists(sorted_mut_file)) {
+      print(sprintf("File %s does not exist", sorted_mut_file))
+      next
+    }
+
+    mut_list <- read.delim(sorted_mut_file, header=F, stringsAsFactors=F)
+    colnames(mut_list) <- c("chr", "pos", "ccf", "ref", "alt", "tri")
+    ccfs <- mut_list[,"ccf"]
+
+    # Check if ccfs are in the decreasing order
+    stopifnot(!is.unsorted(rev(ccfs)))
+
+    activity_file <- paste0(activities_dir, "/", tumor, "/mixtures.csv")
+    if (!file.exists(activity_file)) {
+      print(sprintf("Activity file %s does not exist", activity_file))
+      next
+    }
+
+    activities <- read.csv(activity_file, header=T, stringsAsFactors=F)
+    rownames(activities) <- sapply(activities[,1], toString)
+    activities <- activities[,-1]
+    activities <- t(activities)
+
+    n_time_points = nrow(activities)
+
+    stopifnot(nrow(mut_list) <= n_time_points * bin_size)
+
+    activities_per_mut <- c()
+    for (i in 1:n_time_points) {
+      mut_current_tp = mut_list[(bin_size*(i-1)+1):(bin_size * i), ]
+      stopifnot(nrow(mut_current_tp) == bin_size)
+
+      current_activities = activities[i,,drop=F]
+      # repeat current_activities for every mutation
+      current_activities <- current_activities[rep(1, nrow(mut_current_tp)),]
+
+      data <- suppressWarnings(data.frame(chromosome=mut_current_tp$chr, start=mut_current_tp$pos, current_activities))
+      activities_per_mut <- rbind(activities_per_mut, data)
+    }
+
+    stopifnot(nrow(activities_per_mut) == nrow(mut_list))
+    write.table(activities_per_mut, file = paste0(activities_dir, "/", tumor, "/sig_exposures_per_mut.txt"), sep = "\t", row.names=F, quote=F)
+  }
+}
+
+#' \code{otation} <man content>
 #' @rdname helper_functions
 #' @export
 load_annotation <- function(tumortype_file = TrackSig.options()$tumortype_file, signature_file = TrackSig.options()$signature_file,
-                            active_signatures_file = TrackSig.options()$active_signatures_file) {
+                            active_signatures_file = TrackSig.options()$active_signatures_file){
 
-  names_trinucleotide <- read.table(paste0("annotation/trinucleotide.txt"), stringsAsFactors = F)
+  names_trinucleotide <- trinucleotide_internal
   names_trinucleotide <- apply(names_trinucleotide, 1, function(x) { do.call("paste", c(as.list(x), sep = "_"))})
 
   # Load the tumor types for tumor IDs.
   tumortypes <- read.delim(tumortype_file, header = T, stringsAsFactors=F)
   colnames(tumortypes) <- c("ID", "tumor_type")
 
-  if (TrackSig.options()$sig_origin == "alex"){
-    # ALEX DATA
-    # The trinucleotide count matrix will be regressed on the 30 Alexandrov Mutational Signature frequencies
-    # http://cancer.sanger.ac.uk/cosmic/signatures
-    alex <- read.table(signature_file)
-    rownames(alex) <- names_trinucleotide
-    colnames(alex) <- paste0("S", 1:ncol(alex))
-
-  } else if (TrackSig.options()$sig_origin == "PCAWG"){
-    alex <- read.table(signature_file, header = T, row.names = 1)
-    rownames(alex) <- names_trinucleotide
-  }
+  # ALEX DATA
+  # The trinucleotide count matrix will be regressed on the 30 Alexandrov Mutational Signature frequencies
+  # http://cancer.sanger.ac.uk/cosmic/signatures
+  alex <- read.table(signature_file)
+  rownames(alex) <- names_trinucleotide
+  colnames(alex) <- paste0("S", 1:ncol(alex))
 
   if (TrackSig.options()$cancer_type_signatures) {
     # Load active signatures for each tumor type
@@ -874,44 +967,57 @@ load_annotation <- function(tumortype_file = TrackSig.options()$tumortype_file, 
   return(list(alex, tumortypes, active_signatures, active_signatures.our_samples))
 }
 
-#' \code{get_sample_purity} <man content>
+
+#' \code{load_annotation_pcawg} <man content>
 #' @rdname helper_functions
-get_sample_purity <- function(tumor_id) {
-  purities <-read.delim(TrackSig.options()$purity_file)
+load_annotation_pcawg <- function(tumortype_file = TrackSig.options()$tumortype_file, signature_file =TrackSig.options()$signature_file,
+                                  active_signatures_file = TrackSig.options()$active_signatures_file) {
 
-  sample_purity = NULL
-  if (!(tumor_id %in% purities$samplename)) {
-    warning(paste("Tumor not found", tumor_id))
-  } else {
-    sample_purity = purities[purities$samplename == tumor_id,]$purity
-  }
+  names_trinucleotide <- trinucleotide_internal
+  names_trinucleotide <- apply(names_trinucleotide, 1, function(x) { do.call("paste", c(as.list(x), sep = "_"))})
 
-  return(sample_purity)
-}
+  # Load the tumor types for tumor IDs.
+  tumortypes <- read.delim(tumortype_file, header = F, stringsAsFactors=F)
+  colnames(tumortypes) <- c("ID", "tumor_type")
 
-#' \code{merge_signatures} <man content>
-#' @rdname helper_functions
-merge_signatures <- function(mixtures, sigs_to_merge) {
-  if (!is.null(sigs_to_merge)) {
-    for (i in 1:length(sigs_to_merge)) {
-      set_name <- names(sigs_to_merge)[i]
-      sig_set = sigs_to_merge[[i]]
-      sig_set = intersect(rownames(mixtures), sig_set)
+  # Signatures from PCAWG group
+  alex <- read.table(signature_file, header = T, stringsAsFactors = FALSE)
+  #alex <- read.csv(paste0(DIR, "PCAWG_signature_patterns_beta.csv"), header = T)
+  #pcawg_trinucleotides <- paste0(gsub(">", "_", alex[,1]), "_", alex[,2])
+  pcawg_trinucleotides <- paste(substr(alex[,1], 2, 2), substr(alex[,1], 5, 5), substr(alex[,1], 1, 3), sep="_")
+  rownames(alex) <- pcawg_trinucleotides
+  alex <- alex[,-1]
+  # to make the order of mutation types match names_trinucleotide
+  alex <- alex[match(names_trinucleotide, pcawg_trinucleotides),]
+  #colnames(alex) <- gsub("Signature.(.*)", "\\1", colnames(alex))
+  #colnames(alex) <- gsub("PCAWG.(.*)", "\\1", colnames(alex))
 
-      if (length(sig_set) == 0) {
-        next
-      }
 
-      new_mixture_col <- toHorizontalMatrix(apply(mixtures[sig_set,,drop=F],2,sum))
-      rownames(new_mixture_col) <- set_name
-      colnames(new_mixture_col) <- colnames(mixtures)
+  sigs_to_merge <- list()
+  sigs_to_merge[["SBS7"]] <- c("SBS7a", "SBS7b", "SBS7c", "SBS7d")
+  sigs_to_merge[["SBS17"]] <- c("SBS17a", "SBS17b")
+  sigs_to_merge[["SBS2+13"]] <- c("SBS2", "SBS13")
+  sigs_to_merge[["SBS10"]] <- c("SBS10a", "SBS10b")
 
-      if (length(intersect(rownames(mixtures), sig_set)) == nrow(mixtures)) {
-        mixtures <- new_mixture_col
-      } else {
-        mixtures <- rbind(mixtures[-which(rownames(mixtures) %in% sig_set),,drop=FALSE], new_mixture_col)
-      }
+  alex_merged <- t(merge_signatures(t(alex), sigs_to_merge))
+
+  active_signatures <- active_signatures.our_samples <- NULL
+  if (!is.null(active_signatures_file)) {
+    active_signatures.our_samples <- read.delim(active_signatures_file, stringsAsFactors=F)
+    colnames(active_signatures.our_samples) <- c("tumor_type",  "ID", colnames(active_signatures.our_samples)[3:ncol(active_signatures.our_samples)])
+
+    active_signatures.our_samples.data <- active_signatures.our_samples[,3:ncol(active_signatures.our_samples)]
+    active_signatures.our_samples.data[active_signatures.our_samples.data > 0] <- 1
+
+    active_signatures.our_samples <- cbind(active_signatures.our_samples[,c(1,2)], Name=NA, active_signatures.our_samples.data)
+    active_signatures.our_samples$Name <- sapply(active_signatures.our_samples$tumor_type, toString)
+
+    if ("SBS2.13" %in% colnames(active_signatures.our_samples)) {
+      colnames(active_signatures.our_samples)[colnames(active_signatures.our_samples) == "SBS2.13"] = "SBS2+13"
     }
   }
-  return(mixtures)
+
+  return(list(alex_merged, tumortypes, active_signatures, active_signatures.our_samples))
 }
+
+#[END]
