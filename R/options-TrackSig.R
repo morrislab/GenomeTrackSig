@@ -73,8 +73,7 @@ NULL
                 "#252F99","#00CCFF","#674E60","#FC009C","#92896B")
 
   # Select fitting all signatures or only signatures for the particular cancer type
-  # sig_amount <- "onlyKnownSignatures" # recommended
-  , sig_amount = "onlyKnownSignatures" # not recommended, time-consuming
+  , sig_amount = "onlyKnownSignatures" # "onlyKnownSignatures" recommended, "all" not recommended, time-consuming
 
   # if the signatures are specified per cancer type or per sample
   , cancer_type_signatures = TRUE
@@ -125,8 +124,8 @@ NULL
   , group = 0
   , EXAMPLES_PER_GROUP = 500
 
-  # signature reference type (affects load_annotation file read)
-  , sig_origin = "PCAWG"
+  # signature reference format (for loading annotation)
+  , pcawg_format = TRUE
 
 )
 

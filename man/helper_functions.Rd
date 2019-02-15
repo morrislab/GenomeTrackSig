@@ -29,9 +29,11 @@
 \alias{add_list_by_element}
 \alias{not_na}
 \alias{truncate_to_range}
-\alias{load_annotation}
 \alias{get_sample_purity}
 \alias{merge_signatures}
+\alias{extract_exposures_per_mutation}
+\alias{load_annotation}
+\alias{load_annotation_pcawg}
 \title{Helper functions for \code{TrackSig}}
 \format{An object of class \code{result} of length 1.}
 \usage{
@@ -97,13 +99,21 @@ not_na(x)
 
 truncate_to_range(mixtures, range_)
 
+get_sample_purity(tumor_id)
+
+merge_signatures(mixtures, sigs_to_merge)
+
+extract_exposures_per_mutation(activities_dir, sorted_mutations_dir,
+  bin_size = 100)
+
 load_annotation(tumortype_file = TrackSig.options()$tumortype_file,
   signature_file = TrackSig.options()$signature_file,
   active_signatures_file = TrackSig.options()$active_signatures_file)
 
-get_sample_purity(tumor_id)
 
-merge_signatures(mixtures, sigs_to_merge)
+  load_annotation_pcawg(tumortype_file = TrackSig.options()$tumortype_file,
+  signature_file = TrackSig.options()$signature_file,
+  active_signatures_file = TrackSig.options()$active_signatures_file)
 }
 \description{
 Non-exported functions called by \code{TrackSig} functions. \cr
