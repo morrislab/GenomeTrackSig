@@ -142,6 +142,14 @@ compute_signatures_for_all_examples <- function(countsDir, bootstrapDir){
   mutation_types <- trinucleotide #data internal to package
   mutation_types <- paste(mutation_types[,1], mutation_types[,2], mutation_types[,3], sep="_")
 
+  #load annotation
+  if (TrackSig.options()$pcawg_format == TRUE){
+
+  }
+  else{
+    list[alex, tumortypes, active_signatures, active_signatures.our_samples] <- load_annotation()
+  }
+
   for (example in examples_group)
   {
     set.seed(which(examples_group == example))
