@@ -5,10 +5,8 @@
 # Modified for package TrackSig by Cait Harrigan
 
 num_mutations=$(min_number `cat $phi_file | wc -l` `cat $vcf_file | wc -l`)
-
 num_hundreds=$(($num_mutations/100 + ($num_mutations % 100 > 0)))
 
-echo pos1 >> ~/Documents/Cait-TrackSig/log
 
 if [ ! -f $mutation_counts_file ]; then
 	if [ $num_mutations -lt 100 ]; then
@@ -27,16 +25,11 @@ if [ ! -f $mutation_counts_file ]; then
 	fi
 fi
 
-echo pos2 >> ~/Documents/Cait-TrackSig/log
-
 
 if [[ ! -f "$mutation_counts_file" ]]; then
 	echo "ERROR: $mutation_counts_file file not created. Aborting..."
 	exit -1
 fi
-
-echo pos3 >> ~/Documents/Cait-TrackSig/log
-
 
 if [ "$do_bootstrap" = true ] ; then
    bootstrap_dir=$mutation_bootstrap_path/$tumor_id/

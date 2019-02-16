@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
 	os.system("rm " + tmp_file )
 
-	indices_to_bootstrap = np.random.choice(xrange(n_mutations), n_bootstrap)
+	indices_to_bootstrap = np.random.choice(list(range(n_mutations)), n_bootstrap)
 
 	mut_list = []
 

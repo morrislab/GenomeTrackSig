@@ -4,19 +4,20 @@
 # AUTHOR: Yulia Rubanova
 # Modified for package TrackSig by Cait Harrigan
 
-vcf_file=$1 # Path to directory with vcf files
-phi_file=$2 # Path to directory with phi.txt files produces by cals_ssm_phis.py
+packagePath=$1
+vcf_file=$2 # Path to directory with vcf files
+phi_file=$3 # Path to directory with phi.txt files produces by cals_ssm_phis.py
 
 mutation_counts_path="data/counts/" # Path where to write the mutation counts and sum of quadratic phis
 mut_order_path="data/mut_order/" # Path where to write mutation ordering (list of mutations sorted by phi). Needed to run get_clusters_at_timepoints.R. get_clusters_at_timepoints.R   composes list of tree node assignments for chunks of 100 mutations (prevalent tree node assignments at this time point)
 mutation_types_path="data/mut_types/" # Path where to write files listing mutation type (out of 96 trinucleotide-based types) for each mutation in vcf file sorted by phi
 mutation_bootstrap_path="data/bootstrap/" # Path where to write bootstrapped mutation counts
 
-make_hundreds_script="src/make_hundreds.py"
-get_mutation_type_script="src/getMutationTypes.pl"
-bootstrap_mutations_script="src/bootstrap_mutations.py"
+make_hundreds_script="$packagePath/python/make_hundreds.py"
+get_mutation_type_script="$packagePath/perl/getMutationTypes.pl"
+bootstrap_mutations_script="$packagePath/python/bootstrap_mutations.py"
 
-do_bootstrap=true
+do_bootstrap=false
 
 N_BOOTSTRAPS=30
 
@@ -87,4 +88,4 @@ mutation_counts_file=$mutation_counts_path/$tumor_id.${tumor_part}phi.txt
 mutation_types_file=$mutation_types_path/$tumor_id.${tumor_part}mut_types.txt
 mutation_quadraticp_file=$mutation_counts_path/$tumor_id.${tumor_part}quadraticp.txt
 mut_order_file=$mut_order_path/$tumor_id.${tumor_part}mut_order.txt
-echo quadp file: $mutation_quadraticp_file >> ~/Documents/Cait-TrackSig/log.txt
+
