@@ -22,117 +22,117 @@ half_with_highest_depth = False
 sample_vaf_from_posterior = True
 
 class ReadCountsUnavailableError(Exception):
-  pass
+	pass
 
 class VariantParser(object):
-  def __init__(self):
-    # Child classes must give the following variables sensible values in
-    # constructor so that list_variants() works subsequently.
-    self._cnvs = None
-    self._vcf_filename = None
+	def __init__(self):
+		# Child classes must give the following variables sensible values in
+		# constructor so that list_variants() works subsequently.
+		self._cnvs = None
+		self._vcf_filename = None
 
-  def list_variants(self):
-    variants = self._filter(self._vcf_filename)
-    variants_and_reads = []
-    for variant in variants:
-      try:
-        ref_reads, total_reads = self._calc_read_counts(variant)
-      except ReadCountsUnavailableError as exc:
-        continue
-      variants_and_reads.append((variant, ref_reads, total_reads))
-    return variants_and_reads
+	def list_variants(self):
+		variants = self._filter(self._vcf_filename)
+		variants_and_reads = []
+		for variant in variants:
+			try:
+				ref_reads, total_reads = self._calc_read_counts(variant)
+			except ReadCountsUnavailableError as exc:
+				continue
+			variants_and_reads.append((variant, ref_reads, total_reads))
+		return variants_and_reads
 
-  def _calc_read_counts(self, variant):
-    raise Exception('Not implemented -- use child class')
+	def _calc_read_counts(self, variant):
+		raise Exception('Not implemented -- use child class')
 
-  def _parse_vcf(self, vcf_filename):
-    vcfr = vcf.Reader(filename=vcf_filename)
-    records = []
+	def _parse_vcf(self, vcf_filename):
+		vcfr = vcf.Reader(filename=vcf_filename)
+		records = []
 
-    for variant in vcfr:
-      variant.CHROM = variant.CHROM.upper()
-      # Some VCF dialects prepend "chr", some don't. Remove the prefix to
-      # standardize.
-      if variant.CHROM.startswith('CHR'):
-        variant.CHROM = variant.CHROM[3:]
-      records.append(variant)
-    return records
+		for variant in vcfr:
+			variant.CHROM = variant.CHROM.upper()
+			# Some VCF dialects prepend "chr", some don't. Remove the prefix to
+			# standardize.
+			if variant.CHROM.startswith('CHR'):
+				variant.CHROM = variant.CHROM[3:]
+			records.append(variant)
+		return records
 
-  def _does_variant_pass_filters(self, variant):
-    if variant.FILTER is None:
-      return True
-    if len(variant.FILTER) > 0:
-      # Variant failed one or more filters.
-      return False
-    return True
+	def _does_variant_pass_filters(self, variant):
+		if variant.FILTER is None:
+			return True
+		if len(variant.FILTER) > 0:
+			# Variant failed one or more filters.
+			return False
+		return True
 
-  def _filter(self, vcf_filename):
-    variants = []
+	def _filter(self, vcf_filename):
+		variants = []
 
-    all_variants = self._parse_vcf(vcf_filename)
+		all_variants = self._parse_vcf(vcf_filename)
 
-    for variant in all_variants:
-      if not is_good_chrom(variant.CHROM):
-        continue
-      if not self._does_variant_pass_filters(variant):
-        continue
-      variants.append(variant)
-    return variants
+		for variant in all_variants:
+			if not is_good_chrom(variant.CHROM):
+				continue
+			if not self._does_variant_pass_filters(variant):
+				continue
+			variants.append(variant)
+		return variants
 
-  def _get_tumor_index(self, variant, tumor_sample=None):
-    """Find the index of the tumor sample.
+	def _get_tumor_index(self, variant, tumor_sample=None):
+		"""Find the index of the tumor sample.
 
-    Currently hardcodes tumour sample as the last column if name not specified.
-    Might not always be true
-    """
-    if self._tumor_sample:
-      tumor_is = [i for i, s in enumerate(variant.samples) if s.sample == tumor_sample]
-      assert len(tumor_is) == 1, "Did not find tumor name %s in samples" % tumor_sample
-      return tumor_is[0]
-    else:
-      # Don't make this -1, as some code assumes it will be >= 0.
-      return len(variant.samples) - 1
+		Currently hardcodes tumour sample as the last column if name not specified.
+		Might not always be true
+		"""
+		if self._tumor_sample:
+			tumor_is = [i for i, s in enumerate(variant.samples) if s.sample == tumor_sample]
+			assert len(tumor_is) == 1, "Did not find tumor name %s in samples" % tumor_sample
+			return tumor_is[0]
+		else:
+			# Don't make this -1, as some code assumes it will be >= 0.
+			return len(variant.samples) - 1
 
 
 class PcawgConsensusParser(VariantParser):
-  def __init__(self, vcf_filename, tumor_sample=None):
-    self._vcf_filename = vcf_filename
-    self._tumor_sample = tumor_sample
+	def __init__(self, vcf_filename, tumor_sample=None):
+		self._vcf_filename = vcf_filename
+		self._tumor_sample = tumor_sample
 
-  def _find_ref_and_variant_nt(self, variant):
-    assert len(variant.REF) == len(variant.ALT) == 1
-    return (str(variant.REF[0]), str(variant.ALT[0]))
+	def _find_ref_and_variant_nt(self, variant):
+		assert len(variant.REF) == len(variant.ALT) == 1
+		return (str(variant.REF[0]), str(variant.ALT[0]))
 
-  def _calc_read_counts(self, variant):
-    if not ('t_alt_count' in variant.INFO and 't_ref_count' in variant.INFO):
-      #raise ReadCountsUnavailableError()
-      return(None, None)
-    #assert len(variant.INFO['t_alt_count']) == len(variant.INFO['t_ref_count']) == 1
+	def _calc_read_counts(self, variant):
+		if not ('t_alt_count' in variant.INFO and 't_ref_count' in variant.INFO):
+			#raise ReadCountsUnavailableError()
+			return(None, None)
+		#assert len(variant.INFO['t_alt_count']) == len(variant.INFO['t_ref_count']) == 1
 
-    alt_reads = variant.INFO['t_alt_count']
-    ref_reads = variant.INFO['t_ref_count']
+		alt_reads = variant.INFO['t_alt_count']
+		ref_reads = variant.INFO['t_ref_count']
 
-    if isinstance(alt_reads, list):
-    	alt_reads = alt_reads[0]
-	ref_reads = ref_reads[0]
-    alt_reads = int(alt_reads)
-    ref_reads = int(ref_reads)
+		if isinstance(alt_reads, list):
+			alt_reads = alt_reads[0]
+		ref_reads = ref_reads[0]
+		alt_reads = int(alt_reads)
+		ref_reads = int(ref_reads)
 
-    total_reads = alt_reads + ref_reads
-    # Some variants havezero alt and ref reads.
-    #if total_reads == 0:
-    #  raise ReadCountsUnavailableError()
-    return (ref_reads, total_reads)
+		total_reads = alt_reads + ref_reads
+		# Some variants havezero alt and ref reads.
+		#if total_reads == 0:
+		#  raise ReadCountsUnavailableError()
+		return (ref_reads, total_reads)
 
-  def _get_vaf(self, variant):
-     if not ('VAF' in variant.INFO):
-       return None
+	def _get_vaf(self, variant):
+		 if not ('VAF' in variant.INFO):
+			 return None
 
-     vaf = variant.INFO['VAF']
-     if isinstance(vaf, list):
-       vaf = vaf[0]
-     vaf = float(vaf)
-     return (vaf)
+		 vaf = variant.INFO['VAF']
+		 if isinstance(vaf, list):
+			 vaf = vaf[0]
+		 vaf = float(vaf)
+		 return (vaf)
 
 
 class CnvParser(object):
@@ -232,7 +232,7 @@ def get_correct_vaf(cnv_regions, vcf_file, purity, ouput_file):
 	output = []
 
 	vcf_parser = PcawgConsensusParser(vcf_file)
-        variants = vcf_parser._parse_vcf(vcf_file)
+	variants = vcf_parser._parse_vcf(vcf_file)
 
 	# print("Variants before filtering by depth (" + str(min_readdepth)+ "): " + str(len(variants)))
 	variants = filter_vcf(vcf_parser, variants)
@@ -289,13 +289,13 @@ def read_purity(purity_file):
 def main():
 	parser = argparse.ArgumentParser(description='add copy number to vcf files')
 	parser.add_argument('--cnv', dest='cnv', 
-	 					help='Path to CNV file')
+						help='Path to CNV file')
 	parser.add_argument('--vcf', dest='vcf',
-	 					help='Path to variants (vcf) file')
+						help='Path to variants (vcf) file')
 	parser.add_argument('--purity', dest='purity_file',
-                                                help='Path to purity file')
+																								help='Path to purity file')
 	parser.add_argument('--output', dest='output',
-                                                help='Path to output file')	
+																								help='Path to output file')	
 	args = parser.parse_args()
 
 	cnv = args.cnv
