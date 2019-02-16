@@ -846,6 +846,8 @@ merge_signatures <- function(mixtures, sigs_to_merge) {
 
 #' \code{extract_exposures_per_mutation} <man content>
 #' @rdname helper_functions
+#' @export
+
 extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir, bin_size = 100) {
   # activities_dir: path to the
   # sorted_mutations_dir: folder with files for each tumour sample (or simulations). Each file has a list of mutations SORTED BY CCF

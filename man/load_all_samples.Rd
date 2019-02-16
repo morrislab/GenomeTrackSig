@@ -8,7 +8,8 @@
 load_all_samples(countsDir, bootstrapDir, outDir = ".",
   slidingWindow = FALSE)
 
-load_sample(sample, countsDir, bootstrapDir, slidingWindow = FALSE)
+load_sample(sample, countsDir, bootstrapDir, tumortypes,
+  slidingWindow = FALSE)
 }
 \description{
 \code{load_all_samples} Load previously computed mutation count data for all samples

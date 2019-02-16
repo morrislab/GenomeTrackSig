@@ -41,7 +41,7 @@ load_all_samples <- function(countsDir,
 #' @rdname load_all_samples
 #' @export
 
-load_sample <- function(sample, countsDir, bootstrapDir, slidingWindow = FALSE){
+load_sample <- function(sample, countsDir, bootstrapDir, tumortypes, slidingWindow = FALSE){
 
   list[tumor_id, vcfData,
        phis, quadratic_phis, assigns_phylo_nodes,
@@ -141,7 +141,7 @@ compute_signatures_for_all_examples <- function(countsDir, bootstrapDir){
 
   #load annotation
   if (TrackSig.options()$pcawg_format == TRUE){
-
+    list[alex, tumortypes, active_signatures, active_signatures.our_samples] <- load_annotation_pcawg()
   }
   else{
     list[alex, tumortypes, active_signatures, active_signatures.our_samples] <- load_annotation()
@@ -154,7 +154,7 @@ compute_signatures_for_all_examples <- function(countsDir, bootstrapDir){
 
     list[vcfData, vcf, phis, quadratic_phis, phis_sliding_window, assigns_phylo_nodes,
          assigns_phylo_nodes_sw, acronym, window, tumor_id, phis_for_plot,
-         bootstrap_vcfs, bootstrap_phis] <- load_sample(example, countsDir, bootstrapDir)
+         bootstrap_vcfs, bootstrap_phis] <- load_sample(example, countsDir, bootstrapDir, tumortypes)
 
     if (TrackSig.options()$sig_amount == "onlyKnownSignatures") {
       # Fit only known signatures
