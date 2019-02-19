@@ -413,7 +413,8 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	}
 
 	sim_list = c()
-    print("Simulation type 0a: one cluster")
+
+  print("Simulation type 0a: one cluster")
 	# signatures change in one cluster but not in the other"
 	n_simulations = 5
 	for (sim_id in 1:n_simulations) {
@@ -505,8 +506,8 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		}
 	}
 
-    sim_list = c()
-    print("Simulation type 1: branching")
+
+  print("Simulation type 1: branching")
 	# signatures change in one cluster but not in the other"
 	n_simulations = 1
 	for (sim_id in 1:n_simulations) {
