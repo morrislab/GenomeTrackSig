@@ -296,14 +296,14 @@ save_as_vcf <- function(data, chrom, pos, filename) {
 	tri_data <- data.frame(chrom, pos, ref, alt, tri)
 	colnames(tri_data) <- c("chromosome", "start", "ref", "alt", "tri")
 
-	sciclone_data <- data.frame(chrom, pos, data$n_ref_alleles, data$n_alt_alleles,
-	                            data$n_alt_alleles / (data$n_ref_alleles + data$n_alt_alleles))
-	colnames(sciclone_data) <- c("chr", "pos", "ref_reads", "var_reads", "vaf")
+	scicloneDS_data <- data.frame(chrom, pos, data$n_ref_alleles, data$n_alt_alleles,
+	                            data$n_alt_alleles / (data$n_ref_alleles + data$n_alt_alleles), tri, alt)
+	colnames(scicloneDS_data) <- c("chr", "pos", "ref_reads", "var_reads", "vaf", "tri", "alt")
 
 	write.table(vcf_data, file = paste0(filename, ".vcf"), sep = "\t", row.names=F, quote=F)
 	write.table(cna_data, file = paste0(filename, "_cna.txt"), sep = "\t", row.names=F, quote=F)
 	write.table(tri_data, file = paste0(filename, "_tri.txt"), sep = "\t", row.names=F, quote=F)
-	write.table(sciclone_data, file = paste0(filename, "_sciclone.txt"), sep = "\t", row.names=F, quote=F)
+	write.table(scicloneDS_data, file = paste0(filename, "_scicloneDS.txt"), sep = "\t", row.names=F, quote=F)
 }
 
 
