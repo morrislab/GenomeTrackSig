@@ -57,7 +57,7 @@ load_sim_signatures <- function(signature_file) {
 	sigs_to_merge <- list()
 	sigs_to_merge[["SBS7"]] <- c("SBS7a", "SBS7b", "SBS7c", "SBS7d")
 	sigs_to_merge[["SBS17"]] <- c("SBS17a", "SBS17b")
-	sigs_to_merge[["SBS2+13"]] <- c("SBS2", "SBS13")
+	sigs_to_merge[["SBS2.13"]] <- c("SBS2", "SBS13")
 	sigs_to_merge[["SBS10"]] <- c("SBS10a", "SBS10b")
 
   names_trinucleotide <- trinucleotide_internal
