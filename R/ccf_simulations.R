@@ -222,7 +222,7 @@ generate_ccf_simulation <- function(
 		#  Report #variant, #reference, and avg CN for each mutation
 		data <- data.frame(n_alt_alleles, n_ref_alleles, total_CN, mut_alleles, mut_types, data.frame(cluster_sigs), stringsAsFactors = F)
 		if ("SBS2.13" %in% colnames(data)) {
-      		colnames(data)[colnames(data) == "SBS2.13"] = "SBS2+13"
+      		colnames(data)[colnames(data) == "SBS2.13"] = "SBS2.13"
 		}
 
 		##################
@@ -425,7 +425,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
-		meaningful_sig_list = c("SBS2+13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
+		meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
 		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 		# Signatures change in cluster 2, but not in cluster 1
@@ -465,7 +465,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
-		meaningful_sig_list = c("SBS2+13", "SBS3", "SBS4", "SBS6", "SBS9", "SBS7")
+		meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS9", "SBS7")
 		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 		# Signatures change in cluster 2, but not in cluster 1
@@ -518,7 +518,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
-		meaningful_sig_list = c("SBS2+13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
+		meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
 		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 		# Signatures change in cluster 2, but not in cluster 1
@@ -578,7 +578,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
-		meaningful_sig_list = c("SBS2+13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
+		meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
 		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 		for (i in 1:3) {
@@ -637,7 +637,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	# for (sim_id in 1:n_simulations) {
 	# 	sig_activities = list()
 
-	# 	meaningful_sig_list = c("SBS2+13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
+	# 	meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
 	# 	list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 	# 	for (i in 1:3) {
@@ -697,7 +697,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
-		meaningful_sig_list = c("SBS2+13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
+		meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
 		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 		# Signatures change in cluster 2, but not in cluster 1
@@ -761,7 +761,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	# for (sim_id in 1:n_simulations) {
 	# 	sig_activities = list()
 
-	# 	meaningful_sig_list = c("SBS2+13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
+	# 	meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
 	# 	list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 	# 	for (i in 1:3) {
