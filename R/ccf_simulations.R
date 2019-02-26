@@ -297,7 +297,7 @@ save_as_vcf <- function(data, chrom, pos, filename) {
 	colnames(tri_data) <- c("chromosome", "start", "ref", "alt", "tri")
 
 	scicloneDS_data <- data.frame(chrom, pos, data$n_ref_alleles, data$n_alt_alleles,
-	                            data$n_alt_alleles / (data$n_ref_alleles + data$n_alt_alleles), ref, tri, alt)
+	                            data$n_alt_alleles / (data$n_ref_alleles + data$n_alt_alleles), ref, alt, tri)
 	colnames(scicloneDS_data) <- c("chr", "pos", "ref_reads", "var_reads", "vaf", "ref", "alt", "tri")
 
 	write.table(vcf_data, file = paste0(filename, ".vcf"), sep = "\t", row.names=F, quote=F)
