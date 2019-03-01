@@ -339,16 +339,17 @@ write_sim_annotation <- function(simulation_name, sig_activities, sig_header,
 sample_sigs_and_activities <- function(meaningful_sig1, meaningful_sig2, sig1_range=c(0.2, 0.7)) {
 	exposure_time_sig = runif(1, min=0.03, max=0.1)
 	cluster_sigs = list("SBS1" = exposure_time_sig)
+	cluster_sigs["SBS5"] =  runif(1, min= 0.05, max= 0.15)
+	remaining_activity = 1 - exposure_time_sig - cluster_sigs[["SBS5"]]
 
-	meaningful_sig_activity1 = runif(1, min=sig1_range[1], max=sig1_range[2])
+	meaningful_sig_activity1 = runif(1, min=sig1_range[1], 
+										max=min(remaining_activity, sig1_range[2]))
 
 	# meaningful_sig_activity2 = runif(1,
 	# 	min= min(0.1, 1- exposure_time_sig - meaningful_sig_activity1),
 	# 	max= 1- exposure_time_sig - meaningful_sig_activity1)
 
 	# cluster_sigs["SBS5"] = 1 - exposure_time_sig - meaningful_sig_activity1 - meaningful_sig_activity2
-
-	cluster_sigs["SBS5"] =  runif(1, min= 0.05, max= 0.15)
 
 	meaningful_sig_activity2 = 1 - exposure_time_sig - meaningful_sig_activity1 - cluster_sigs[["SBS5"]]
 
@@ -421,7 +422,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 
   print("Simulation type 0a: one cluster")
 	# signatures change in one cluster but not in the other"
-	n_simulations = 5
+	n_simulations = 10
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
@@ -429,7 +430,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 		# Signatures change in cluster 2, but not in cluster 1
-		sig_activities[[1]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.4, 0.8))
+		sig_activities[[1]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.4, 0.7))
 
 		print("Sig activities")
 		print(do.call(rbind,sig_activities))
@@ -461,7 +462,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 
     print("Simulation type 0b: two clusters")
 	# signatures change in one cluster but not in the other"
-	n_simulations = 5
+	n_simulations = 10
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
@@ -469,7 +470,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 		# Signatures change in cluster 2, but not in cluster 1
-		clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.4, 0.8))
+		clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.4, 0.7))
 
 		sig_activities[[1]] <- clonal_sigs
 		sig_activities[[2]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.2, 0.4))
@@ -514,7 +515,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 
   print("Simulation type 1: branching")
 	# signatures change in one cluster but not in the other"
-	n_simulations = 1
+	n_simulations = 100
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
@@ -522,7 +523,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 		# Signatures change in cluster 2, but not in cluster 1
-		clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.4, 0.8))
+		clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.4, 0.7))
 
 		sig_activities[[1]] <- clonal_sigs
 		sig_activities[[2]] <- clonal_sigs
@@ -574,7 +575,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	# Signatures change in both cluster 1 and cluster 2
 
 	print("Simulation 2a: 10% mutations are affected, CNA+1")
-	n_simulations = 1
+	n_simulations = 100
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
@@ -693,7 +694,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 
 
 	print("Simulation 3a: Violation of infinite site assumption with CCF1+CCF2")
-	n_simulations = 1
+	n_simulations = 100
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 

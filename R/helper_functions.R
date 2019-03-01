@@ -864,9 +864,6 @@ extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir,
     colnames(mut_list) <- c("chr", "pos", "ccf", "ref", "alt", "tri")
     ccfs <- mut_list[,"ccf"]
 
-    # Check if ccfs are in the decreasing order
-    stopifnot(!is.unsorted(rev(ccfs)))
-
     activity_file <- paste0(activities_dir, "/", tumor, "/mixtures.csv")
     if (!file.exists(activity_file)) {
       print(sprintf("Activity file %s does not exist", activity_file))
