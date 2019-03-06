@@ -25,34 +25,6 @@ list <- structure(NA,class="result")
   x
 }
 
-
-# When I will upload this on the server -- remove merge_signatures function -- use src/helper_functions.R
-merge_signatures <- function(mixtures, sigs_to_merge) {
-  if (!is.null(sigs_to_merge)) {
-    for (i in 1:length(sigs_to_merge)) {
-        set_name <- names(sigs_to_merge)[i]
-        sig_set = sigs_to_merge[[i]]
-        sig_set = intersect(rownames(mixtures), sig_set)
-
-        if (length(sig_set) == 0) {
-          next
-        }
-
-        new_mixture_col <- toHorizontalMatrix(apply(mixtures[sig_set,,drop=F],2,sum))
-        rownames(new_mixture_col) <- set_name
-        colnames(new_mixture_col) <- colnames(mixtures)
-
-        if (length(intersect(rownames(mixtures), sig_set)) == nrow(mixtures)) {
-          mixtures <- new_mixture_col
-        } else {
-          mixtures <- rbind(mixtures[-which(rownames(mixtures) %in% sig_set),,drop=FALSE], new_mixture_col)
-        }
-    }
-  }
-  return(mixtures)
-}
-
-
 load_sim_signatures <- function(signature_file) {
 	sigs_to_merge <- list()
 	sigs_to_merge[["SBS7"]] <- c("SBS7a", "SBS7b", "SBS7c", "SBS7d")
@@ -342,7 +314,7 @@ sample_sigs_and_activities <- function(meaningful_sig1, meaningful_sig2, sig1_ra
 	cluster_sigs["SBS5"] =  runif(1, min= 0.05, max= 0.15)
 	remaining_activity = 1 - exposure_time_sig - cluster_sigs[["SBS5"]]
 
-	meaningful_sig_activity1 = runif(1, min=sig1_range[1], 
+	meaningful_sig_activity1 = runif(1, min=sig1_range[1],
 										max=min(remaining_activity, sig1_range[2]))
 
 	# meaningful_sig_activity2 = runif(1,
