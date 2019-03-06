@@ -6,6 +6,7 @@ package_path=$1
 outdir=$2
 sim_dir=$3
 simulation_name=$4
+bin_size=$5
 
 if [[ -z $outdir ]]; then
 	echo "Please provide an output directory ... exiting"
@@ -47,7 +48,7 @@ mv "$simulation_name".mut_types.txt $outdir
 rm tmp*
 
 # make counts
-"$package_path/scripts/sim_make_counts.sh" $package_path $sim_dir/"$simulation_name".vcf $sim_dir/"$simulation_name"_vaf.txt
+"$package_path/scripts/sim_make_counts.sh" $package_path $sim_dir/"$simulation_name".vcf $sim_dir/"$simulation_name"_vaf.txt $bin_size
 
 # compute mutational signtures
 #Rscript src/compute_mutational_signatures.R
