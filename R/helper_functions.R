@@ -853,7 +853,10 @@ extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir,
   # sorted_mutations_dir: folder with files for each tumour sample (or simulations). Each file has a list of mutations SORTED BY CCF
   tumor_list <- list.dirs(activities_dir, recursive = F, full.names=F)
 
+  print("Extracting exposures per mutation...")
   for (tumor in tumor_list) {
+    print(tumor)
+    
     sorted_mut_file = paste0(sorted_mutations_dir, "/", tumor, ".mut_types.txt")
     if (!file.exists(sorted_mut_file)) {
       print(sprintf("File %s does not exist", sorted_mut_file))
@@ -893,7 +896,8 @@ extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir,
     }
 
     stopifnot(nrow(activities_per_mut) == nrow(mut_list))
-    write.table(activities_per_mut, file = paste0(activities_dir, "/", tumor, "/sig_exposures_per_mut.txt"), sep = "\t", row.names=F, quote=F)
+    write.table(activities_per_mut, file = paste0(activities_dir, "/", tumor, "/sig_exposures_per_mut.txt"), 
+        sep = "\t", row.names=F, quote=F)
   }
 }
 
