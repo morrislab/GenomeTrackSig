@@ -391,11 +391,11 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	}
 
 	sim_list = c()
-	bin_sizes = c(30, 100, 213, 300)
+	bin_sizes <- round(seq(30, 300, length.out = 8), 0)
 
   print("Simulation type 0a: one cluster")
 	# signatures change in one cluster but not in the other"
-	n_simulations = 4
+	n_simulations = 8
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
@@ -436,7 +436,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 
     print("Simulation type 0b: two clusters")
 	# signatures change in one cluster but not in the other"
-	n_simulations = 4
+	n_simulations = 8
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
@@ -490,7 +490,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 
   print("Simulation type 1: branching")
 	# signatures change in one cluster but not in the other"
-	n_simulations = 4
+	n_simulations = 8
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
@@ -551,7 +551,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	# Signatures change in both cluster 1 and cluster 2
 
 	print("Simulation 2a: 10% mutations are affected, CNA+1")
-	n_simulations = 4
+	n_simulations = 8
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
@@ -671,7 +671,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 
 
 	print("Simulation 3a: Violation of infinite site assumption with CCF1+CCF2")
-	n_simulations = 4
+	n_simulations = 8
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
