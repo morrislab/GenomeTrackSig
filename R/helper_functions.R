@@ -387,7 +387,7 @@ gather_statistics <- function(mixtures, changepoints, tumor_id, dir_name, tumor_
 
 #' \code{extract_data_for_example} <man content>
 #' @rdname helper_functions
-extract_data_for_example <- function (example, dir_counts, tumortypes, dir_results = DIR_RESULTS, dir_create = T) {
+extract_data_for_example <- function (example, dir_counts, tumortypes, dir_results = TrackSig.options()$DIR_RESULTS, dir_create = T) {
   #example <- "1c3df485-8e75-4378-87f6-c6463a520624"
 
   vcfFile <- paste0(dir_counts, "/", example, ".phi.txt")
@@ -465,7 +465,7 @@ extract_data_for_example <- function (example, dir_counts, tumortypes, dir_resul
   }
 
   # Hack because of the previous bug in the code that assigned 101 mutations to each time points
-  rows_keep <- (apply(vcfData, 1, sum) == 101) | (apply(vcfData, 1, sum) == 100)
+  rows_keep <- ( apply(vcfData, 1, sum) == (TrackSig.options()$bin_size + 1) ) | ( apply(vcfData, 1, sum) == TrackSig.options()$bin_size )
   vcfData <- vcfData[rows_keep, ]
 
   if (!is.null(phis))

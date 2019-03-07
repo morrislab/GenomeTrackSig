@@ -127,6 +127,9 @@ NULL
   # signature reference format (for loading annotation)
   , pcawg_format = TRUE
 
+  # bin size for timepoints
+  , bin_size = 100
+
 )
 
 #check DIR_RESULTS exists

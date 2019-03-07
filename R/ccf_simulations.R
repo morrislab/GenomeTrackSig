@@ -25,34 +25,6 @@ list <- structure(NA,class="result")
   x
 }
 
-
-# When I will upload this on the server -- remove merge_signatures function -- use src/helper_functions.R
-merge_signatures <- function(mixtures, sigs_to_merge) {
-  if (!is.null(sigs_to_merge)) {
-    for (i in 1:length(sigs_to_merge)) {
-        set_name <- names(sigs_to_merge)[i]
-        sig_set = sigs_to_merge[[i]]
-        sig_set = intersect(rownames(mixtures), sig_set)
-
-        if (length(sig_set) == 0) {
-          next
-        }
-
-        new_mixture_col <- toHorizontalMatrix(apply(mixtures[sig_set,,drop=F],2,sum))
-        rownames(new_mixture_col) <- set_name
-        colnames(new_mixture_col) <- colnames(mixtures)
-
-        if (length(intersect(rownames(mixtures), sig_set)) == nrow(mixtures)) {
-          mixtures <- new_mixture_col
-        } else {
-          mixtures <- rbind(mixtures[-which(rownames(mixtures) %in% sig_set),,drop=FALSE], new_mixture_col)
-        }
-    }
-  }
-  return(mixtures)
-}
-
-
 load_sim_signatures <- function(signature_file) {
 	sigs_to_merge <- list()
 	sigs_to_merge[["SBS7"]] <- c("SBS7a", "SBS7b", "SBS7c", "SBS7d")
@@ -120,7 +92,7 @@ generate_ccf_simulation <- function(
 	n_mut_per_cluster, sig_activities,
 	signature_def,
 	cluster_cna_info = list(), mean_depth = 100, to_file = TRUE,
-	simulation_name = "simulation", outdir = "."){
+	simulation_name = "simulation", outdir = ".", bin_size = 100){
 
 	dir.create(outdir, showWarnings = FALSE)
 
@@ -257,7 +229,7 @@ generate_ccf_simulation <- function(
 		colnames(sig_data) <- c("chromosome", "start", sig_names)
 		write.table(sig_data, file = paste0(file_path, "_sig_exp_per_mut.txt"), sep = "\t", row.names=F, quote=F)
 
-		save_exposures_per_time_point(data_all_clusters_table, sig_names, file_path, bin_size=100)
+		save_exposures_per_time_point(data_all_clusters_table, sig_names, file_path, bin_size=bin_size)
 
 		write_sim_summary(sim_data_all_clusters = data_all_clusters_list,
 			simulation_name = simulation_name,
@@ -342,7 +314,7 @@ sample_sigs_and_activities <- function(meaningful_sig1, meaningful_sig2, sig1_ra
 	cluster_sigs["SBS5"] =  runif(1, min= 0.05, max= 0.15)
 	remaining_activity = 1 - exposure_time_sig - cluster_sigs[["SBS5"]]
 
-	meaningful_sig_activity1 = runif(1, min=sig1_range[1], 
+	meaningful_sig_activity1 = runif(1, min=sig1_range[1],
 										max=min(remaining_activity, sig1_range[2]))
 
 	# meaningful_sig_activity2 = runif(1,
@@ -418,6 +390,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		            col.names = F, row.names = F, quote = F, sep = "\t")
 	}
 
+<<<<<<< HEAD
   sim_list = c()
 
   #meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
@@ -432,6 +405,8 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
   print("Simulation type 0a: one cluster")
 	# signatures change in one cluster but not in the other"
 	n_simulations = 50
+	bin_sizes <- round(seq(30, 300, length.out = 8), 0)
+
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
@@ -458,7 +433,8 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 				signature_def = signature_def,
 				simulation_name = simulation_name,
 				mean_depth = depth,
-				outdir = paste0(outdir, "/", simulation_name))
+				outdir = paste0(outdir, "/", simulation_name),
+				bin_size = bin_sizes[sim_id])
 
 			write_sim_annotation(simulation_name, sig_activities, sig_header,
 				sim_activity_file, sim_purity_file, sim_tumortype_file)
@@ -510,7 +486,8 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 				signature_def = signature_def,
 				simulation_name = simulation_name,
 				mean_depth = depth,
-				outdir = paste0(outdir, "/", simulation_name))
+				outdir = paste0(outdir, "/", simulation_name),
+				bin_size = bin_sizes[sim_id])
 
 			write_sim_annotation(simulation_name, sig_activities, sig_header,
 				sim_activity_file, sim_purity_file, sim_tumortype_file)
@@ -522,7 +499,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 
   print("Simulation type 1: branching")
 	# signatures change in one cluster but not in the other"
-	n_simulations = 100
+	n_simulations = 8
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
@@ -567,7 +544,8 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 				signature_def = signature_def,
 				simulation_name = simulation_name,
 				mean_depth = depth,
-				outdir = paste0(outdir, "/", simulation_name))
+				outdir = paste0(outdir, "/", simulation_name),
+				bin_size = bin_sizes[sim_id])
 
 			write_sim_annotation(simulation_name, sig_activities, sig_header,
 				sim_activity_file, sim_purity_file, sim_tumortype_file)
@@ -581,7 +559,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	# Signatures change in both cluster 1 and cluster 2
 
 	print("Simulation 2a: 10% mutations are affected, CNA+1")
-	n_simulations = 100
+	n_simulations = 8
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
@@ -628,7 +606,8 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 				signature_def = signature_def,
 				cluster_cna_info = cluster_cna_info,
 				simulation_name = simulation_name,
-				outdir = paste0(outdir, "/", simulation_name))
+				outdir = paste0(outdir, "/", simulation_name),
+				bin_size = bin_sizes[sim_id])
 
 			write_sim_annotation(simulation_name, sig_activities, sig_header,
 				sim_activity_file, sim_purity_file, sim_tumortype_file)
@@ -698,7 +677,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 
 
 	print("Simulation 3a: Violation of infinite site assumption with CCF1+CCF2")
-	n_simulations = 100
+	n_simulations = 8
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
@@ -749,7 +728,8 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 				sig_activities = sig_activities,
 				signature_def = signature_def,
 				simulation_name = simulation_name,
-				outdir = paste0(outdir, "/", simulation_name))
+				outdir = paste0(outdir, "/", simulation_name),
+				bin_size = bin_sizes[sim_id])
 
 			write_sim_annotation(simulation_name, sig_activities, sig_header,
 				sim_activity_file, sim_purity_file, sim_tumortype_file)

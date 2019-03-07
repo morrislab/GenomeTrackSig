@@ -236,10 +236,10 @@ compute_signatures_for_all_examples <- function(countsDir, bootstrapDir){
     }
 
     mark_cp <- !is.null(changepoints)
-    plot_signatures(mixtures*100, plot_name=plot_name, phis = phis_for_plot, mark_change_points=mark_cp, change_points=changepoints,
-                    #assigns_phylo_nodes = assigns_phylo_nodes_sw,
-                    transition_points = transition_points,
-                    scale=1.2)
+#    plot_signatures(mixtures*100, plot_name=plot_name, phis = phis_for_plot, mark_change_points=mark_cp, change_points=changepoints,
+#                    #assigns_phylo_nodes = assigns_phylo_nodes_sw,
+#                    transition_points = transition_points,
+#                    scale=1.2)
 
     mixtures.rescaled = NULL
 
