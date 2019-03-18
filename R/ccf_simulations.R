@@ -390,15 +390,32 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		            col.names = F, row.names = F, quote = F, sep = "\t")
 	}
 
+
 	sim_list = c()
 
   print("Simulation type 0a: one cluster")
 	# signatures change in one cluster but not in the other"
 	n_simulations = 10
+
+
+  #meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
+  # Signature SBS7 is excluded from the list because both TrackSig and SciClone don't perform well with it.
+  meaningful_sig_list<-  c("SBS3", "SBS4", "SBS6", "SBS8", "SBS9",
+		"SBS11", "SBS12", "SBS14", "SBS15", "SBS16", "SBS18", "SBS19",
+		"SBS20", "SBS21", "SBS22", "SBS23", "SBS24", "SBS25", "SBS26",
+		"SBS27", "SBS28", "SBS29", "SBS30", "SBS31", "SBS32", "SBS33",
+		"SBS34", "SBS35", "SBS36", "SBS37", "SBS38", "SBS39", "SBS40",
+		"SBS17", "SBS2.13", "SBS10")
+
+  print("Simulation type 0a: one cluster")
+	# signatures change in one cluster but not in the other"
+	n_simulations = 50
+	bin_sizes <- round(seq(30, 300, length.out = 8), 0)
+
+>>>>>>> e9135a594be0de337c0adba27e0bc5df5ad8848d
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
-		meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
 		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 		# Signatures change in cluster 2, but not in cluster 1
@@ -410,7 +427,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		print("Mutation counts per cluster")
 		print(c(mut_per_sim))
 
-		for (depth in c(100, 1000)) {
+		for (depth in c(30, 100, 1000)) {
 			simulation_name = paste0("Simulation_one_cluster", sim_id, "_depth", depth)
 			print(paste0("Generating simulation ",simulation_name))
 
@@ -434,11 +451,11 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 
     print("Simulation type 0b: two clusters")
 	# signatures change in one cluster but not in the other"
-	n_simulations = 10
+	n_simulations = 50
+
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
-		meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS9", "SBS7")
 		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 		# Signatures change in cluster 2, but not in cluster 1
@@ -450,7 +467,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		print("Sig activities")
 		print(do.call(rbind,sig_activities))
 
-		subclone1_ccf = runif(1, min=0.1, max=0.4)
+		subclone1_ccf = runif(1, min=0.2, max=0.4)
 
 		print("CCFs per cluster")
 		print(c(1.0, subclone1_ccf))
@@ -463,7 +480,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		print("Mutation counts per cluster")
 		print(c(n_mut_clonal, n_mut_subclone1))
 
-		for (depth in c(100, 1000)) {
+		for (depth in c(30, 100, 1000)) {
 			simulation_name = paste0("Simulation_two_clusters", sim_id, "_depth", depth)
 			print(paste0("Generating simulation ",simulation_name))
 
@@ -491,7 +508,6 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
-		meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
 		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 		# Signatures change in cluster 2, but not in cluster 1
@@ -504,7 +520,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		print("Sig activities")
 		print(do.call(rbind,sig_activities))
 
-		subclone1_ccf = runif(1, min=0.1, max=0.4)
+		subclone1_ccf = runif(1, min=0.2, max=0.4)
 		subclone2_ccf = runif(1, min=subclone1_ccf+0.2, max=1 - subclone1_ccf) # CCF2 > CCF1
 
 		print("CCFs per cluster")
@@ -521,7 +537,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		print("Mutation counts per cluster")
 		print(c(n_mut_clonal, n_mut_subclone1, n_mut_subclone2))
 
-		for (depth in c(100, 1000)) {
+		for (depth in c(30, 100, 1000)) {
 			simulation_name = paste0("Simulation_branching", sim_id, "_depth", depth)
 			print(paste0("Generating simulation ",simulation_name))
 
@@ -551,7 +567,6 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
-		meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
 		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 		for (i in 1:3) {
@@ -561,7 +576,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		print("Sig activities")
 		print(do.call(rbind,sig_activities))
 
-		subclone1_ccf = runif(1, min=0.1, max=0.3)
+		subclone1_ccf = runif(1, min=0.2, max=0.3)
 		subclone2_ccf = runif(1, min=subclone1_ccf+0.1, max=1 - subclone1_ccf - 0.05) # CCF2 > CCF1
 
 		print("CCFs per cluster")
@@ -583,7 +598,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		  	list("fractions"= c(0.9, 0.05, 0.05), "mut_cn"= c(1, 1, 1), "total_cn"= c(2, 3, 3)), #subclone 1
 		  	list("fractions"= c(0.9, 0.05, 0.05), "mut_cn"= c(1, 1, 1), "total_cn"= c(2, 3, 3))) #subclone 2
 
-		for (depth in c(100, 1000)) {
+		for (depth in c(30, 100, 1000)) {
 			simulation_name = paste0("Simulation_cna_plus", sim_id, "_depth", depth)
 			print(paste0("Generating simulation ",simulation_name))
 
@@ -610,7 +625,6 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	# for (sim_id in 1:n_simulations) {
 	# 	sig_activities = list()
 
-	# 	meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
 	# 	list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 	# 	for (i in 1:3) {
@@ -670,14 +684,13 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
-		meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
 		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 		# Signatures change in cluster 2, but not in cluster 1
 		clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2)
 		sig_activities[[1]] <- clonal_sigs
-		sig_activities[[2]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2)
-		sig_activities[[3]] <- clonal_sigs
+		sig_activities[[2]] <- clonal_sigs
+		sig_activities[[3]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2)
 		# Small cluster of mutations that violate infinite cite assumption
 		sig_activities[[4]] <- sig_activities[[1]]
 
@@ -685,7 +698,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		print(do.call(rbind,sig_activities))
 
 		frac_inf_site = 0.03
-		subclone1_ccf = runif(1, min=0.1, max=0.3)
+		subclone1_ccf = runif(1, min=0.2, max=0.3)
 		subclone2_ccf = runif(1, min=subclone1_ccf+0.1, max=1 - subclone1_ccf - frac_inf_site-0.1) # CCF2 > CCF1
 		infinite_site_viol_ccf = subclone1_ccf + subclone2_ccf
 
@@ -707,7 +720,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		print("Mutation counts per cluster")
 		print(c(n_mut_clonal, n_mut_subclone1, n_mut_subclone2, n_mut_inf_site_viol))
 
-		for (depth in c(100, 1000)) {
+		for (depth in c(30, 100, 1000)) {
 			simulation_name = paste0("Simulation_inf_site_viol_plus", sim_id, "_depth", depth)
 			print(paste0("Generating simulation ", simulation_name))
 
@@ -734,7 +747,6 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	# for (sim_id in 1:n_simulations) {
 	# 	sig_activities = list()
 
-	# 	meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
 	# 	list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 	# 	for (i in 1:3) {
