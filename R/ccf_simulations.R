@@ -412,7 +412,6 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	n_simulations = 50
 	bin_sizes <- round(seq(30, 300, length.out = 8), 0)
 
->>>>>>> e9135a594be0de337c0adba27e0bc5df5ad8848d
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
