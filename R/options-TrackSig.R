@@ -130,6 +130,9 @@ NULL
   # bin size for timepoints
   , bin_size = 100
 
+  , pelt_penalty = NULL
+  , pelt_score_fxn = NULL
+
 )
 
 #check DIR_RESULTS exists
@@ -177,4 +180,5 @@ TrackSig.resetOptions <- .allOPTS$resetOptions
 #' @rdname options
 #' @export
 TrackSig.printOptions <- .allOPTS$printOptions
+
 # [END]
