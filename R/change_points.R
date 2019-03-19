@@ -358,7 +358,9 @@ find_changepoints_and_signature_set <- function(vcf, alex.t, prior_signatures = 
 # Find optimal changepoint and mixtures using PELT method.
 find_changepoints_pelt <- function(vcf, alex.t, phis, quadratic_phis)
 {
-  score_matrix <- score_partitions_pelt(vcf, alex.t, phis, quadratic_phis)
+  score_matrix <- score_partitions_pelt(vcf, alex.t, phis, quadratic_phis,
+                                        penalty = TrackSig.options()$pelt_penalty,
+                                        score_fxn = TrackSig.options()$pelt_score_fxn)
   changepoints <- recover_changepoints(score_matrix)
 
   mixtures <- fit_mixture_of_multinomials_in_time_slices(vcf, changepoints, alex.t)
@@ -368,11 +370,12 @@ find_changepoints_pelt <- function(vcf, alex.t, phis, quadratic_phis)
 
 # Calculate penalized BIC score for all partitions using PELT method.
 score_partitions_pelt <- function(vcf, alex.t, phis, quadratic_phis,
-                                  penalty = (n_sigs - 1) * log(n_bins),
-                                  score_fxn = log_likelihood_mixture_multinomials)
+                                  penalty, score_fxn)
 {
   n_bins <- ncol(vcf)
   n_sigs <- ncol(alex.t)
+
+  penalty <- eval(penalty)
 
   # Bayeisan Information Criterion penalization constant defalut parameter
 

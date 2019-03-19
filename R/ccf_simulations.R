@@ -92,7 +92,7 @@ generate_ccf_simulation <- function(
 	n_mut_per_cluster, sig_activities,
 	signature_def,
 	cluster_cna_info = list(), mean_depth = 100, to_file = TRUE,
-	simulation_name = "simulation", outdir = ".", bin_size = 100){
+	simulation_name = "simulation", outdir = "."){
 
 	dir.create(outdir, showWarnings = FALSE)
 
@@ -229,7 +229,7 @@ generate_ccf_simulation <- function(
 		colnames(sig_data) <- c("chromosome", "start", sig_names)
 		write.table(sig_data, file = paste0(file_path, "_sig_exp_per_mut.txt"), sep = "\t", row.names=F, quote=F)
 
-		save_exposures_per_time_point(data_all_clusters_table, sig_names, file_path, bin_size=bin_size)
+		save_exposures_per_time_point(data_all_clusters_table, sig_names, file_path, bin_size=100)
 
 		write_sim_summary(sim_data_all_clusters = data_all_clusters_list,
 			simulation_name = simulation_name,
@@ -442,20 +442,26 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		}
 	}
 
-
     print("Simulation type 0b: two clusters")
-	# signatures change in one cluster but not in the other"
-	n_simulations = 50
+	# signature does not change, but CCFs do
+	n_simulations = 100
+
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
+		# Sample signatures with variable presence
 		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 		# Signatures change in cluster 2, but not in cluster 1
 		clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.45, 0.7))
 
+		# Sample the exposure for sig1
+		# changes by Cait
+		# sig1_exp <- runif(1, 0.4, 0.7)
+		# clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(sig1_exp, sig1_exp))
+
 		sig_activities[[1]] <- clonal_sigs
-		sig_activities[[2]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.2, 0.4))
+		sig_activities[[2]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(sig1_exp - 0.05, sig1_exp - 0.05))
 
 		print("Sig activities")
 		print(do.call(rbind,sig_activities))
@@ -476,6 +482,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		for (depth in depth_list) {
 			simulation_name = paste0("Simulation_two_clusters", 
 				sim_id, "_depth", depth)
+
 			print(paste0("Generating simulation ",simulation_name))
 
 			sim_data_all_clusters = generate_ccf_simulation(
@@ -613,7 +620,6 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		}
 	}
 
-
 	# print("Simulation 2b: 10% mutations are affected, CNA-1")
 	# n_simulations = 1
 	# for (sim_id in 1:n_simulations) {
@@ -733,7 +739,6 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 			sim_list <- c(sim_list, simulation_name)
 		}
 	}
-
 
 
 	# print("Simulation 3b: Violation of infinite site assumption with CCF1-CCF2")
