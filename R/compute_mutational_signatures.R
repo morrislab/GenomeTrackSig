@@ -156,6 +156,7 @@ save_data_for_samples <- function(dir_counts = TrackSig.options()$DIR_COUNTS,
 #' @rdname compute_mutational_signatures
 #' @export
 
+# NO LONGER USED -- use similar function in TrackSig/R/load_all_samples.R
 compute_signatures_for_all_examples <- function(dir_counts = TrackSig.options()$DIR_COUNTS){
   print("Step 2: computing signature activities")
 

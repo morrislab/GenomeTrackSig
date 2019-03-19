@@ -40,7 +40,11 @@ if __name__ == "__main__":
 			if i < start or i > end:
 				continue
 
-			chr, pos, phi, ref, alt, context = line.split()
+			try:
+				chr, pos, phi, ref, alt, context = line.split()
+			except:
+				print("Couldn't parse the line: " + line)
+				continue
 			if  phi == "NA":
 				continue
 			
