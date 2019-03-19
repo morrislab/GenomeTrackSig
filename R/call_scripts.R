@@ -7,12 +7,12 @@
 #'
 #' @export
 
-run_simulation <- function(simName){
+run_simulation <- function(simName, dataDir){
 
   fileName <- system.file("scripts", "run_simulations.sh", package = "TrackSig")
   packagePath <- system.file(package = "TrackSig")
 
-  system(sprintf("%s %s data/mut_types/ data/%s %s %s", fileName, packagePath, simName, simName, TrackSig.options()$bin_size))
+  system(sprintf("%s %s %s %s/%s %s %s", fileName, packagePath, dataDir, dataDir, simName, simName, TrackSig.options()$bin_size))
 
 }
 

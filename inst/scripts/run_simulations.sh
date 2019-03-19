@@ -8,6 +8,11 @@ sim_dir=$3
 simulation_name=$4
 bin_size=$5
 
+mkdir -p $outdir/mut_types/
+mkdir -p $outdir/mut_order/
+mkdir -p $outdir/counts/
+mkdir -p $outdir/bootstrap/
+
 if [[ -z $outdir ]]; then
 	echo "Please provide an output directory ... exiting"
 	exit
@@ -39,16 +44,17 @@ sort -n $sim_dir/"$simulation_name"_vaf.txt > tmp_vaf
 sort -k 3 -r <(paste <(cut -f1,2 tmp_tri) <(cut -d= -f2 tmp_vaf) <(cut -f3,4,5 tmp_tri)) | cat > "$simulation_name".mut_types.txt
 
 # restore chr prefix
-ex -sc '%s/^/chr/|wq' "$simulation_name".mut_types.txt
+sed -e 's/^/chr/' -i "$simulation_name".mut_types.txt
+#ex -sc '%s/^/chr/wq' "$simulation_name".mut_types.txt
 
 # relocate to outdir
-mv "$simulation_name".mut_types.txt $outdir
+mv "$simulation_name".mut_types.txt $outdir/mut_types/
 
 # clean up
 rm tmp*
 
 # make counts
-"$package_path/scripts/sim_make_counts.sh" $package_path $sim_dir/"$simulation_name".vcf $sim_dir/"$simulation_name"_vaf.txt $bin_size
+"$package_path/scripts/sim_make_counts.sh" $package_path $sim_dir/"$simulation_name".vcf $sim_dir/"$simulation_name"_vaf.txt $bin_size $outdir
 
 # compute mutational signtures
 #Rscript src/compute_mutational_signatures.R

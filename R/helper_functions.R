@@ -848,10 +848,16 @@ merge_signatures <- function(mixtures, sigs_to_merge) {
 #' @rdname helper_functions
 #' @export
 
-extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir, bin_size = 100) {
+extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir, 
+  bin_size = 100, samples_to_run  = c()) {
   # activities_dir: path to the
   # sorted_mutations_dir: folder with files for each tumour sample (or simulations). Each file has a list of mutations SORTED BY CCF
   tumor_list <- list.dirs(activities_dir, recursive = F, full.names=F)
+
+  if (length(samples_to_run) > 0) {
+  	# run only these tumour samples
+	tumor_list <- intersect(tumor_list, samples_to_run)
+  }
 
   print("Extracting exposures per mutation...")
   for (tumor in tumor_list) {
@@ -880,7 +886,7 @@ extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir,
 
     n_time_points = nrow(activities)
 
-    stopifnot(nrow(mut_list) <= n_time_points * bin_size)
+    #stopifnot(nrow(mut_list) <= n_time_points * bin_size)
 
     activities_per_mut <- c()
     for (i in 1:n_time_points) {

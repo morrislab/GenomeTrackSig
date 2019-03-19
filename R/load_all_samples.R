@@ -123,7 +123,7 @@ load_sample <- function(sample, countsDir, bootstrapDir, tumortypes, slidingWind
 #' @rdname compute_mutational_signatures
 #' @export
 
-compute_signatures_for_all_examples <- function(countsDir, bootstrapDir){
+compute_signatures_for_all_examples <- function(countsDir, bootstrapDir, samples_to_run = c()){
   print("Step 2: computing signature activities")
 
   add_early_late_transition = TRUE
@@ -135,6 +135,11 @@ compute_signatures_for_all_examples <- function(countsDir, bootstrapDir){
   tumors <- gsub("([^/]*)\\.phi\\.txt","\\1", list.files(countsDir)[sel])
 
   examples_group <- get_examples_group(tumors)
+
+  if (length(samples_to_run) > 0) {
+        # run only these tumour samples
+        examples_group <- intersect(examples_group, samples_to_run)
+  }
 
   mutation_types <- trinucleotide_internal #data internal to package
   mutation_types <- paste(mutation_types[,1], mutation_types[,2], mutation_types[,3], sep="_")
@@ -236,10 +241,10 @@ compute_signatures_for_all_examples <- function(countsDir, bootstrapDir){
     }
 
     mark_cp <- !is.null(changepoints)
-#    plot_signatures(mixtures*100, plot_name=plot_name, phis = phis_for_plot, mark_change_points=mark_cp, change_points=changepoints,
-#                    #assigns_phylo_nodes = assigns_phylo_nodes_sw,
-#                    transition_points = transition_points,
-#                    scale=1.2)
+    plot_signatures(mixtures*100, plot_name=plot_name, phis = phis_for_plot, mark_change_points=mark_cp, change_points=changepoints,
+                    #assigns_phylo_nodes = assigns_phylo_nodes_sw,
+                    transition_points = transition_points,
+                    scale=1.2)
 
     mixtures.rescaled = NULL
 
