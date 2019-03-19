@@ -393,10 +393,6 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 
 	sim_list = c()
 
-  print("Simulation type 0a: one cluster")
-	# signatures change in one cluster but not in the other"
-	n_simulations = 1
-
 
   #meaningful_sig_list = c("SBS2.13", "SBS3", "SBS4", "SBS6", "SBS7", "SBS9")
   # Signature SBS7 is excluded from the list because both TrackSig and SciClone don't perform well with it.
@@ -407,61 +403,63 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		"SBS34", "SBS35", "SBS36", "SBS37", "SBS38", "SBS39", "SBS40",
 		"SBS17", "SBS2.13", "SBS10")
 
-  print("Simulation type 0a: one cluster")
-	# signatures change in one cluster but not in the other"
-	n_simulations = 1
-#	bin_sizes <- round(seq(30, 300, length.out = 8), 0)
-
-	for (sim_id in 1:n_simulations) {
-		sig_activities = list()
-
-		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
-
-		# Signatures change in cluster 2, but not in cluster 1
-		sig_activities[[1]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.4, 0.7))
-
-		print("Sig activities")
-		print(do.call(rbind,sig_activities))
-
-		print("Mutation counts per cluster")
-		print(c(mut_per_sim))
-
-		for (depth in c(30, 100, 1000)) {
-			simulation_name = paste0("Simulation_one_cluster", sim_id, "_depth", depth)
-			print(paste0("Generating simulation ",simulation_name))
-
-			sim_data_all_clusters = generate_ccf_simulation(
-				n_clusters = 1,
-				cluster_ccfs = c(1.0),
-				n_mut_per_cluster = c(mut_per_sim),
-				sig_activities = sig_activities,
-				signature_def = signature_def,
-				simulation_name = simulation_name,
-				mean_depth = depth,
-				outdir = paste0(outdir, "/", simulation_name))
-
-			write_sim_annotation(simulation_name, sig_activities, sig_header,
-				sim_activity_file, sim_purity_file, sim_tumortype_file)
-
-			sim_list <- c(sim_list, simulation_name)
-		}
-	}
+#  print("Simulation type 0a: one cluster")
+#	# signatures change in one cluster but not in the other"
+#	n_simulations = 1
+#
+#	for (sim_id in 1:n_simulations) {
+#		sig_activities = list()
+#
+#		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
+#
+#		# Signatures change in cluster 2, but not in cluster 1
+#		sig_activities[[1]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.4, 0.7))
+#
+#		print("Sig activities")
+#		print(do.call(rbind,sig_activities))
+#
+#		print("Mutation counts per cluster")
+#		print(c(mut_per_sim))
+#
+#		for (depth in c(30, 100, 1000)) {
+#			simulation_name = paste0("Simulation_one_cluster", sim_id, "_depth", depth)
+#			print(paste0("Generating simulation ",simulation_name))
+#
+#			sim_data_all_clusters = generate_ccf_simulation(
+#				n_clusters = 1,
+#				cluster_ccfs = c(1.0),
+#				n_mut_per_cluster = c(mut_per_sim),
+#				sig_activities = sig_activities,
+#				signature_def = signature_def,
+#				simulation_name = simulation_name,
+#				mean_depth = depth,
+#				outdir = paste0(outdir, "/", simulation_name))
+#
+#			write_sim_annotation(simulation_name, sig_activities, sig_header,
+#				sim_activity_file, sim_purity_file, sim_tumortype_file)
+#
+#			sim_list <- c(sim_list, simulation_name)
+#		}
+#	}
 
 
     print("Simulation type 0b: two clusters")
-	# signatures change in one cluster but not in the other"
+	# signature does not change, but CCFs do
 	n_simulations = 1
 
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
+		# Sample signatures with variable presence
 		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
-		# Signatures change in cluster 2, but not in cluster 1
-		clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.4, 0.7))
+		# Sample the exposure for sig1
+		sig1_exp <- runif(1, 0.4, 0.7)
+
+		clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(sig1_exp, sig1_exp))
 
 		sig_activities[[1]] <- clonal_sigs
-		sig_activities[[2]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.2, 0.4))
+		sig_activities[[2]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(sig1_exp - 0.05, sig1_exp - 0.05))
 
 		print("Sig activities")
 		print(do.call(rbind,sig_activities))
@@ -479,7 +477,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		print("Mutation counts per cluster")
 		print(c(n_mut_clonal, n_mut_subclone1))
 
-		for (depth in c(30, 100, 1000)) {
+		for (depth in c(10, 30, 100)) {
 			simulation_name = paste0("Simulation_two_clusters", sim_id, "_depth", depth)
 			print(paste0("Generating simulation ",simulation_name))
 
@@ -501,122 +499,122 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	}
 
 
-  print("Simulation type 1: branching")
-	# signatures change in one cluster but not in the other"
-	n_simulations = 1
-	for (sim_id in 1:n_simulations) {
-		sig_activities = list()
-
-		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
-
-		# Signatures change in cluster 2, but not in cluster 1
-		clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.4, 0.7))
-
-		sig_activities[[1]] <- clonal_sigs
-		sig_activities[[2]] <- clonal_sigs
-		sig_activities[[3]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.2, 0.4))
-
-		print("Sig activities")
-		print(do.call(rbind,sig_activities))
-
-		subclone1_ccf = runif(1, min=0.2, max=0.4)
-		subclone2_ccf = runif(1, min=subclone1_ccf+0.2, max=1 - subclone1_ccf) # CCF2 > CCF1
-
-		print("CCFs per cluster")
-		print(c(1.0, subclone1_ccf, subclone2_ccf))
-
-		stopifnot(subclone2_ccf > subclone1_ccf)
-
-		# cluster 1 and cluster 2 and two separate branches
-		n_mut_subclone1 = as.integer(mut_per_sim * subclone1_ccf)
-		n_mut_subclone2 = as.integer(mut_per_sim * subclone2_ccf)
-
-		n_mut_clonal = mut_per_sim - n_mut_subclone1 - n_mut_subclone2
-
-		print("Mutation counts per cluster")
-		print(c(n_mut_clonal, n_mut_subclone1, n_mut_subclone2))
-
-		for (depth in c(30, 100, 1000)) {
-			simulation_name = paste0("Simulation_branching", sim_id, "_depth", depth)
-			print(paste0("Generating simulation ",simulation_name))
-
-			sim_data_all_clusters = generate_ccf_simulation(
-				n_clusters = 3,
-				cluster_ccfs = c(1.0, subclone1_ccf, subclone2_ccf),
-				n_mut_per_cluster = c(n_mut_clonal, n_mut_subclone1, n_mut_subclone2),
-				sig_activities = sig_activities,
-				signature_def = signature_def,
-				simulation_name = simulation_name,
-				mean_depth = depth,
-				outdir = paste0(outdir, "/", simulation_name))
-
-			write_sim_annotation(simulation_name, sig_activities, sig_header,
-				sim_activity_file, sim_purity_file, sim_tumortype_file)
-
-			sim_list <- c(sim_list, simulation_name)
-		}
-	}
-
-
-	print("Simulation type 2: CNA")
-	# Signatures change in both cluster 1 and cluster 2
-
-	print("Simulation 2a: 10% mutations are affected, CNA+1")
-	n_simulations = 1
-	for (sim_id in 1:n_simulations) {
-		sig_activities = list()
-
-		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
-
-		for (i in 1:3) {
-			sig_activities[[i]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2)
-		}
-
-		print("Sig activities")
-		print(do.call(rbind,sig_activities))
-
-		subclone1_ccf = runif(1, min=0.2, max=0.3)
-		subclone2_ccf = runif(1, min=subclone1_ccf+0.1, max=1 - subclone1_ccf - 0.05) # CCF2 > CCF1
-
-		print("CCFs per cluster")
-		print(c(1.0, subclone1_ccf, subclone2_ccf))
-
-		stopifnot(subclone2_ccf > subclone1_ccf)
-
-		# cluster 1 and cluster 2 and two separate branches
-		n_mut_subclone1 = as.integer(mut_per_sim * subclone1_ccf)
-		n_mut_subclone2 = as.integer(mut_per_sim * subclone2_ccf)
-
-		n_mut_clonal = mut_per_sim - n_mut_subclone1 - n_mut_subclone2
-
-		print("Mutation counts per cluster")
-		print(c(n_mut_clonal, n_mut_subclone1, n_mut_subclone2))
-
-		 cluster_cna_info = list(
-		  	list("fractions"= c(0.9, 0.05, 0.05), "mut_cn"= c(1, 1, 2), "total_cn"= c(2, 3, 3)), #clonal
-		  	list("fractions"= c(0.9, 0.05, 0.05), "mut_cn"= c(1, 1, 1), "total_cn"= c(2, 3, 3)), #subclone 1
-		  	list("fractions"= c(0.9, 0.05, 0.05), "mut_cn"= c(1, 1, 1), "total_cn"= c(2, 3, 3))) #subclone 2
-
-		for (depth in c(30, 100, 1000)) {
-			simulation_name = paste0("Simulation_cna_plus", sim_id, "_depth", depth)
-			print(paste0("Generating simulation ",simulation_name))
-
-			sim_data_all_clusters = generate_ccf_simulation(
-				n_clusters = 3,
-				cluster_ccfs = c(1.0, subclone1_ccf, subclone2_ccf),
-				n_mut_per_cluster = c(n_mut_clonal, n_mut_subclone1, n_mut_subclone2),
-				sig_activities = sig_activities,
-				signature_def = signature_def,
-				cluster_cna_info = cluster_cna_info,
-				simulation_name = simulation_name,
-				outdir = paste0(outdir, "/", simulation_name))
-
-			write_sim_annotation(simulation_name, sig_activities, sig_header,
-				sim_activity_file, sim_purity_file, sim_tumortype_file)
-
-			sim_list <- c(sim_list, simulation_name)
-		}
-	}
+#  print("Simulation type 1: branching")
+#	# signatures change in one cluster but not in the other"
+#	n_simulations = 1
+#	for (sim_id in 1:n_simulations) {
+#		sig_activities = list()
+#
+#		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
+#
+#		# Signatures change in cluster 2, but not in cluster 1
+#		clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.4, 0.7))
+#
+#		sig_activities[[1]] <- clonal_sigs
+#		sig_activities[[2]] <- clonal_sigs
+#		sig_activities[[3]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.2, 0.4))
+#
+#		print("Sig activities")
+#		print(do.call(rbind,sig_activities))
+#
+#		subclone1_ccf = runif(1, min=0.2, max=0.4)
+#		subclone2_ccf = runif(1, min=subclone1_ccf+0.2, max=1 - subclone1_ccf) # CCF2 > CCF1
+#
+#		print("CCFs per cluster")
+#		print(c(1.0, subclone1_ccf, subclone2_ccf))
+#
+#		stopifnot(subclone2_ccf > subclone1_ccf)
+#
+#		# cluster 1 and cluster 2 and two separate branches
+#		n_mut_subclone1 = as.integer(mut_per_sim * subclone1_ccf)
+#		n_mut_subclone2 = as.integer(mut_per_sim * subclone2_ccf)
+#
+#		n_mut_clonal = mut_per_sim - n_mut_subclone1 - n_mut_subclone2
+#
+#		print("Mutation counts per cluster")
+#		print(c(n_mut_clonal, n_mut_subclone1, n_mut_subclone2))
+#
+#		for (depth in c(30, 100, 1000)) {
+#			simulation_name = paste0("Simulation_branching", sim_id, "_depth", depth)
+#			print(paste0("Generating simulation ",simulation_name))
+#
+#			sim_data_all_clusters = generate_ccf_simulation(
+#				n_clusters = 3,
+#				cluster_ccfs = c(1.0, subclone1_ccf, subclone2_ccf),
+#				n_mut_per_cluster = c(n_mut_clonal, n_mut_subclone1, n_mut_subclone2),
+#				sig_activities = sig_activities,
+#				signature_def = signature_def,
+#				simulation_name = simulation_name,
+#				mean_depth = depth,
+#				outdir = paste0(outdir, "/", simulation_name))
+#
+#			write_sim_annotation(simulation_name, sig_activities, sig_header,
+#				sim_activity_file, sim_purity_file, sim_tumortype_file)
+#
+#			sim_list <- c(sim_list, simulation_name)
+#		}
+#	}
+#
+#
+#	print("Simulation type 2: CNA")
+#	# Signatures change in both cluster 1 and cluster 2
+#
+#	print("Simulation 2a: 10% mutations are affected, CNA+1")
+#	n_simulations = 1
+#	for (sim_id in 1:n_simulations) {
+#		sig_activities = list()
+#
+#		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
+#
+#		for (i in 1:3) {
+#			sig_activities[[i]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2)
+#		}
+#
+#		print("Sig activities")
+#		print(do.call(rbind,sig_activities))
+#
+#		subclone1_ccf = runif(1, min=0.2, max=0.3)
+#		subclone2_ccf = runif(1, min=subclone1_ccf+0.1, max=1 - subclone1_ccf - 0.05) # CCF2 > CCF1
+#
+#		print("CCFs per cluster")
+#		print(c(1.0, subclone1_ccf, subclone2_ccf))
+#
+#		stopifnot(subclone2_ccf > subclone1_ccf)
+#
+#		# cluster 1 and cluster 2 and two separate branches
+#		n_mut_subclone1 = as.integer(mut_per_sim * subclone1_ccf)
+#		n_mut_subclone2 = as.integer(mut_per_sim * subclone2_ccf)
+#
+#		n_mut_clonal = mut_per_sim - n_mut_subclone1 - n_mut_subclone2
+#
+#		print("Mutation counts per cluster")
+#		print(c(n_mut_clonal, n_mut_subclone1, n_mut_subclone2))
+#
+#		 cluster_cna_info = list(
+#		  	list("fractions"= c(0.9, 0.05, 0.05), "mut_cn"= c(1, 1, 2), "total_cn"= c(2, 3, 3)), #clonal
+#		  	list("fractions"= c(0.9, 0.05, 0.05), "mut_cn"= c(1, 1, 1), "total_cn"= c(2, 3, 3)), #subclone 1
+#		  	list("fractions"= c(0.9, 0.05, 0.05), "mut_cn"= c(1, 1, 1), "total_cn"= c(2, 3, 3))) #subclone 2
+#
+#		for (depth in c(30, 100, 1000)) {
+#			simulation_name = paste0("Simulation_cna_plus", sim_id, "_depth", depth)
+#			print(paste0("Generating simulation ",simulation_name))
+#
+#			sim_data_all_clusters = generate_ccf_simulation(
+#				n_clusters = 3,
+#				cluster_ccfs = c(1.0, subclone1_ccf, subclone2_ccf),
+#				n_mut_per_cluster = c(n_mut_clonal, n_mut_subclone1, n_mut_subclone2),
+#				sig_activities = sig_activities,
+#				signature_def = signature_def,
+#				cluster_cna_info = cluster_cna_info,
+#				simulation_name = simulation_name,
+#				outdir = paste0(outdir, "/", simulation_name))
+#
+#			write_sim_annotation(simulation_name, sig_activities, sig_header,
+#				sim_activity_file, sim_purity_file, sim_tumortype_file)
+#
+#			sim_list <- c(sim_list, simulation_name)
+#		}
+#	}
 
 
 	# print("Simulation 2b: 10% mutations are affected, CNA-1")
@@ -678,66 +676,66 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 
 
 
-	print("Simulation 3a: Violation of infinite site assumption with CCF1+CCF2")
-	n_simulations = 1
-	for (sim_id in 1:n_simulations) {
-		sig_activities = list()
-
-		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
-
-		# Signatures change in cluster 2, but not in cluster 1
-		clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2)
-		sig_activities[[1]] <- clonal_sigs
-		sig_activities[[2]] <- clonal_sigs
-		sig_activities[[3]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2)
-		# Small cluster of mutations that violate infinite cite assumption
-		sig_activities[[4]] <- sig_activities[[1]]
-
-		print("Sig activities")
-		print(do.call(rbind,sig_activities))
-
-		frac_inf_site = 0.03
-		subclone1_ccf = runif(1, min=0.2, max=0.3)
-		subclone2_ccf = runif(1, min=subclone1_ccf+0.1, max=1 - subclone1_ccf - frac_inf_site-0.1) # CCF2 > CCF1
-		infinite_site_viol_ccf = subclone1_ccf + subclone2_ccf
-
-		stopifnot(infinite_site_viol_ccf < 1.0)
-
-		print("CCFs per cluster")
-		print(c(1.0, subclone1_ccf, subclone2_ccf, infinite_site_viol_ccf))
-
-
-		stopifnot(subclone2_ccf > subclone1_ccf)
-
-		# cluster 1 and cluster 2 and two separate branches
-		n_mut_subclone1 = as.integer(mut_per_sim * subclone1_ccf)
-		n_mut_subclone2 = as.integer(mut_per_sim * subclone2_ccf)
-		n_mut_inf_site_viol = mut_per_sim * 0.03 # 3% of mutations violte infinite site assumption
-
-		n_mut_clonal = mut_per_sim - n_mut_subclone1 - n_mut_subclone2 - n_mut_inf_site_viol
-
-		print("Mutation counts per cluster")
-		print(c(n_mut_clonal, n_mut_subclone1, n_mut_subclone2, n_mut_inf_site_viol))
-
-		for (depth in c(30, 100, 1000)) {
-			simulation_name = paste0("Simulation_inf_site_viol_plus", sim_id, "_depth", depth)
-			print(paste0("Generating simulation ", simulation_name))
-
-			sim_data_all_clusters = generate_ccf_simulation(
-				n_clusters = 4,
-				cluster_ccfs = c(1.0, subclone1_ccf, subclone2_ccf, infinite_site_viol_ccf),
-				n_mut_per_cluster = c(n_mut_clonal, n_mut_subclone1, n_mut_subclone2, n_mut_inf_site_viol),
-				sig_activities = sig_activities,
-				signature_def = signature_def,
-				simulation_name = simulation_name,
-				outdir = paste0(outdir, "/", simulation_name))
-
-			write_sim_annotation(simulation_name, sig_activities, sig_header,
-				sim_activity_file, sim_purity_file, sim_tumortype_file)
-
-			sim_list <- c(sim_list, simulation_name)
-		}
-	}
+#	print("Simulation 3a: Violation of infinite site assumption with CCF1+CCF2")
+#	n_simulations = 1
+#	for (sim_id in 1:n_simulations) {
+#		sig_activities = list()
+#
+#		list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
+#
+#		# Signatures change in cluster 2, but not in cluster 1
+#		clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2)
+#		sig_activities[[1]] <- clonal_sigs
+#		sig_activities[[2]] <- clonal_sigs
+#		sig_activities[[3]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2)
+#		# Small cluster of mutations that violate infinite cite assumption
+#		sig_activities[[4]] <- sig_activities[[1]]
+#
+#		print("Sig activities")
+#		print(do.call(rbind,sig_activities))
+#
+#		frac_inf_site = 0.03
+#		subclone1_ccf = runif(1, min=0.2, max=0.3)
+#		subclone2_ccf = runif(1, min=subclone1_ccf+0.1, max=1 - subclone1_ccf - frac_inf_site-0.1) # CCF2 > CCF1
+#		infinite_site_viol_ccf = subclone1_ccf + subclone2_ccf
+#
+#		stopifnot(infinite_site_viol_ccf < 1.0)
+#
+#		print("CCFs per cluster")
+#		print(c(1.0, subclone1_ccf, subclone2_ccf, infinite_site_viol_ccf))
+#
+#
+#		stopifnot(subclone2_ccf > subclone1_ccf)
+#
+#		# cluster 1 and cluster 2 and two separate branches
+#		n_mut_subclone1 = as.integer(mut_per_sim * subclone1_ccf)
+#		n_mut_subclone2 = as.integer(mut_per_sim * subclone2_ccf)
+#		n_mut_inf_site_viol = mut_per_sim * 0.03 # 3% of mutations violte infinite site assumption
+#
+#		n_mut_clonal = mut_per_sim - n_mut_subclone1 - n_mut_subclone2 - n_mut_inf_site_viol
+#
+#		print("Mutation counts per cluster")
+#		print(c(n_mut_clonal, n_mut_subclone1, n_mut_subclone2, n_mut_inf_site_viol))
+#
+#		for (depth in c(30, 100, 1000)) {
+#			simulation_name = paste0("Simulation_inf_site_viol_plus", sim_id, "_depth", depth)
+#			print(paste0("Generating simulation ", simulation_name))
+#
+#			sim_data_all_clusters = generate_ccf_simulation(
+#				n_clusters = 4,
+#				cluster_ccfs = c(1.0, subclone1_ccf, subclone2_ccf, infinite_site_viol_ccf),
+#				n_mut_per_cluster = c(n_mut_clonal, n_mut_subclone1, n_mut_subclone2, n_mut_inf_site_viol),
+#				sig_activities = sig_activities,
+#				signature_def = signature_def,
+#				simulation_name = simulation_name,
+#				outdir = paste0(outdir, "/", simulation_name))
+#
+#			write_sim_annotation(simulation_name, sig_activities, sig_header,
+#				sim_activity_file, sim_purity_file, sim_tumortype_file)
+#
+#			sim_list <- c(sim_list, simulation_name)
+#		}
+#	}
 
 
 
