@@ -130,8 +130,12 @@ NULL
   # bin size for timepoints
   , bin_size = 100
 
+  # likelihoods
   , pelt_penalty = NULL
   , pelt_score_fxn = NULL
+
+  # save space on simulation output
+  , simulation_pdf = TRUE
 
 )
 

@@ -198,11 +198,14 @@ generate_ccf_simulation <- function(
 		}
 
 		##################
-		mut_ccfs <- compute_uncorrected_ccf(data$n_alt_alleles, data$n_ref_alleles)
+		if(TrackSig.options()$simulation_pdf == T){
 
-		pdf(paste0(outdir, "/", simulation_name, "_mut_ccf", cl, ".pdf"), width = 8, height=5)
-		hist(mut_ccfs, breaks=200)
-		dev.off()
+		  mut_ccfs <- compute_uncorrected_ccf(data$n_alt_alleles, data$n_ref_alleles)
+
+		  pdf(paste0(outdir, "/", simulation_name, "_mut_ccf", cl, ".pdf"), width = 8, height=5)
+		  hist(mut_ccfs, breaks=200)
+		  dev.off()
+		}
 		##################
 
 		data_all_clusters[[cl]] <- data
@@ -211,11 +214,13 @@ generate_ccf_simulation <- function(
 	data_all_clusters_list <- data_all_clusters
 	data_all_clusters_table <- do.call(rbind, data_all_clusters)
 	##################
-	mut_ccfs <- compute_uncorrected_ccf(data_all_clusters_table$n_alt_alleles, data_all_clusters_table$n_ref_alleles)
+	if(TrackSig.options()$simulation_pdf == T){
+	  mut_ccfs <- compute_uncorrected_ccf(data_all_clusters_table$n_alt_alleles, data_all_clusters_table$n_ref_alleles)
 
-	pdf(paste0(outdir, "/", simulation_name, "_mut_ccf.pdf"), width = 8, height=5)
-	hist(mut_ccfs, breaks=200)
-	dev.off()
+	  pdf(paste0(outdir, "/", simulation_name, "_mut_ccf.pdf"), width = 8, height=5)
+	  hist(mut_ccfs, breaks=200)
+	  dev.off()
+	}
 	##################
 
 	if (to_file == TRUE){
