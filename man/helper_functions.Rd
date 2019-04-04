@@ -65,7 +65,7 @@ gather_statistics(mixtures, changepoints, tumor_id, dir_name, tumor_type,
   mixtures.rescaled = NULL)
 
 extract_data_for_example(example, dir_counts, tumortypes,
-  dir_results = DIR_RESULTS, dir_create = T)
+  dir_results = TrackSig.options()$DIR_RESULTS, dir_create = T)
 
 extract_data_for_simulation(example, dir_counts,
   dir_results = DIR_RESULTS, dir_create = T)
@@ -104,7 +104,7 @@ get_sample_purity(tumor_id)
 merge_signatures(mixtures, sigs_to_merge)
 
 extract_exposures_per_mutation(activities_dir, sorted_mutations_dir,
-  bin_size = 100)
+  bin_size = 100, samples_to_run = c())
 
 load_annotation(tumortype_file = TrackSig.options()$tumortype_file,
   signature_file = TrackSig.options()$signature_file,

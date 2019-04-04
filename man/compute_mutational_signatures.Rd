@@ -11,12 +11,14 @@
 save_data_for_samples(dir_counts = TrackSig.options()$DIR_COUNTS,
   bootstrap_counts = TrackSig.options()$BOOTSTRAP_COUNTS)
 
-compute_signatures_for_all_examples(countsDir, bootstrapDir)
+compute_signatures_for_all_examples(countsDir, bootstrapDir,
+  samples_to_run = c())
 
 
   compute_errorbars_for_all_examples(bootstrap_counts = TrackSig.options()$BOOTSTRAP_COUNTS)
 
-compute_signatures_for_all_examples(countsDir, bootstrapDir)
+compute_signatures_for_all_examples(countsDir, bootstrapDir,
+  samples_to_run = c())
 }
 \arguments{
 \item{dir_counts}{Directory where previously computed mutation counts are \cr

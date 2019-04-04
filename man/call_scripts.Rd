@@ -4,7 +4,7 @@
 \alias{run_simulation}
 \title{\code{call_scripts} Call the supporting (non-R) scipts in TrackSig}
 \usage{
-run_simulation(simName)
+run_simulation(simName, dataDir)
 }
 \description{
 \code{call_scripts} Call the supporting (non-R) scipts in TrackSig
