@@ -370,7 +370,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 
 	signature_def = load_sim_signatures(signature_file)
 	depth_list <- c(10, 30, 100)
-	
+
 	if (rewrite_annotations) {
 	  # remove simulation annotations (rebuilt upon simulation) and create new ones
 	  unlink(sim_activity_file)
@@ -405,7 +405,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
   print("Simulation type 0a: one cluster")
 	# signatures change in one cluster but not in the other"
 	n_simulations = 50
-	
+
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
 
@@ -421,7 +421,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		print(c(mut_per_sim))
 
 		for (depth in depth_list) {
-			simulation_name = paste0("Simulation_one_cluster", 
+			simulation_name = paste0("Simulation_one_cluster",
 				sim_id, "_depth", depth)
 			print(paste0("Generating simulation ",simulation_name))
 
@@ -455,13 +455,8 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		# Signatures change in cluster 2, but not in cluster 1
 		clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.45, 0.7))
 
-		# Sample the exposure for sig1
-		# changes by Cait
-		# sig1_exp <- runif(1, 0.4, 0.7)
-		# clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(sig1_exp, sig1_exp))
-
 		sig_activities[[1]] <- clonal_sigs
-		sig_activities[[2]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(sig1_exp - 0.05, sig1_exp - 0.05))
+		sig_activities[[2]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.2, 0.4))
 
 		print("Sig activities")
 		print(do.call(rbind,sig_activities))
@@ -480,7 +475,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		print(c(n_mut_clonal, n_mut_subclone1))
 
 		for (depth in depth_list) {
-			simulation_name = paste0("Simulation_two_clusters", 
+			simulation_name = paste0("Simulation_two_clusters",
 				sim_id, "_depth", depth)
 
 			print(paste0("Generating simulation ",simulation_name))
@@ -874,7 +869,7 @@ create_simulation_bin_sizes <- function(outdir = "simulations", mut_per_sim = 50
 			print("Mutation counts per cluster")
 			print(c(mut_per_sim))
 
-			simulation_name = paste0("Simulation_one_cluster", 
+			simulation_name = paste0("Simulation_one_cluster",
 				sim_id, "_bin", bin_size, "_depth", depth)
 			print(paste0("Generating simulation ",simulation_name))
 
@@ -931,7 +926,7 @@ create_simulation_bin_sizes <- function(outdir = "simulations", mut_per_sim = 50
 			print("Mutation counts per cluster")
 			print(c(n_mut_clonal, n_mut_subclone1))
 
-			simulation_name = paste0("Simulation_two_clusters", 
+			simulation_name = paste0("Simulation_two_clusters",
 				sim_id, "_bin", bin_size, "_depth", depth)
 			print(paste0("Generating simulation ",simulation_name))
 
