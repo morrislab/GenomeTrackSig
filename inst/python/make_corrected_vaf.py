@@ -146,7 +146,7 @@ class CnvParser(object):
 			reader = csv.DictReader(cnf, delimiter='\t')
 			for record in reader:
 				chrom = record['chromosome'].upper()
-				
+
 				if record["total_cn"] != "NA":
 					cn_regions[chrom].append(record)
 
@@ -187,7 +187,7 @@ class CnvFormatter(object):
 
 		while first<=last and not found:
 			midpoint = (first + last)//2
-			
+
 			start = int(float(cnv[midpoint]['start']))
 			end = int(float(cnv[midpoint]['end']))
 
@@ -251,7 +251,7 @@ def get_correct_vaf(cnv_regions, vcf_file, purity, ouput_file):
 		vaf = vcf_parser._get_vaf(record)
 		if vaf is None:
 			vaf = round(alt_count / float(total_count),4)
-		
+
 		vafs.append(vaf)
 		if (sample_vaf_from_posterior):
 			vaf_new =  round(beta.rvs(alt_count+1, ref_count+1),4)
@@ -271,31 +271,32 @@ def get_correct_vaf(cnv_regions, vcf_file, purity, ouput_file):
 
 		output.append([str(record.CHROM) + "_" + str(record.POS) + "=" + str(corrected_vaf)])
 
+  # TODO: reticulate to call_scripts() instead of file
 	with open(ouput_file, "w") as ouput_file:
 		for record in output:
 			ouput_file.write("\t".join([str(x) for x in record]) + "\n")
-	
+
 def read_purity(purity_file):
 	purities = {}
 	with open(purity_file) as f:
 		header = f.readline().split()
 		for l in f:
 			tokens = l.split()
-			tumor_id = tokens[header.index('samplename')] 
+			tumor_id = tokens[header.index('samplename')]
 			purity = float(tokens[header.index('purity')])
-			purities[tumor_id] = purity	
+			purities[tumor_id] = purity
 	return (purities)
 
 def main():
 	parser = argparse.ArgumentParser(description='add copy number to vcf files')
-	parser.add_argument('--cnv', dest='cnv', 
+	parser.add_argument('--cnv', dest='cnv',
 						help='Path to CNV file')
 	parser.add_argument('--vcf', dest='vcf',
 						help='Path to variants (vcf) file')
 	parser.add_argument('--purity', dest='purity_file',
 																								help='Path to purity file')
 	parser.add_argument('--output', dest='output',
-																								help='Path to output file')	
+																								help='Path to output file')
 	args = parser.parse_args()
 
 	cnv = args.cnv
