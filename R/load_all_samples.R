@@ -1,47 +1,8 @@
 #load_all_samples.R
 
-#' \code{load_all_samples} Load previously computed mutation count data for all samples
-#'
-#' @rdname load_all_samples
-#' @name load_all_samples
-
-load_all_samples <- function(countsDir,
-                             bootstrapDir,
-                             outDir = ".",
-                             slidingWindow = FALSE){
-
-  warning("load_all_samples() is depricated. see load_sample")
-
-  # find or create outDir
-  if (!file.exists(outDir)) {
-    dir.create(outDir, recursive = T)
-  }
-
-  # pick up sample names, check passed sample is present
-  sel <- grep("([^/]*)\\.phi\\.txt", list.files(countsDir))
-  available_samples <- gsub("([^/]*)\\.phi\\.txt","\\1", list.files(countsDir)[sel])
-
-#  if (sampleName %in% available_samples == FALSE){
-#    warning(sprintf("Sample %s not found in provided counts directory", sampleName))
-#    return(NULL)
-#  }
-
-#  examples_group <- TrackSig:::get_examples_group(tumors)
-
-  allSamples <- list()
-
-  for (sample in available_samples){
-    print(paste0("Loading sample ", sample, " (", which(available_samples == sample), " out of ", length(available_samples), ")"))
-    allSamples[sprintf("%s", sample)] <- list(load_sample(sample, countsDir, bootstrapDir, slidingWindow))
-  }
-
-  return (allSamples)
-}
-
-
 #' \code{load_sample} Load previously computed mutation count data for one sample
 #'
-#' @rdname load_all_samples
+#' @rdname load_sample
 #' @export
 
 load_sample <- function(sample, countsDir, bootstrapDir, tumortypes){
