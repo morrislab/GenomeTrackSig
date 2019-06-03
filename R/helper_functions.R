@@ -97,6 +97,9 @@ IgnoreVectorOrMatrix <- function(x, FUN)
 #' \code{get_sliding_window_data} <man content>
 #' @rdname helper_functions
 get_sliding_window_data <- function (data, shift, gap = 1) {
+
+  warning("get_sliding_window_data() is depricated.")
+
   if (is.null(gap)) {
     gap = 1
   }
@@ -118,7 +121,7 @@ get_sliding_window_data <- function (data, shift, gap = 1) {
 }
 
 
-#' \code{get_sliding_window_data} <man content>
+#' \code{merge_data_chunks} <man content>
 #' @rdname helper_functions
 merge_data_chunks <- function (vcfData) {
   vcf <- matrix(nrow = nrow(vcfData)/2, ncol = ncol(vcfData))
@@ -131,7 +134,7 @@ merge_data_chunks <- function (vcfData) {
   return(vcf)
 }
 
-#' \code{get_sliding_window_data} <man content>
+#' \code{get_noise_sig} <man content>
 #' @rdname helper_functions
 get_noise_sig <- function(noise_sig){
   if (is.null(noise_sig))
@@ -848,7 +851,7 @@ merge_signatures <- function(mixtures, sigs_to_merge) {
 #' @rdname helper_functions
 #' @export
 
-extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir, 
+extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir,
   bin_size = 100, samples_to_run  = c()) {
   # activities_dir: path to the
   # sorted_mutations_dir: folder with files for each tumour sample (or simulations). Each file has a list of mutations SORTED BY CCF
@@ -862,7 +865,7 @@ extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir,
   print("Extracting exposures per mutation...")
   for (tumor in tumor_list) {
     print(tumor)
-    
+
     sorted_mut_file = paste0(sorted_mutations_dir, "/", tumor, ".mut_types.txt")
     if (!file.exists(sorted_mut_file)) {
       print(sprintf("File %s does not exist", sorted_mut_file))
@@ -902,7 +905,7 @@ extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir,
     }
 
     stopifnot(nrow(activities_per_mut) == nrow(mut_list))
-    write.table(activities_per_mut, file = paste0(activities_dir, "/", tumor, "/sig_exposures_per_mut.txt"), 
+    write.table(activities_per_mut, file = paste0(activities_dir, "/", tumor, "/sig_exposures_per_mut.txt"),
         sep = "\t", row.names=F, quote=F)
   }
 }

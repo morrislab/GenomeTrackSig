@@ -9,6 +9,8 @@ load_all_samples <- function(countsDir,
                              bootstrapDir,
                              outDir = ".",
                              slidingWindow = FALSE){
+  warning("load_all_samples() is depricated. see load_sample")
+
   # find or create outDir
   if (!file.exists(outDir)) {
     dir.create(outDir, recursive = T)
@@ -64,32 +66,23 @@ load_sample <- function(sample, countsDir, bootstrapDir, tumortypes, slidingWind
     print(paste0("Less than 6 rows per sample ", sample))
   }
 
-  if (slidingWindow) {
-    # Sliding window approach
-    data_method <- "sliding400"
-    window_size=400
-    shift <- window_size/100
-    gap <- 1
-    vcf <- get_sliding_window_data(vcfData, shift=shift, gap = gap)
-    phis_sliding_window <- get_sliding_window_data(toVerticalMatrix(phis), shift=shift)
-    phis_sliding_window <- phis_sliding_window / shift
-    phis_for_plot <- phis_sliding_window
-  } else {
-    shift <- gap <- NULL
-    data_method <- "chunk100"
-    vcf <- t(vcfData)
-    phis_for_plot <- phis_sliding_window <- phis
-  }
+  shift <- gap <- NULL
+  data_method <- "chunk100"
+  vcf <- t(vcfData)
+  phis_for_plot <- phis
+  # TODO: rm
+  phis_sliding_window <- NULL
+
 
   purity <- get_sample_purity(sample)
   phis_for_plot <- phis_for_plot / purity
 
-  if (sum(phis_sliding_window < 0.001) > 0.2 * length(phis_sliding_window)){
+  if (sum(phis< 0.001) > 0.2 * length(phis)){
     phis_for_plot = NULL
   }
 
   if (!is.null(phis_for_plot)){
-    colnames(vcf) <- round(phis_sliding_window, 3)
+    colnames(vcf) <- round(phis, 3)
   } else {
     colnames(vcf) <- NULL
   }

@@ -82,9 +82,9 @@ NULL
   # bootstrapping provides the uncertainty estimations on the trajectories
   # warning: by default, mutations are bootstrapped 30 times and the script will run 30 time longer
   , compute_bootstrap = TRUE
-  , sliding_window = FALSE
+#  , sliding_window = FALSE
   , noise_sig = NULL
-  , simulated_data = FALSE
+#  , simulated_data = FALSE
   , postfix = ""
 
   # specifies the changepoint detection algorithm.
