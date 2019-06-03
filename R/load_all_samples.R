@@ -9,6 +9,7 @@ load_all_samples <- function(countsDir,
                              bootstrapDir,
                              outDir = ".",
                              slidingWindow = FALSE){
+
   warning("load_all_samples() is depricated. see load_sample")
 
   # find or create outDir
@@ -43,7 +44,7 @@ load_all_samples <- function(countsDir,
 #' @rdname load_all_samples
 #' @export
 
-load_sample <- function(sample, countsDir, bootstrapDir, tumortypes, slidingWindow = FALSE){
+load_sample <- function(sample, countsDir, bootstrapDir, tumortypes){
 
   list[tumor_id, vcfData,
        phis, quadratic_phis, assigns_phylo_nodes,
@@ -70,9 +71,8 @@ load_sample <- function(sample, countsDir, bootstrapDir, tumortypes, slidingWind
   data_method <- "chunk100"
   vcf <- t(vcfData)
   phis_for_plot <- phis
-  # TODO: rm
+  # TODO: rm phis_sliding_window
   phis_sliding_window <- NULL
-
 
   purity <- get_sample_purity(sample)
   phis_for_plot <- phis_for_plot / purity
@@ -118,8 +118,6 @@ load_sample <- function(sample, countsDir, bootstrapDir, tumortypes, slidingWind
 
 compute_signatures_for_all_examples <- function(countsDir, bootstrapDir, samples_to_run = c()){
   print("Step 2: computing signature activities")
-
-  add_early_late_transition = TRUE
 
   age_signatures <- c("S1", "S5", "L1", "1", "5a", "5b")
 
