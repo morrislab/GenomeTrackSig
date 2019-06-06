@@ -181,11 +181,7 @@ compute_signatures_for_all_examples <- function(countsDir, bootstrapDir, samples
 
     age_signatures <- intersect(rownames(mixtures), age_signatures)
 
-    if (TrackSig.options()$simulated_data) {
-      plot_name <- paste0(dir_name, "/", tumor_id,  ".pdf")
-    } else {
-      plot_name <- paste0(dir_name, "/", acronym, "_", tumor_id, "_", TrackSig.options()$sig_amount, TrackSig.options()$postfix, ".pdf")
-    }
+    plot_name <- paste0(dir_name, "/", acronym, "_", tumor_id, "_", TrackSig.options()$sig_amount, TrackSig.options()$postfix, ".pdf")
 
     if (TrackSig.options()$PLOT_FULL_NAME)
     {
