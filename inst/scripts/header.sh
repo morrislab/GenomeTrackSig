@@ -5,8 +5,8 @@
 # Modified for package TrackSig by Cait Harrigan
 
 packagePath=$1
-vcf_file=$2 # Path to directory with vcf files
-phi_file=$3 # Path to directory with phi.txt files produces by cals_ssm_phis.py
+vcf_file=$2 # Path to vcf file
+phi_file=$3 # Path to  _vaf.txt file
 data_dir=$4
 
 mutation_counts_path="$data_dir/counts/" # Path where to write the mutation counts and sum of quadratic phis

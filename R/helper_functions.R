@@ -499,6 +499,9 @@ extract_data_for_example <- function (example, dir_counts, tumortypes, dir_resul
 #' \code{extract_data_for_simulation} <man content>
 #' @rdname helper_functions
 extract_data_for_simulation <- function (example, dir_counts, dir_results = DIR_RESULTS, dir_create = T) {
+
+  warning("DEPRICATED")
+
   #example <- "1c3df485-8e75-4378-87f6-c6463a520624"
 
   vcfFile <- paste0(dir_counts, "/", example, ".csv")
@@ -808,6 +811,9 @@ truncate_to_range <- function(mixtures, range_) {
 #' \code{get_sample_purity} <man content>
 #' @rdname helper_functions
 get_sample_purity <- function(tumor_id) {
+
+  warning("get_sample_purity called. phi scaling should be done when corrected VAF made")
+
   purities <-read.delim(TrackSig.options()$purity_file)
 
   sample_purity = NULL
