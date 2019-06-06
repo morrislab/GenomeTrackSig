@@ -80,8 +80,6 @@ load_sample <- function(sample, countsDir, bootstrapDir, tumortypes){
 compute_signatures_for_all_examples <- function(countsDir, bootstrapDir, samples_to_run = c()){
   print("Step 2: computing signature activities")
 
-  age_signatures <- c("S1", "S5", "L1", "1", "5a", "5b")
-
   # pick up sample names
   sel <- grep("([^/]*)\\.phi\\.txt", list.files(countsDir))
   tumors <- gsub("([^/]*)\\.phi\\.txt","\\1", list.files(countsDir)[sel])
@@ -178,8 +176,6 @@ compute_signatures_for_all_examples <- function(countsDir, bootstrapDir, samples
     } else  {
       n_clusters = transition_points = assigns_phylo_nodes_sw = NULL
     }
-
-    age_signatures <- intersect(rownames(mixtures), age_signatures)
 
     plot_name <- paste0(dir_name, "/", acronym, "_", tumor_id, "_", TrackSig.options()$sig_amount, TrackSig.options()$postfix, ".pdf")
 
