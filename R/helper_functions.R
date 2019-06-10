@@ -995,7 +995,7 @@ load_annotation_pcawg <- function(tumortype_file = TrackSig.options()$tumortype_
   names_trinucleotide <- apply(names_trinucleotide, 1, function(x) { do.call("paste", c(as.list(x), sep = "_"))})
 
   # Load the tumor types for tumor IDs.
-  tumortypes <- read.delim(tumortype_file, header = F, stringsAsFactors=F)
+  tumortypes <- read.delim(tumortype_file, header = T, stringsAsFactors=F)
   colnames(tumortypes) <- c("ID", "tumor_type")
 
   # Signatures from PCAWG group
