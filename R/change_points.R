@@ -404,7 +404,7 @@ score_partitions_pelt <- function(vcf, alex.t, phis, quadratic_phis,
       r_seg_quadratic_phis <- quadratic_phis[(last_cp+1) : sp_len]
       r_seg_counts <- rowSums(vcf[, (last_cp + 1):sp_len, drop = FALSE])
       r_seg_mix <- fit_mixture_of_multinomials_EM(r_seg_counts, alex.t)
-      r_seg_score <- 2 * score_fxn(multinomial_vector = r_seg_counts, phis = r_seg_phis, quadratic_phis = r_seg_quadratic_phis,
+      r_seg_score <- 2 * score_fxn(multinomial_vector = r_seg_counts, phis = r_seg_phis, quad_phis = r_seg_quadratic_phis,
                                    composing_multinomials = alex.t, mixtures = r_seg_mix)
 
       l_seg_score <- ifelse(last_cp == 0, penalty, max_sp_scores[last_cp])
