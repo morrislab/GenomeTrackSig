@@ -353,7 +353,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	set.seed(2019)
 
 	signature_def = load_sim_signatures(signature_file)
-	depth_list <- c(50, 100)
+	depth_list <- c(100)
 
 	if (rewrite_annotations) {
 	  # remove simulation annotations (rebuilt upon simulation) and create new ones
@@ -393,6 +393,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
   # clusters of increasing distance apart
 	n_simulations = 10
 	dists <- seq(0.2, 0.85, length.out = n_simulations)
+	bin_size = 50
 
 	for (sim_id in 1:n_simulations) {
 		sig_activities = list()
@@ -423,8 +424,9 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 		print(c(n_mut_clonal, n_mut_subclone1))
 
 		for (depth in depth_list) {
+
 			simulation_name = paste0("Simulation_two_clusters",
-				sim_id, "_depth", depth)
+				sim_id, "_depth", depth, "_bin", bin_size)
 
 			print(paste0("Generating simulation ",simulation_name))
 
