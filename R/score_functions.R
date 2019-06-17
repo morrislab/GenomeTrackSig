@@ -3,14 +3,21 @@
 # Author: Cait Harrigan
 
 #Gaussian likelihood maximization
-gaussian_ll <- function(phis, quadratic_phis, ...){
+gaussian_ll <- function(phis, quad_phis, ...){
   # phis read from counts file
   # quadratic_phis read from quadratic phis file
   # ... allows for various function signatures
   # Score a segment using likelihood under normal
+
   n <- length(phis)
-  LL <- sum( (n/2)*log(2*pi), (n/2)*log(quadratic_phis),
-             1/(2*quadratic_phis) * sum( (phis - mean(phis))^2 ) )
+
+  phi = sum(phis)
+  quad_phi = sum(quad_phis)
+
+  mu = phi / n
+  sigmaSq = (quad_phi / n) - (mu^2)
+
+  LL <- sum( (-1/2) * n * log(2*pi*sigmaSq), -sum((phis - mu)^2) / (2*sigmaSq) )
   return(LL)
 }
 
