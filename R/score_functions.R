@@ -9,15 +9,11 @@ gaussian_ll <- function(phis, quad_phis, ...){
   # ... allows for various function signatures
   # Score a segment using likelihood under normal
 
-  n <- length(phis)
+  mu = mean(phis)
+  sigma = sum(quad_phis - mu^2)
 
-  phi = sum(phis)
-  quad_phi = sum(quad_phis)
+  LL <- sum(log(dnorm(mu, sigma)))
 
-  mu = phi / n
-  sigmaSq = (quad_phi / n) - (mu^2)
-
-  LL <- sum( (-1/2) * n * log(2*pi*sigmaSq), -sum((phis - mu)^2) / (2*sigmaSq) )
   return(LL)
 }
 
