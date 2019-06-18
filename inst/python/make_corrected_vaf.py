@@ -2,19 +2,18 @@
 # coding=utf-8
 
 # AUTHOR: Jeff Wintersinger, Roujia Li, Yulia Rubanova
+# Modified for package TrackSig by Cait Harrigan
 
 #Get copy numbers from CNA files, get VAF from VCF files, correct VAF by
 #multiplicity, re-sample the values from Beta distribution for more noise-free predictions
 
-#from create_phylowgs_inputs import *
-import argparse
 # Requires PyVCF. To install: pip2 install pyvcf
 import vcf
 import csv
 import random
 from collections import defaultdict
-import numpy as np
 from scipy.stats import beta
+
 cutoff = 10000
 min_readdepth=0
 
@@ -227,7 +226,7 @@ def filter_vcf(vcf_parser, variants):
 	return variants_filtered
 
 
-def get_correct_vaf(cnv_regions, vcf_file, purity, ouput_file):
+def get_correct_vaf(cnv_regions, vcf_file, purity):
 	formatter = CnvFormatter(None, None, None, None)
 	output = []
 
@@ -271,10 +270,8 @@ def get_correct_vaf(cnv_regions, vcf_file, purity, ouput_file):
 
 		output.append([str(record.CHROM) + "_" + str(record.POS) + "=" + str(corrected_vaf)])
 
-  # TODO: reticulate to call_scripts() instead of file
-	with open(ouput_file, "w") as ouput_file:
-		for record in output:
-			ouput_file.write("\t".join([str(x) for x in record]) + "\n")
+  # reticulate to package function instead of file
+	return output
 
 def read_purity(purity_file):
 	purities = {}
@@ -287,26 +284,9 @@ def read_purity(purity_file):
 			purities[tumor_id] = purity
 	return (purities)
 
-def main():
-	parser = argparse.ArgumentParser(description='add copy number to vcf files')
-	parser.add_argument('--cnv', dest='cnv',
-						help='Path to CNV file')
-	parser.add_argument('--vcf', dest='vcf',
-						help='Path to variants (vcf) file')
-	parser.add_argument('--purity', dest='purity_file',
-																								help='Path to purity file')
-	parser.add_argument('--output', dest='output',
-																								help='Path to output file')
-	args = parser.parse_args()
 
-	cnv = args.cnv
-	vcf = args.vcf
-	purity_file = args.purity_file
-	output = args.output
-
-	if output is None:
-		print("Please provide output file using --output option")
-		exit()
+# make_vaf() replaces main function
+def make_vaf(vcf, cnv = None, purity_file = None):
 
 	if cnv is not None:
 		cnv_parser = CnvParser(cnv)
@@ -328,7 +308,7 @@ def main():
 			exit()
 		tumor_purity = purity[tumor_id]
 
-	get_correct_vaf(cnv_regions, vcf, tumor_purity, output)
+	vaf = get_correct_vaf(cnv_regions, vcf, tumor_purity)
+	return vaf
 
-if __name__ == "__main__":
-	main()
+#[END]

@@ -20,7 +20,8 @@ SystemRequirements:
 Imports:
     reshape2,
     ggplot2,
-    NMF
+    NMF,
+    reticulate
 LinkingTo: 
 Suggests:
     testthat,
