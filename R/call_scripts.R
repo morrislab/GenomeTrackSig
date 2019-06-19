@@ -43,7 +43,8 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL) {
   # call python with reticulate
 
   reticulate::source_python(system.file("python/make_corrected_vaf.py", package = "TrackSig"))
-  vaf <- unlist( make_vaf(vcfFile, cnaFile, purityFile) )
+  a <- make_vaf(vcfFile, cnaFile, purityFile)
+
 
   # get mutation types
 
@@ -53,8 +54,11 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL) {
 }
 
 
-getMutTypes <- function(){
+getMutTypes <- function(vcf, vaf){
   # replaces perl script
+
+  vcf
+
 
 }
 

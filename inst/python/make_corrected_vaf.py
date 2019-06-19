@@ -13,6 +13,7 @@ import csv
 import random
 from collections import defaultdict
 from scipy.stats import beta
+import pandas as pd
 
 cutoff = 10000
 min_readdepth=0
@@ -228,7 +229,7 @@ def filter_vcf(vcf_parser, variants):
 
 def get_correct_vaf(cnv_regions, vcf_file, purity):
 	formatter = CnvFormatter(None, None, None, None)
-	output = []
+	output = pd.DataFrame()
 
 	vcf_parser = PcawgConsensusParser(vcf_file)
 	variants = vcf_parser._parse_vcf(vcf_file)
@@ -268,7 +269,7 @@ def get_correct_vaf(cnv_regions, vcf_file, purity):
 
 		corrected_vaf = (2 + purity * (copy_number-2)) * vaf
 
-		output.append([str(record.CHROM) + "_" + str(record.POS) + "=" + str(corrected_vaf)])
+		output.append([[str(record.CHROM), str(record.POS), str(record.REF), str(record.ALT), str(corrected_vaf)]], ignore_index = True)
 
   # reticulate to package function instead of file
 	return output
@@ -308,7 +309,7 @@ def make_vaf(vcf, cnv = None, purity_file = None):
 			exit()
 		tumor_purity = purity[tumor_id]
 
-	vaf = get_correct_vaf(cnv_regions, vcf, tumor_purity)
-	return vaf
+	output = get_correct_vaf(cnv_regions, vcf, tumor_purity)
+	return output
 
 #[END]
