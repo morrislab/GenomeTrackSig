@@ -269,7 +269,7 @@ def get_correct_vaf(cnv_regions, vcf_file, purity):
 
 		corrected_vaf = (2 + purity * (copy_number-2)) * vaf
 
-		output.append([[str(record.CHROM), str(record.POS), str(record.REF), str(record.ALT), str(corrected_vaf)]], ignore_index = True)
+		output = output.append([[str(record.CHROM), str(record.POS), str(record.REF), str(record.ALT), str(corrected_vaf)]], ignore_index = True)
 
   # reticulate to package function instead of file
 	return output
