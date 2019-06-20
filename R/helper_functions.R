@@ -11,7 +11,7 @@
 #' @value data.frame containing all the possible trinucleotide contextes for a mutation in the supplied alphabet
 #'
 #' @examples
-#' context <- generateContext(c("TA", "CG"))
+#' context <- generateContext(c("CG", "TA"))
 #' dim(context)
 #' head(context)
 #'
@@ -25,9 +25,7 @@ generateContext <- function(alphabet){
   }
 
   allpha <- unlist(strsplit(alphabet, split=NULL))
-
   nTypes <- (length(allpha) - 1) * length(allpha)^3 * 1/2
-  print(sprintf("generating %s mutation types", nTypes))
 
   context <- data.frame()
 

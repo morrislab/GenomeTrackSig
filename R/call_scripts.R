@@ -17,7 +17,7 @@
 #'
 #' @export
 
-vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL) {
+vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL, context = trinucleotide_internal) {
 
   # load CNA and purity dataframe (not loaded with VCF for parallelization memory saving)
   # could be done as a single annotation load.... one function to load each file
@@ -40,13 +40,11 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL) {
     purityFile <- path.expand(purityFile)
   }
 
-  # call python with reticulate
-
-  reticulate::source_python(system.file("python/make_corrected_vaf.py", package = "TrackSig"))
-  a <- make_vaf(vcfFile, cnaFile, purityFile)
+  vcaf <- getVcaf(vcfFile, cnaFile, purityFile)
+  mutTypes <- getMutTypes(vcaf)
 
 
-  # get mutation types
+
 
 
   # bin mutations
@@ -54,10 +52,27 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL) {
 }
 
 
-getMutTypes <- function(vcf, vaf){
-  # replaces perl script
+getVcaf <- function(vcfFile, cnaFile, purityFile){
+  #replaces make_corrected_vaf.py
 
-  vcf
+  # call python with reticulate
+  reticulate::source_python(system.file("python/make_corrected_vaf.py", package = "TrackSig"))
+
+  # formatting - vcf and vaf concatenated and dataframe hold strings
+  vcaf <- make_vcaf(vcfFile, cnaFile, purityFile)
+  colnames(vcaf) <- c("chr", "pos", "ref", "alt", "phi")
+  vcaf$phi <- as.numeric(vcaf$phi)
+
+  # multiallelic hits keep only the first allele
+  vcaf$alt <- substr(vcaf$alt, 2, 2)
+
+  return(vcaf)
+}
+
+getMutTypes <- function(vcaf, context){
+  # replaces getMutationTypes.pl
+
+  mutTypes <- data.frame()
 
 
 }

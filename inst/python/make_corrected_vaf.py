@@ -286,8 +286,8 @@ def read_purity(purity_file):
 	return (purities)
 
 
-# make_vaf() replaces main function
-def make_vaf(vcf, cnv = None, purity_file = None):
+# make_vcaf() replaces main function
+def make_vcaf(vcf, cnv = None, purity_file = None):
 
 	if cnv is not None:
 		cnv_parser = CnvParser(cnv)
