@@ -17,7 +17,8 @@
 #'
 #' @export
 
-vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL, context = trinucleotide_internal) {
+vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL,
+                        context = trinucleotide_internal, refGenome = Hsapian) {
 
   # load CNA and purity dataframe (not loaded with VCF for parallelization memory saving)
   # could be done as a single annotation load.... one function to load each file
@@ -41,11 +42,7 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL, context = tr
   }
 
   vcaf <- getVcaf(vcfFile, cnaFile, purityFile)
-  mutTypes <- getMutTypes(vcaf)
-
-
-
-
+  vcaf <- getMutTypes(vcaf)
 
   # bin mutations
 
@@ -62,19 +59,75 @@ getVcaf <- function(vcfFile, cnaFile, purityFile){
   vcaf <- make_vcaf(vcfFile, cnaFile, purityFile)
   colnames(vcaf) <- c("chr", "pos", "ref", "alt", "phi")
   vcaf$phi <- as.numeric(vcaf$phi)
+  vcaf$pos <- as.numeric(vcaf$pos)
 
   # multiallelic hits keep only the first allele
   vcaf$alt <- substr(vcaf$alt, 2, 2)
 
+  # order mutations by phi
+  vcaf <- vcaf[order(vcaf$phi, decreasing = T),]
+
+  # check assumptions and clean vcaf
+  vcaf <- checkVcaf(vcaf)
+
   return(vcaf)
 }
 
-getMutTypes <- function(vcaf, context){
+checkVcaf <- function(vcaf, refGenome = Hsapiens){
+  # some VCF formatting checks, filter for SNP's
+  # no read quality filtering performed.
+
+  rmSet <- c()
+
+  # lists of >2 alt alleles not SNP
+  # don't count incluce python list characters - [,]
+  rmSet <- union(rmSet, which(nchar(vcaf$alt) > 5))
+
+  # lists of >1 ref allele not SNP
+  # don't count incluce python list characters - [,]
+  rmSet <- union(rmSet, which(nchar(vcaf$ref) > 3))
+
+  # chromosome should be valid in refrence genome
+  # don't load genome - use BSgenome previewe accessing
+  # "chr" is stripped by make_vcaf so return for matching with BSgenome
+  rmSet <- union(rmSet, which(!(paste0("chr", vcaf$chr) %in% seqnames(refGenome))))
+
+  # postition should be valid in refrence genome
+  # not less than 1
+  rmSet <- union(rmSet, which( vcaf$pos < 1 ) )
+
+  #and less than the maximum for that chromosome
+  rmSet <- union(rmSet, which ( ! ( vcaf$pos < seqlengths(refGenome)[paste0("chr", vcaf$chr)] ) ))
+
+  if (length(rmSet) > 0){
+    warning( sprintf("%s loci were removed from the vcf data (they may have not met the SNP cirteria)" , length(rmSet) ) )
+    vcaf <- vcaf[-rmSet,]
+  }
+
+  return ( vcaf )
+}
+
+getMutTypes <- function(vcaf, refGenome = Hsapiens){
   # replaces getMutationTypes.pl
 
-  mutTypes <- data.frame()
+  # get trinucleotide context in refrence
+  # strandedness should be forward
+  # concat to GRanges object
+  mutRanges <- GRanges( paste0("chr", vcaf$chr, ":", vcaf$pos - 1, "-", vcaf$pos + 1, ":+") )
 
+  # look up trinucleotide context
+  context <- getSeq(refGenome, mutRanges)
+  vcaf$context <- as.factor(context)
 
+  # take reverse complement of ref purines for context format
+  complementSel <- (vcaf$ref == "G" | vcaf$ref == "A")
+  vcaf$context[complementSel] <- as.factor(reverseComplement(context)[complementSel])
+
+  # swap ref purines to pyrimidines
+  vcaf$ref[vcaf$ref == "G"] <- "C"
+  vcaf$ref[vcaf$ref == "A"] <- "T"
+
+  return (vcaf)
 }
 
 getBins <- function(){
