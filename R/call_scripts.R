@@ -18,7 +18,8 @@
 #' @export
 
 vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL,
-                        context = trinucleotide_internal, refGenome = Hsapian) {
+                        context = trinucleotide_internal, refGenome = Hsapian
+                        ) {
 
   # load CNA and purity dataframe (not loaded with VCF for parallelization memory saving)
   # could be done as a single annotation load.... one function to load each file
@@ -42,6 +43,7 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL,
   }
 
   vcaf <- getVcaf(vcfFile, cnaFile, purityFile)
+  vcaf <- checkVcaf(vcaf)
   vcaf <- getMutTypes(vcaf)
 
   # bin mutations
@@ -66,9 +68,6 @@ getVcaf <- function(vcfFile, cnaFile, purityFile){
 
   # order mutations by phi
   vcaf <- vcaf[order(vcaf$phi, decreasing = T),]
-
-  # check assumptions and clean vcaf
-  vcaf <- checkVcaf(vcaf)
 
   return(vcaf)
 }
@@ -117,11 +116,21 @@ getMutTypes <- function(vcaf, refGenome = Hsapiens){
 
   # look up trinucleotide context
   context <- getSeq(refGenome, mutRanges)
-  vcaf$context <- as.factor(context)
+  vcaf$context <- as.character(context)
+
+  # context matches ref?
+  # perl script ignored this and grabbed trinuc context regardless.
+  # Here will drop these rows and throw warning
+  mismatchedRef <- which(!(vcaf$ref == substr(vcaf$context, 2, 2)))
+  if (length(mismatchedRef) > 0){
+    warning( sprintf("%s loci were removed from the vcf data for not matching the selected reference" , length(mismatchedRef) ) )
+    vcaf <- vcaf[-mismatchedRef,]
+    context <- context[-mismatchedRef]
+  }
 
   # take reverse complement of ref purines for context format
   complementSel <- (vcaf$ref == "G" | vcaf$ref == "A")
-  vcaf$context[complementSel] <- as.factor(reverseComplement(context)[complementSel])
+  vcaf$context[complementSel] <- as.character(reverseComplement(context)[complementSel])
 
   # swap ref purines to pyrimidines
   vcaf$ref[vcaf$ref == "G"] <- "C"
@@ -130,7 +139,7 @@ getMutTypes <- function(vcaf, refGenome = Hsapiens){
   return (vcaf)
 }
 
-getBins <- function(){
+countBins <- function(vcaf, binSize, ){
   # calls make_hundreds script
 
 }
