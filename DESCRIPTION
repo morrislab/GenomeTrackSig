@@ -22,7 +22,8 @@ Imports:
     ggplot2,
     NMF,
     reticulate,
-    assertthat
+    assertthat,
+    BSgenome.Hsapiens.UCSC.hg19
 LinkingTo: 
 Suggests:
     testthat,
