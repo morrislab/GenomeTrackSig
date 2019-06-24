@@ -13,7 +13,7 @@
     # optRpt[["nameOfOption"]] <- value
     #
     # optionsToSet <- !(names(optTrackSig) %in% names(options()))
-    #
+     #
     # if(any(optionsToSet)) {
     #     options(optShi[optionsToSet])
     # }
@@ -26,6 +26,8 @@
   # Startup message
   m <- character()
   m[1] <- "\nWelcome to TrackSig.\n"
+  m[2] <- "\nChecking that python module dependencies are availale...\n"
+  m[3] <- checkForPyModules()
 
   packageStartupMessage(paste(m, collapse=""))
 }

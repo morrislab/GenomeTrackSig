@@ -1,6 +1,27 @@
 # AUTHOR: Yulia Rubanova
 # Modified for package TrackSig by Cait Harrigan
 
+#' \code{checkForPyModules} Check that the python used by reticulate has access to the required module dependancies for TrackSig to function
+#'
+#' @return None
+#'
+#' @rdname helper_functions
+#' @name checkForPyModules
+#' @export
+
+checkForPyModules <- function(){
+
+  modulesRequired <- c("__future__", "sys", "pandas", "vcf", "csv", "random", "collections", "scipy.stats")
+
+  for (module in modulesRequired){
+    assertthat::assert_that(reticulate::py_module_available(module),
+                            msg = sprintf("Python module \"%s\" is not available. Please install it, or see help(\"reticulate::use_python\") for more information on how to configure your python environment for use with package TrackSig.", module))
+  }
+
+  print("All required python modules are available.")
+
+}
+
 
 
 #' \code{generateContext} Generate a trinucleotide context from an alphabet. Note: this involves finding all three-member
@@ -17,6 +38,7 @@
 #'
 #' @rdname helper_functions
 #' @name generateContext
+#' @export
 
 generateContext <- function(alphabet){
 
