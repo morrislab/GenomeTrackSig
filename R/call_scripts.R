@@ -178,9 +178,17 @@ countBins <- function(vcaf, binSize){
   nMut <- dim(vcaf)[1]
   assert_that(nMut > binSize, msg = "number of mutations is less than specified bin size")
 
-  #num_hundreds=$(($num_mutations/$bin_size + ($num_mutations % $bin_size > 0)))
   nBins <- (nMut / binSize) + (nMut %/% binSize > 0)
+  #vcaf$binAssignment <- rep(1:nBins, each = binSize)
 
+
+  #if $num_mutations -ge $((i*$bin_size-1)) make hundreds
+  for (i in 1:nBins){
+    if (nMut >= i * (binSize - 1)){
+      # make hundred
+      print(c(i, i*binSize - binSize, i*binSize - 1))
+    }
+  }
 
 }
 

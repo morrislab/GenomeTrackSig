@@ -4,14 +4,13 @@
 
 from __future__ import print_function
 import sys
+import pandas as pd
 
 NUCLEOTIDES = ['A', 'C', 'T', 'G']
 
-if __name__ == "__main__":
-	if len(sys.argv) < 4:
-		print("Please provide more parameters")
-		sys.exit()
+def make_bins(vcaf, start, end):
 
+  print(vcaf.type())
 	file = sys.argv[1]
 	start = sys.argv[2]
 	if start.isdigit():
@@ -47,13 +46,13 @@ if __name__ == "__main__":
 				continue
 			if  phi == "NA":
 				continue
-			
+
 			counts[ref + "_" + alt + "_" + context] += 1
 			sum_phis += float(phi)
 			sum_squ_phis += float(phi) ** 2
 
 	assert(sum(counts.values()) == max(0,end - start + 1))
-	
+
 	mean_phi = sum_phis / (end - start + 1)
 	mean_squ_phi = sum_squ_phis / (end - start + 1)
 
