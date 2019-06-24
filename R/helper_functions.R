@@ -8,10 +8,10 @@
 #' where the first of each pair is used as the reference to build the context.
 #'
 #' @param alphabet list of pairs of characters to create combinations of as a mutation context type
-#' @value data.frame containing all the possible trinucleotide contextes for a mutation in the supplied alphabet
+#' @return data.frame containing all the possible trinucleotide contextes for a mutation in the supplied alphabet
 #'
 #' @examples
-#' context <- generateContext(c("CG", "TA"))
+#' context <- TrackSig:::generateContext(c("CG", "TA"))
 #' dim(context)
 #' head(context)
 #'
@@ -29,7 +29,7 @@ generateContext <- function(alphabet){
 
   context <- data.frame()
 
-  for (i in seq(1, alphaSize, by = 2)){
+  for (i in seq(1, length(allpha), by = 2)){
 
     midRef <- allpha[i]
     rest <- setdiff(allpha, midRef)

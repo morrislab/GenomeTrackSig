@@ -43,7 +43,6 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL,
   }
 
   vcaf <- getVcaf(vcfFile, cnaFile, purityFile)
-  vcaf <- checkVcaf(vcaf)
   vcaf <- getMutTypes(vcaf)
 
   # bin mutations
@@ -69,10 +68,19 @@ getVcaf <- function(vcfFile, cnaFile, purityFile){
   # order mutations by phi
   vcaf <- vcaf[order(vcaf$phi, decreasing = T),]
 
+  # prelim formatting check
+  vcaf <- checkVcaf(vcaf)
+
   return(vcaf)
 }
 
 checkVcaf <- function(vcaf, refGenome = Hsapiens){
+
+  # input checking
+  assertthat::assert_that(class(refGenome) == "BSgenome")
+  assertthat::assert_that(class(vcaf) == "data.frame")
+  assertthat::assert_that(all(colnames(vcaf) == c("chr", "pos", "ref", "alt", "phi")))
+
   # some VCF formatting checks, filter for SNP's
   # no read quality filtering performed.
 
@@ -106,8 +114,30 @@ checkVcaf <- function(vcaf, refGenome = Hsapiens){
   return ( vcaf )
 }
 
-getMutTypes <- function(vcaf, refGenome = Hsapiens){
+#' @rdname callScripts
+#' @name vcfToCounts
+#'
+#' @param vcaf vcaf object
+#' @param refGenome reference BSgenome to use
+#' @param saveIntermediate boolean whether to save intermediate results (mutation types)
+#' @param intermediateFile file where to save intermediate results if saveIntermediate is True
+#' @return the passed vcaf object with
+
+getMutTypes <- function(vcaf, refGenome = Hsapiens, saveIntermediate = F, intermediateFile){
   # replaces getMutationTypes.pl
+
+  # input checking
+  assertthat::assert_that(class(refGenome) == "BSgenome")
+  assertthat::assert_that(is.logical(saveIntermediate))
+
+  if(missing(intermediateFile)){
+    assertthat::assert_that(saveIntermediate == F, msg = "please specify an intermediate file to save to,
+                or set saveIntermediate = FALSE")
+  }
+  else{
+    assertthat::assert_that(file.exists(intermediateFile))
+  }
+
 
   # get trinucleotide context in refrence
   # strandedness should be forward
@@ -136,11 +166,17 @@ getMutTypes <- function(vcaf, refGenome = Hsapiens){
   vcaf$ref[vcaf$ref == "G"] <- "C"
   vcaf$ref[vcaf$ref == "A"] <- "T"
 
+  if (saveIntermediate == TRUE){
+    write.table(vcaf, file = intermediateFile)
+  }
+
   return (vcaf)
 }
 
-countBins <- function(vcaf, binSize, ){
+countBins <- function(vcaf, binSize){
   # calls make_hundreds script
+
+
 
 }
 

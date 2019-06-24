@@ -21,7 +21,8 @@ Imports:
     reshape2,
     ggplot2,
     NMF,
-    reticulate
+    reticulate,
+    assertthat
 LinkingTo: 
 Suggests:
     testthat,
