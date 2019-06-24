@@ -7,7 +7,7 @@
 require(BSgenome.Hsapiens.UCSC.hg19)
 
 vcfFile <- system.file("extdata", "example.vcf", package = "TrackSig")
-vcaf <- getVcaf(vcfFile, cnaFile = NULL, purityFile = NULL)
+vcaf <- getVcaf(vcfFile, cnaFile = NULL, purityFile = NULL, refGenome = Hsapiens)
 
 # ==== TEST ==============================================================
 
