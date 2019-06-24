@@ -8,6 +8,8 @@
 #'
 
 
+#' \code{vcfToCounts} Take an input vcf file and annotation and generate the counts data
+#'
 #' @rdname callScripts
 #' @name vcfToCounts
 #'
@@ -16,7 +18,6 @@
 #' @param purityFile path to sample purity file
 #'
 #' @export
-
 vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL,
                         context = trinucleotide_internal, refGenome = Hsapians, binSize = 100) {
 
@@ -41,15 +42,25 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL,
     purityFile <- path.expand(purityFile)
   }
 
+  # vcaf has vcf and vaf data concatenated
   vcaf <- getVcaf(vcfFile, cnaFile, purityFile, refGenome)
-  vcaf <- getMutTypes(vcaf, refGenome)
+  mutTypes <- getMutTypes(vcaf, refGenome)
 
-  return( getBinCounts(vcaf, binSize, context) )
+  return( getBinCounts(mutTypes, binSize, context) )
 
 
 }
 
-
+#' \code{getVcaf} Take an input vcf file and annotation and make vaf data
+#'
+#' @rdname callScripts
+#' @name getVcaf
+#'
+#' @param vcfFile path to variant calling format (vcf) file
+#' @param cnaFile path to copy number abberation (cna) file
+#' @param purityFile path to sample purity file
+#' @param refGenome reference BSgenome to use
+#' @return A vcaf dataframe that has vcf and vaf data concatenated
 getVcaf <- function(vcfFile, cnaFile, purityFile, refGenome){
   #replaces make_corrected_vaf.py
 
@@ -74,6 +85,16 @@ getVcaf <- function(vcfFile, cnaFile, purityFile, refGenome){
   return(vcaf)
 }
 
+#' \code{checkVcaf} Perform some shallow input checks on a vcaf data frame. \cr
+#' Check for SNP criteria, and remove instances where reference allele matches alt allele.\cr
+#' Check chromosome and position is valid in reference genome.
+#'
+#' @rdname callScripts
+#' @name checkVcaf
+#'
+#' @param vcaf vcaf data frame
+#' @param refGenome reference BSgenome to use
+#' @return A vcaf dataframe that has vcf and vaf data concatenated
 checkVcaf <- function(vcaf, refGenome){
 
   # input checking
@@ -122,6 +143,7 @@ checkVcaf <- function(vcaf, refGenome){
   return ( vcaf )
 }
 
+#' \code{getMutTypes} Get the trinucleotide context for each mutation in a vcaf data frame
 #' @rdname callScripts
 #' @name getMutTypes
 #'
@@ -130,7 +152,6 @@ checkVcaf <- function(vcaf, refGenome){
 #' @param saveIntermediate boolean whether to save intermediate results (mutation types)
 #' @param intermediateFile file where to save intermediate results if saveIntermediate is True
 #' @return An updated vcaf data frame with trinucleotide context added for each mutation
-
 getMutTypes <- function(vcaf, refGenome, saveIntermediate = F, intermediateFile){
   # replaces getMutationTypes.pl
 
@@ -182,7 +203,8 @@ getMutTypes <- function(vcaf, refGenome, saveIntermediate = F, intermediateFile)
   return (vcaf)
 }
 
-
+#' \code{getBinCounts} Get the mutation type counts data for a vcaf dataframe
+#'
 #' @rdname callScripts
 #' @name getBinCounts
 #'
@@ -225,8 +247,6 @@ getBinCounts <- function(vcaf, binSize, context){
   return (binCounts)
 
 }
-
-
 
 
 
