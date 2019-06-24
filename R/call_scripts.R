@@ -18,8 +18,7 @@
 #' @export
 
 vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL,
-                        context = trinucleotide_internal, refGenome = Hsapian
-                        ) {
+                        context = trinucleotide_internal, refGenome = Hsapian, binSize = 100) {
 
   # load CNA and purity dataframe (not loaded with VCF for parallelization memory saving)
   # could be done as a single annotation load.... one function to load each file
@@ -42,15 +41,15 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL,
     purityFile <- path.expand(purityFile)
   }
 
-  vcaf <- getVcaf(vcfFile, cnaFile, purityFile)
-  vcaf <- getMutTypes(vcaf)
+  vcaf <- getVcaf(vcfFile, cnaFile, purityFile, refGenome)
+  vcaf <- getMutTypes(vcaf, refGenome)
 
   # bin mutations
 
 }
 
 
-getVcaf <- function(vcfFile, cnaFile, purityFile){
+getVcaf <- function(vcfFile, cnaFile, purityFile, refGenome){
   #replaces make_corrected_vaf.py
 
   # call python with reticulate
@@ -69,12 +68,12 @@ getVcaf <- function(vcfFile, cnaFile, purityFile){
   vcaf <- vcaf[order(vcaf$phi, decreasing = T),]
 
   # prelim formatting check
-  vcaf <- checkVcaf(vcaf)
+  vcaf <- checkVcaf(vcaf, refGenome)
 
   return(vcaf)
 }
 
-checkVcaf <- function(vcaf, refGenome = Hsapiens){
+checkVcaf <- function(vcaf, refGenome){
 
   # input checking
   assertthat::assert_that(class(refGenome) == "BSgenome")
@@ -123,7 +122,7 @@ checkVcaf <- function(vcaf, refGenome = Hsapiens){
 #' @param intermediateFile file where to save intermediate results if saveIntermediate is True
 #' @return the passed vcaf object with
 
-getMutTypes <- function(vcaf, refGenome = Hsapiens, saveIntermediate = F, intermediateFile){
+getMutTypes <- function(vcaf, refGenome, saveIntermediate = F, intermediateFile){
   # replaces getMutationTypes.pl
 
   # input checking
@@ -146,12 +145,12 @@ getMutTypes <- function(vcaf, refGenome = Hsapiens, saveIntermediate = F, interm
 
   # look up trinucleotide context
   context <- getSeq(refGenome, mutRanges)
-  vcaf$context <- as.character(context)
+  vcaf$mutType <- as.character(context)
 
   # context matches ref?
   # perl script ignored this and grabbed trinuc context regardless.
   # Here will drop these rows and throw warning
-  mismatchedRef <- which(!(vcaf$ref == substr(vcaf$context, 2, 2)))
+  mismatchedRef <- which(!(vcaf$ref == substr(vcaf$mutType, 2, 2)))
   if (length(mismatchedRef) > 0){
     warning( sprintf("%s loci were removed from the vcf data for not matching the selected reference" , length(mismatchedRef) ) )
     vcaf <- vcaf[-mismatchedRef,]
@@ -160,7 +159,7 @@ getMutTypes <- function(vcaf, refGenome = Hsapiens, saveIntermediate = F, interm
 
   # take reverse complement of ref purines for context format
   complementSel <- (vcaf$ref == "G" | vcaf$ref == "A")
-  vcaf$context[complementSel] <- as.character(reverseComplement(context)[complementSel])
+  vcaf$mutType[complementSel] <- as.character(reverseComplement(context)[complementSel])
 
   # swap ref purines to pyrimidines
   vcaf$ref[vcaf$ref == "G"] <- "C"
@@ -174,8 +173,13 @@ getMutTypes <- function(vcaf, refGenome = Hsapiens, saveIntermediate = F, interm
 }
 
 countBins <- function(vcaf, binSize){
-  # calls make_hundreds script
+  # replaces make_hundreds.py script
 
+  nMut <- dim(vcaf)[1]
+  assert_that(nMut > binSize, msg = "number of mutations is less than specified bin size")
+
+  #num_hundreds=$(($num_mutations/$bin_size + ($num_mutations % $bin_size > 0)))
+  nBins <- (nMut / binSize) + (nMut %/% binSize > 0)
 
 
 }
