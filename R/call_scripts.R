@@ -19,7 +19,7 @@
 #'
 #' @export
 vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL,
-                        context = trinucleotide_internal, refGenome = Hsapians, binSize = 100) {
+                        context = generateContext(c("CG", "TA")), refGenome = Hsapians, binSize = 100) {
 
   # load CNA and purity dataframe (not loaded with VCF for parallelization memory saving)
   # could be done as a single annotation load.... one function to load each file
@@ -44,9 +44,9 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL,
 
   # vcaf has vcf and vaf data concatenated
   vcaf <- getVcaf(vcfFile, cnaFile, purityFile, refGenome)
-  mutTypes <- getMutTypes(vcaf, refGenome)
+  vcaf <- getMutTypes(vcaf, refGenome)
 
-  return( getBinCounts(mutTypes, binSize, context) )
+  return( getBinCounts(vcaf, binSize, context) )
 
 
 }
@@ -195,13 +195,13 @@ getMutTypes <- function(vcaf, refGenome, saveIntermediate = F, intermediateFile)
   rmSet <- sapply(context, FUN = BSgenome::hasOnlyBaseLetters)
   if (sum(rmSet) > 0){
 
-    warning( sprintf("%s mutations dropped for uncertain identity in reference genome" , sum(rmSet)) )
+    warning( sprintf("%s mutations dropped for uncertain identity in reference genome" , sum(!rmSet)) )
     vcaf <- vcaf[rmSet,]
   }
 
   # take reverse complement of ref purines for context format
   complementSel <- (vcaf$ref == "G" | vcaf$ref == "A")
-  vcaf$mutType[complementSel] <- as.character(reverseComplement(context)[complementSel])
+  vcaf$mutType[complementSel] <- as.character(reverseComplement(DNAStringSet(vcaf$mutType))[complementSel])
 
   # complement alt and ref where ref is a purine
   vcaf$alt[vcaf$ref == "G"] <- as.character(complement(DNAStringSet(vcaf$alt[vcaf$ref == "G"])))
