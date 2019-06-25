@@ -180,10 +180,23 @@ getMutTypes <- function(vcaf, refGenome, saveIntermediate = F, intermediateFile)
   # perl script ignored this and grabbed trinuc context regardless.
   # Here will drop these rows and throw warning
   mismatchedRef <- which(!(vcaf$ref == substr(vcaf$mutType, 2, 2)))
+
   if (length(mismatchedRef) > 0){
-    warning( sprintf("%s mutations dropped for vcf refrence allele not matching the selected reference genome" , length(mismatchedRef) ) )
-    vcaf <- vcaf[-mismatchedRef,]
-    context <- context[-mismatchedRef]
+
+    #warning( sprintf("%s mutations dropped for vcf refrence allele not matching the selected reference genome" , length(mismatchedRef) ) )
+    #vcaf <- vcaf[-mismatchedRef,]
+    #context <- context[-mismatchedRef]
+
+    warning( sprintf("%s mutations do not have vcf refrence allele not matching the selected reference genome" , length(mismatchedRef) ) )
+    substr(vcaf$mutType, 2, 2) <- vcaf$ref
+  }
+
+  # remove mutations with "N" in refrence context
+  rmSet <- sapply(context, FUN = BSgenome::hasOnlyBaseLetters)
+  if (sum(rmSet) > 0){
+
+    warning( sprintf("%s mutations dropped for uncertain identity in reference genome" , sum(rmSet)) )
+    vcaf <- vcaf[rmSet,]
   }
 
   # take reverse complement of ref purines for context format
@@ -217,7 +230,8 @@ getBinCounts <- function(vcaf, binSize, context){
 
   nMut <- dim(vcaf)[1]
   assertthat::assert_that(nMut > binSize, msg = "number of mutations may not be less than specified bin size")
-  assertthat::assert_that(dim(unique(vcaf[c("ref","alt","mutType")]))[1] <= dim(context)[1], msg = "too many mutation types for context")
+  assertthat::assert_that(dim(unique(vcaf[c("ref","alt","mutType")]))[1] <= dim(context)[1], msg = sprintf("too many mutation types (%s) for context (%s)",
+                          dim(unique(vcaf[c("ref","alt","mutType")]))[1],  dim(context)[1]) )
 
   #nBins <- (nMut / binSize) + (nMut %/% binSize > 0)
   nBins <- floor( (nMut / binSize) )
@@ -230,13 +244,13 @@ getBinCounts <- function(vcaf, binSize, context){
   binCounts <- data.frame(row.names = 1:nBins)
 
   # mean phis
-  binCounts["phi"] <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = mean)$x
+  phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = mean)$x
 
   # meansq phis
-  binCounts["quadPhi"] <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = function(x){return(mean(x ^ 2))})$x
+  quadPhis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = function(x){return(mean(x ^ 2))})$x
 
   # counts for each bin
-  binCounts <- cbind( binCounts, aggregate(paste(vcaf$ref, vcaf$alt, vcaf$mutType, sep = "_"), by = list(vcaf$binAssignment), FUN = function(x){return(as.array(table(x)))})$x )
+  binCounts <- cbind (binCounts, aggregate(paste(vcaf$ref, vcaf$alt, vcaf$mutType, sep = "_"), by = list(vcaf$binAssignment), FUN = function(x){return(as.array(table(x)))})$x )
 
   # check that all mutation types have a count
   missingTypes <- setdiff(paste(context$V1, context$V2, context$V3, sep = "_"), names(binCounts))
@@ -244,7 +258,7 @@ getBinCounts <- function(vcaf, binSize, context){
     binCounts[col] <- 0
   }
 
-  return (binCounts)
+  return ( list(phis, quadPhis, t(binCounts)) )
 
 }
 
