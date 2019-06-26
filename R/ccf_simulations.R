@@ -228,8 +228,22 @@ generate_ccf_simulation <- function(
 
 
 generate_chr_pos <- function(n_mut) {
-	chrom <- paste0("chr", sample(1:22, n_mut, replace = TRUE))
-	pos <- sample(10**5, n_mut)
+
+  # starts and ends specified with refernce hg19 - for simulation only!
+  starts <- c(30028083, 149790583, 93504855, 75452280, 91686129, 60001, 282485,
+              86726452, 92678797, 64340157, 1212760, 37856695, 19020001, 19000001,
+              29209444, 46385802, 34725849, 18510899, 27731783, 60001, 14338130, 20609432)
+
+  ends <- c(103863906, 234003741, 194041961, 191044276, 138787073, 58087659,
+            50370631, 142766515, 133073060, 116065824, 50783853, 109373470,
+            86760324, 107289540, 82829645, 88389383, 62410760, 52059136,
+            59118983, 26319569, 33157035, 50364777)
+
+
+  chrN <- sample(1:22, n_mut, replace = TRUE)
+	chrom <- paste0("chr", chrN)
+	pos <- runif(n_mut, starts[chrN], ends[chrN])
+
 	return(list(chrom, pos))
 }
 
