@@ -19,7 +19,8 @@
 #'
 #' @export
 vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL,
-                        context = generateContext(c("CG", "TA")), refGenome = BSgenome.Hsapiens.UCSC.hg19, binSize = 100) {
+                        context = generateContext(c("CG", "TA")), refGenome = BSgenome.Hsapiens.UCSC.hg19, binSize = 100,
+                        saveIntermediate = F, intermediateFile = NULL) {
 
   # load CNA and purity dataframe (not loaded with VCF for parallelization memory saving)
   # could be done as a single annotation load.... one function to load each file
@@ -29,22 +30,23 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL,
 
   # input checking and path expansion
 
-  stopifnot(file.exists(vcfFile))
+
   vcfFile <- path.expand(vcfFile)
+  stopifnot(file.exists(vcfFile))
 
   if (!is.null(cnaFile)){
-    stopifnot(file.exists(cnaFile))
     cnaFile <- path.expand(cnaFile)
+    stopifnot(file.exists(cnaFile))
   }
 
   if (!is.null(purityFile)){
-    stopifnot(file.exists(purityFile))
     purityFile <- path.expand(purityFile)
+    stopifnot(file.exists(purityFile))
   }
 
   # vcaf has vcf and vaf data concatenated
   vcaf <- getVcaf(vcfFile, cnaFile, purityFile, refGenome)
-  vcaf <- getMutTypes(vcaf, refGenome)
+  vcaf <- getTrinuc(vcaf, refGenome, saveIntermediate, intermediateFile)
 
   return( getBinCounts(vcaf, binSize, context) )
 
@@ -68,7 +70,7 @@ getVcaf <- function(vcfFile, cnaFile, purityFile, refGenome){
   reticulate::source_python(system.file("python/make_corrected_vaf.py", package = "TrackSig"))
 
   # formatting - vcf and vaf concatenated and dataframe hold strings
-  vcaf <- make_vcaf(vcfFile, cnaFile, purityFile)
+  vcaf <- make_vcaf(vcfFile, cnv = cnaFile, purity_file = purityFile)
   colnames(vcaf) <- c("chr", "pos", "ref", "alt", "phi")
   vcaf$phi <- as.numeric(vcaf$phi)
   vcaf$pos <- as.numeric(vcaf$pos)
@@ -143,29 +145,25 @@ checkVcaf <- function(vcaf, refGenome){
   return ( vcaf )
 }
 
-#' \code{getMutTypes} Get the trinucleotide context for each mutation in a vcaf data frame
+#' \code{getTrinuc} Get the trinucleotide context for each mutation in a vcaf data frame
 #' @rdname callScripts
-#' @name getMutTypes
+#' @name getTrinuc
 #'
 #' @param vcaf vcaf data frame
 #' @param refGenome reference BSgenome to use
 #' @param saveIntermediate boolean whether to save intermediate results (mutation types)
 #' @param intermediateFile file where to save intermediate results if saveIntermediate is True
 #' @return An updated vcaf data frame with trinucleotide context added for each mutation
-getMutTypes <- function(vcaf, refGenome, saveIntermediate = F, intermediateFile){
+getTrinuc <- function(vcaf, refGenome, saveIntermediate = F, intermediateFile){
   # replaces getMutationTypes.pl
 
   # input checking
   assertthat::assert_that(class(refGenome) == "BSgenome")
   assertthat::assert_that(is.logical(saveIntermediate))
 
-  if(missing(intermediateFile)){
+  if(missing(intermediateFile) | is.null(intermediateFile)){
     assertthat::assert_that(saveIntermediate == F, msg = "please specify an intermediate file to save to, or set saveIntermediate = FALSE")
   }
-  else{
-    assertthat::assert_that(file.exists(intermediateFile))
-  }
-
 
   # get trinucleotide context in refrence
   # strandedness should be forward
@@ -210,7 +208,7 @@ getMutTypes <- function(vcaf, refGenome, saveIntermediate = F, intermediateFile)
   vcaf$ref[vcaf$ref == "A"] <- "T"
 
   if (saveIntermediate == TRUE){
-    write.table(vcaf, file = intermediateFile)
+    write.table(vcaf, file = intermediateFile, quote = F)
   }
 
   return (vcaf)
