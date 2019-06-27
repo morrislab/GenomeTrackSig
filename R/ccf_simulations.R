@@ -404,7 +404,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
   print("Simulation type 0b: two clusters")
 	# signature does not change, but CCFs do
 
-	n_simulations = 25    # MUST be a square number
+	n_simulations = 225    # MUST be a square number
 
 	dists <- seq(0.85, 0.2, length.out = sqrt(n_simulations))       # clusters of increasing distance apart
 	sigAdds <- seq(0.05, 0.5, length.out = sqrt(n_simulations))     # signatures of increaing change
