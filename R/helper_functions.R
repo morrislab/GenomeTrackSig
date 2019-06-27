@@ -13,13 +13,21 @@ checkForPyModules <- function(){
 
   modulesRequired <- c("__future__", "sys", "pandas", "vcf", "csv", "random", "collections", "scipy.stats")
 
+  w <- F
+
   for (module in modulesRequired){
-    assertthat::assert_that(reticulate::py_module_available(module),
-                            msg = sprintf("Python module \"%s\" is not available. Please install it, or see help(\"reticulate::use_python\") for more information on how to configure your python environment for use with package TrackSig.", module))
+    if (!reticulate::py_module_available(module)){
+      warning(sprintf("Python module \"%s\" is not available. Please install it, or see help(\"reticulate::use_python\") for more information on how to configure your python environment for use with package TrackSig.", module))
+      w <- T
+    }
   }
 
-  print("All required python modules are available.")
-
+  if (!w) {
+    return("All required python modules are available.")
+  }
+  else{
+    return("uh oh...")
+  }
 }
 
 
