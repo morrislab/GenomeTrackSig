@@ -245,7 +245,7 @@ getBinCounts <- function(vcaf, binSize, context){
   phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = mean)$x
 
   # meansq phis
-  quadPhis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = function(x){return(mean(x ^ 2))})$x
+  quadPhis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = function(x){return(sum(x ^ 2))})$x
 
   # counts for each bin
   binCounts <- cbind (binCounts, aggregate(paste(vcaf$ref, vcaf$alt, vcaf$mutType, sep = "_"), by = list(vcaf$binAssignment), FUN = function(x){return(as.array(table(x)))})$x )
