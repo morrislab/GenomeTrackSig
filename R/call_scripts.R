@@ -19,7 +19,7 @@
 #'
 #' @export
 vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL,
-                        context = generateContext(c("CG", "TA")), refGenome = Hsapians, binSize = 100) {
+                        context = generateContext(c("CG", "TA")), refGenome = BSgenome.Hsapiens.UCSC.hg19, binSize = 100) {
 
   # load CNA and purity dataframe (not loaded with VCF for parallelization memory saving)
   # could be done as a single annotation load.... one function to load each file
@@ -173,8 +173,8 @@ getMutTypes <- function(vcaf, refGenome, saveIntermediate = F, intermediateFile)
   mutRanges <- GRanges( paste0("chr", vcaf$chr, ":", vcaf$pos - 1, "-", vcaf$pos + 1, ":+") )
 
   # look up trinucleotide context
-  context <- getSeq(refGenome, mutRanges)
-  vcaf$mutType <- as.character(context)
+  triNuc <- getSeq(refGenome, mutRanges)
+  vcaf$mutType <- as.character(triNuc)
 
   # context matches ref?
   # perl script ignored this and grabbed trinuc context regardless.
@@ -192,7 +192,7 @@ getMutTypes <- function(vcaf, refGenome, saveIntermediate = F, intermediateFile)
   }
 
   # remove mutations with "N" in refrence context
-  rmSet <- sapply(context, FUN = BSgenome::hasOnlyBaseLetters)
+  rmSet <- sapply(triNuc, FUN = BSgenome::hasOnlyBaseLetters)
   if (sum(rmSet) > 0){
 
     warning( sprintf("%s mutations dropped for uncertain identity in reference genome" , sum(!rmSet)) )
