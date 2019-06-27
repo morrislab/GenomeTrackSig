@@ -367,7 +367,6 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	set.seed(2019)
 
 	signature_def = load_sim_signatures(signature_file)
-	depth_list <- c(100)
 
 	if (rewrite_annotations) {
 	  # remove simulation annotations (rebuilt upon simulation) and create new ones
@@ -404,30 +403,46 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 
   print("Simulation type 0b: two clusters")
 	# signature does not change, but CCFs do
-  # clusters of decreasing distance apart
-	n_simulations = 10
-	dists <- seq(0.2, 0.85, length.out = n_simulations)
-	bin_sizes = c(50, 80, 100)
+
+	n_simulations = 25    # MUST be a square number
+
+	dists <- seq(0.85, 0.2, length.out = sqrt(n_simulations))       # clusters of increasing distance apart
+	sigAdds <- seq(0.05, 0.5, length.out = sqrt(n_simulations))     # signatures of increaing change
+	bin_sizes = c(100)
+	depth_list <- c(100)
+
+	# combo indices to use
+	dist_i <- rep(1:sqrt(n_simulations), each = sqrt(n_simulations))
+	sigAdd_i <- rep(1:sqrt(n_simulations), times = sqrt(n_simulations))
+
 
 	for (bin_size in bin_sizes){
 
-	  for (sim_id in 1:n_simulations) {
+	  for (sim_i in 1:n_simulations) {
+
 	  	sig_activities = list()
+
+	  	# indexing sigAdds and dists
+	  	dist <- dists[dist_i[sim_i]]
+	  	sigAdd <- sigAdds[sigAdd_i[sim_i]]
 
 	  	# Sample signatures with variable presence
 	  	list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 	  	# Signatures change in cluster 2, but not in cluster 1
-	  	clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.45, 0.7))
+	  	clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.6, 0.6))
 
 	  	sig_activities[[1]] <- clonal_sigs
+	  	#sig_activities[[2]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.5 + sigAdd, 0.5 + sigAdd))
 	  	sig_activities[[2]] <- clonal_sigs
+	  	sig_activities[[2]][[3]] <- sig_activities[[2]][[3]] - sigAdd
+	  	sig_activities[[2]][[4]] <- sig_activities[[2]][[4]] + sigAdd
 
-	  	print("Sig activities")
+
 	  	print(do.call(rbind,sig_activities))
 
 	  	#subclone1_ccf = runif(1, min=0.2, max=0.6)
-	  	subclone1_ccf <- dists[sim_id]
+	  	subclone1_ccf <- dist
 
 	  	print("CCFs per cluster")
 	  	print(c(1.0, subclone1_ccf))
@@ -442,7 +457,8 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	  	for (depth in depth_list) {
 
 	  		simulation_name = paste0("Simulation_two_clusters",
-	  			sim_id, "_depth", depth, "_bin", bin_size)
+	  			sim_i, "_depth", depth, "_bin", bin_size,
+	  			"_dist", dist, "_sigChange", sigAdd)
 
 	  		print(paste0("Generating simulation ",simulation_name))
 
