@@ -242,7 +242,7 @@ generate_chr_pos <- function(n_mut) {
 
   chrN <- sample(1:22, n_mut, replace = TRUE)
 	chrom <- paste0("chr", chrN)
-	pos <- runif(n_mut, starts[chrN], ends[chrN])
+	pos <- round(runif(n_mut, starts[chrN], ends[chrN]))
 
 	return(list(chrom, pos))
 }
