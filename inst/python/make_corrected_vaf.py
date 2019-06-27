@@ -114,7 +114,7 @@ class PcawgConsensusParser(VariantParser):
 
 		if isinstance(alt_reads, list):
 			alt_reads = alt_reads[0]
-		ref_reads = ref_reads[0]
+			ref_reads = ref_reads[0]
 		alt_reads = int(alt_reads)
 		ref_reads = int(ref_reads)
 
