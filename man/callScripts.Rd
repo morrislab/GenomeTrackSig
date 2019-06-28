@@ -4,20 +4,21 @@
 \alias{vcfToCounts}
 \alias{getVcaf}
 \alias{checkVcaf}
-\alias{getMutTypes}
+\alias{getTrinuc}
 \alias{getBinCounts}
 \alias{run_simulation}
 \title{\code{callScripts} Call the supporting (non-R) scipts in TrackSig}
 \usage{
 vcfToCounts(vcfFile, cnaFile = NULL, purityFile = NULL,
-  context = trinucleotide_internal, refGenome = Hsapians,
-  binSize = 100)
+  context = generateContext(c("CG", "TA")),
+  refGenome = BSgenome.Hsapiens.UCSC.hg19, binSize = 100,
+  saveIntermediate = F, intermediateFile = NULL)
 
 getVcaf(vcfFile, cnaFile, purityFile, refGenome)
 
 checkVcaf(vcaf, refGenome)
 
-getMutTypes(vcaf, refGenome, saveIntermediate = F, intermediateFile)
+getTrinuc(vcaf, refGenome, saveIntermediate = F, intermediateFile)
 
 getBinCounts(vcaf, binSize, context)
 
@@ -36,11 +37,11 @@ run_simulation(simName, dataDir)
 
 \item{binSize}{number of mutations per bin}
 
-\item{vcaf}{vcaf data frame}
-
 \item{saveIntermediate}{boolean whether to save intermediate results (mutation types)}
 
 \item{intermediateFile}{file where to save intermediate results if saveIntermediate is True}
+
+\item{vcaf}{vcaf data frame}
 
 \item{vcfFile}{path to variant calling format (vcf) file}
 
