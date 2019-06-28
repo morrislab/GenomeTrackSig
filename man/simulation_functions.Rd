@@ -8,7 +8,7 @@
 generate_ccf_simulation(n_clusters, cluster_ccfs, n_mut_per_cluster,
   sig_activities, signature_def, cluster_cna_info = list(),
   mean_depth = 100, to_file = TRUE, simulation_name = "simulation",
-  outdir = ".", bin_size)
+  outdir = ".")
 
 write_sim_annotation(simulation_name, sig_activities, sig_header,
   sim_activity_file, sim_purity_file, sim_tumortype_file)
