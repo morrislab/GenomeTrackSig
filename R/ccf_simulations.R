@@ -3,7 +3,8 @@
 #' Functions required for generating simulated data for TrackSig
 #'
 
-
+#' \code{load_sim_signatures} <man content>
+#' @rdname ccf_simulations
 load_sim_signatures <- function(signature_file) {
 	sigs_to_merge <- list()
 	sigs_to_merge[["SBS7"]] <- c("SBS7a", "SBS7b", "SBS7c", "SBS7d")
@@ -23,11 +24,14 @@ load_sim_signatures <- function(signature_file) {
   	return(alex_merged)
 }
 
+#' \code{compute_uncorrected_ccf} <man content>
+#' @rdname ccf_simulations
 compute_uncorrected_ccf <- function(n_alt_alleles, n_ref_alleles) {
 	return(2 * n_alt_alleles / (n_alt_alleles + n_ref_alleles))
 }
 
-
+#' \code{save_exposures_per_time_point} <man content>
+#' @rdname ccf_simulations
 save_exposures_per_time_point <- function(data_all_clusters, sig_names, file_path, bin_size = 100) {
 	# Make exposure matrix
 	n_time_steps <- as.integer(nrow(data_all_clusters) / bin_size)
@@ -63,7 +67,8 @@ save_exposures_per_time_point <- function(data_all_clusters, sig_names, file_pat
 ##' @param mean_depth average read depth to simulate> Defaults to 100
 ##' @param to_file logical whether to save generated simulations to a file. Defaluts to TRUE
 ##' @param simulation_name simulation name to appear in outputted file name. Defaults to "simulation"
-##' @rdname simulation_functions
+##' @rdname ccf_simulations
+##' @export
 
 # Generate simulations for mutations given clusters, their CCFs, CNAs and signatures.
 generate_ccf_simulation <- function(
