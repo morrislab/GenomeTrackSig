@@ -158,20 +158,6 @@ get_max_changes_one_tumor <- function(mixtures, signatures_to_compute, tumor_id,
 }
 
 
-toHorizontalMatrix <- function(L){
-  if (is.vector(L))
-    return(matrix(L, nrow=1))
-  else
-    return(as.matrix(L))
-}
-
-toVerticalMatrix <- function(L)
-{
-  if (is.vector(L))
-    return(matrix(L, ncol=1))
-  else
-    return(as.matrix(L))
-}
 
 remove_cp_with_same_direction <- function(mixtures, change_points) {
   sigs <- rownames(mixtures)
@@ -191,7 +177,7 @@ remove_cp_with_same_direction <- function(mixtures, change_points) {
   return(change_points)
 }
 
-  compare_changepoints  <- function(simulation_list, ground_truth_dir,
+compare_changepoints  <- function(simulation_list, ground_truth_dir,
                                   tracksig_results_dir, sciclone_results_dir_list, res_file_name,
                                   change_at_cp_threshold = 0.05) {
 
