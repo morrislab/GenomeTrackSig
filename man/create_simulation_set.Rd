@@ -2,7 +2,6 @@
 % Please edit documentation in R/ccf_simulations.R
 \name{create_simulation_set}
 \alias{create_simulation_set}
-\alias{create_simulation_bin_sizes}
 \title{\code{create_simulation_set} generates simulated data files}
 \usage{
 create_simulation_set(outdir = "simulations", mut_per_sim = 5000,
@@ -11,21 +10,10 @@ create_simulation_set(outdir = "simulations", mut_per_sim = 5000,
   sim_tumortype_file = "annotation/sim_tumortypes.txt",
   signature_file = "annotation/sigProfiler_SBS_signatures.txt",
   rewrite_annotations = T)
-
-create_simulation_bin_sizes(outdir = "simulations", mut_per_sim = 5000,
-  sim_activity_file = "annotation/sim_active_in_sample.txt",
-  sim_purity_file = "annotation/sim_purity.txt",
-  sim_tumortype_file = "annotation/sim_tumortypes.txt",
-  signature_file = "annotation/sigProfiler_SBS_signatures.txt",
-  rewrite_annotations = T)
 }
 \arguments{
 \item{mut_per_sim}{int. Number of mutations per simulation. Default: 5000}
-
-\item{mut_per_sim}{int. Number of mutations per simulation. Default: 5000}
 }
 \description{
-\code{create_simulation_set} generates simulated data files
-
 \code{create_simulation_set} generates simulated data files
 }
