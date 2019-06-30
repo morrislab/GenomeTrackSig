@@ -411,9 +411,12 @@ loadAndScoreIt_pcawg <- function(vcfFile, tumortypes, acronym,
   #  plot_name <- paste0(dir_name, "/", acronym, "_", data_method, "_multMix_fittedPerTimeSlice_", sig_amount, "_noPrior_", method_name, postfix, ".pdf")
   #}
 
-  mark_cp <- !is.null(changepoints)
-  TrackSig:::plot_signatures_real_scale(mixtures*100, plot_name=plot_name, phis = phis, mark_change_points=mark_cp, change_points=changepoints,
-                             transition_points = NULL)
 
-  mixtures.rescaled = NULL
+  mark_cp <- !is.null(changepoints)
+  plotting <- TrackSig:::plot_signatures_real_scale(mixtures*100, plot_name=plot_name, phis = phis, mark_change_points=mark_cp, change_points=changepoints,
+                             transition_points = NULL)
+  plotting <- plotting[[1]]
+  plotting$data$id <- tumor_id
+
+  return (plotting)
 }
