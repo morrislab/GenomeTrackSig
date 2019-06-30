@@ -366,7 +366,9 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
                                   sim_purity_file = "annotation/sim_purity.txt",
                                   sim_tumortype_file = "annotation/sim_tumortypes.txt",
                                   signature_file = "annotation/sigProfiler_SBS_signatures.txt",
-                                  rewrite_annotations=T) {
+                                  rewrite_annotations=T,
+                                  n_simulations = 25    # MUST be a square number
+                                  ) {
 
 	dir.create(outdir, showWarnings = FALSE)
 	set.seed(2019)
@@ -409,7 +411,6 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
   print("Simulation type 0b: two clusters")
 	# signature does not change, but CCFs do
 
-	n_simulations = 25    # MUST be a square number
 
 	subccfs <- seq(0.85, 0.2, length.out = sqrt(n_simulations))       # clusters of increasing distance apart
 	sigAdds <- seq(0.05, 0.3, length.out = sqrt(n_simulations))     # signatures of increaing change
