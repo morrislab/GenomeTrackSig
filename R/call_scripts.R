@@ -66,6 +66,8 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purityFile = NULL,
 getVcaf <- function(vcfFile, cnaFile, purityFile, refGenome){
   #replaces make_corrected_vaf.py
 
+  print("making vaf")
+
   # call python with reticulate
   reticulate::source_python(system.file("python/make_corrected_vaf.py", package = "TrackSig"))
 
@@ -157,6 +159,8 @@ checkVcaf <- function(vcaf, refGenome){
 getTrinuc <- function(vcaf, refGenome, saveIntermediate = F, intermediateFile){
   # replaces getMutationTypes.pl
 
+  print("making mutation types")
+
   # input checking
   assertthat::assert_that(class(refGenome) == "BSgenome")
   assertthat::assert_that(is.logical(saveIntermediate))
@@ -225,6 +229,8 @@ getTrinuc <- function(vcaf, refGenome, saveIntermediate = F, intermediateFile){
 #' @return A data frame of summary statistics and mutation type counts for each bin.
 getBinCounts <- function(vcaf, binSize, context){
   # replaces make_hundreds.py script
+
+  print("making counts")
 
   nMut <- dim(vcaf)[1]
   assertthat::assert_that(nMut > binSize, msg = "number of mutations may not be less than specified bin size")
