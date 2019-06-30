@@ -409,15 +409,15 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
   print("Simulation type 0b: two clusters")
 	# signature does not change, but CCFs do
 
-	n_simulations = 9    # MUST be a square number
+	n_simulations = 25    # MUST be a square number
 
-	dists <- seq(0.85, 0.2, length.out = sqrt(n_simulations))       # clusters of increasing distance apart
-	sigAdds <- seq(0.05, 0.5, length.out = sqrt(n_simulations))     # signatures of increaing change
-	bin_sizes = c(100)
+	subccfs <- seq(0.85, 0.2, length.out = sqrt(n_simulations))       # clusters of increasing distance apart
+	sigAdds <- seq(0.05, 0.3, length.out = sqrt(n_simulations))     # signatures of increaing change
+	bin_sizes <- c(100)
 	depth_list <- c(100)
 
 	# combo indices to use
-	dist_i <- rep(1:sqrt(n_simulations), each = sqrt(n_simulations))
+	subccf_i <- rep(1:sqrt(n_simulations), each = sqrt(n_simulations))
 	sigAdd_i <- rep(1:sqrt(n_simulations), times = sqrt(n_simulations))
 
 
@@ -428,7 +428,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	  	sig_activities = list()
 
 	  	# indexing sigAdds and dists
-	  	dist <- dists[dist_i[sim_i]]
+	  	subccf <- subccfs[subccf_i[sim_i]]
 	  	sigAdd <- sigAdds[sigAdd_i[sim_i]]
 
 	  	# Sample signatures with variable presence
@@ -447,7 +447,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	  	print(do.call(rbind,sig_activities))
 
 	  	#subclone1_ccf = runif(1, min=0.2, max=0.6)
-	  	subclone1_ccf <- dist
+	  	subclone1_ccf <- subccf
 
 	  	print("CCFs per cluster")
 	  	print(c(1.0, subclone1_ccf))
@@ -463,7 +463,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 
 	  		simulation_name = paste0("Simulation_two_clusters",
 	  			sim_i, "_depth", depth, "_bin", bin_size,
-	  			"_subCloneAt", dist_i[sim_i], "_sigChange", sigAdd_i[sim_i])
+	  			"_subCloneAt", subccf_i[sim_i], "_sigChange", sigAdd_i[sim_i])
 
 	  		print(paste0("Generating simulation ",simulation_name))
 
