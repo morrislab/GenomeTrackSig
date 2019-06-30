@@ -360,7 +360,8 @@ find_changepoints_pelt <- function(vcf, alex.t, phis, quadratic_phis)
 {
   score_matrix <- score_partitions_pelt(vcf, alex.t, phis, quadratic_phis,
                                         penalty = TrackSig.options()$pelt_penalty,
-                                        score_fxn = TrackSig.options()$pelt_score_fxn)
+                                        score_fxn = TrackSig.options()$pelt_score_fxn,
+                                        bin_size = TrackSig.options()$bin_size)
   changepoints <- recover_changepoints(score_matrix)
 
   mixtures <- fit_mixture_of_multinomials_in_time_slices(vcf, changepoints, alex.t)
@@ -370,7 +371,7 @@ find_changepoints_pelt <- function(vcf, alex.t, phis, quadratic_phis)
 
 # Calculate penalized BIC score for all partitions using PELT method.
 score_partitions_pelt <- function(vcf, alex.t, phis, quadratic_phis,
-                                  penalty, score_fxn, bin_size = TrackSig.options()$bin_size)
+                                  penalty, score_fxn, bin_size)
 {
   n_bins <- ncol(vcf)
   n_sigs <- ncol(alex.t)
