@@ -212,7 +212,8 @@ getTrinuc <- function(vcaf, refGenome, saveIntermediate = F, intermediateFile){
   vcaf$ref[vcaf$ref == "A"] <- "T"
 
   if (saveIntermediate == TRUE){
-    write.table(vcaf, file = intermediateFile, quote = F)
+    mut_types <- vcaf[,c("chr", "pos", "phi", "ref", "alt", "mutType")]
+    write.table(mut_types, file = intermediateFile, quote = F, col.names = F, row.names = F, sep = "\t")
   }
 
   return (vcaf)

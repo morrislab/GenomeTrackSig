@@ -6,7 +6,7 @@
 Create all plotting output that compute_signatures_for_all_examples does.}
 \usage{
 loadAndScoreIt_pcawg(vcfFile, tumortypes, acronym, cnaFile = NULL,
-  purityFile = NULL, saveIntermediate = F)
+  purityFile = NULL, saveItermediate = F)
 }
 \arguments{
 \item{vcfFile}{path to variant calling format (vcf) file}
