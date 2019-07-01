@@ -3,7 +3,7 @@
 # Author: Cait Harrigan
 
 #Gaussian likelihood maximization
-gaussian_ll <- function(phis, quad_phis, bin_size...){
+gaussian_ll <- function(phis, quad_phis, bin_size, ...){
   # phis read from counts file
   # quadratic_phis read from quadratic phis file
   # ... allows for various function signatures
