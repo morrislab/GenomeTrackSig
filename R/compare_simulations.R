@@ -222,6 +222,7 @@ compare_simulations <- function(resultsDir, dataDir, outDir){
 #  print(mean(abs(cp_comparison$n_gt_created_cp - cp_comparison$cp_SCDS_results)))
   }
 
+  # start commented #####
   #print("Examples where TrackSig makes mistakes but SciClone doesn't")
   #print(cp_comparison[(cp_comparison$n_gt_created_cp != cp_comparison$cp_tracksig) & (cp_comparison$n_gt_exposure_cp == cp_comparison$cp_sciclone),])
 
@@ -266,8 +267,9 @@ compare_simulations <- function(resultsDir, dataDir, outDir){
 #      SciClone_cp_summary[d_type, sim_type] <- mean((cp_comparison[idx,]$n_gt_created_cp == cp_comparison[idx,]$cp_SCDS_results) )
 #    }
 #  }
+# end commented ####
 
-  print(TrackSig_cp_summary)
+#  print(TrackSig_cp_summary)
 #  print(SciClone_cp_summary)
 
   sim_type <- "two_clusters"
@@ -285,6 +287,7 @@ compare_simulations <- function(resultsDir, dataDir, outDir){
   print(mean(cp_comparison[idx,]$n_gt_created_cp < cp_comparison[idx,]$cp_tracksig_adjusted))
   cp_comparison[idx,][cp_comparison[idx,]$cp_SCDS_results > 1,]
 
+# start commented #####
   # ===========================================
   # Save the results for each simulation type and make a bar plot
   # For this, run sciclone with three different cluster methods: clusterMethod = "bmm", "gaussian.bmm", "binomial.bmm"
@@ -422,7 +425,10 @@ compare_simulations <- function(resultsDir, dataDir, outDir){
   #  main="", xlab="bin size", ylab="mean activity diff", pch=19)
   #dev.off()
 
+# end commented ####
 
+
+  return(list(res, cp_comparison))
 }
 
 
