@@ -1,17 +1,6 @@
 compare_simulations <- function(resultsDir, dataDir, outDir){
 
-  list <- structure(NA,class="result")
-  "[<-.result" <- function(x,...,value) {
-    args <- as.list(match.call())
-    args <- args[-c(1:2,length(args))]
-    length(value) <- length(args)
-    for(i in seq(along=args)) {
-      a <- args[[i]]
-      if(!missing(a)) eval.parent(substitute(a <- v,list(a=a,v=value[[i]])))
-    }
-    x
-  }
-
+  dir.create(outDir, showWarnings = F, recursive = T)
 
   # ===========================================
   # Compare TrackSig exposures to ground truth
@@ -19,11 +8,9 @@ compare_simulations <- function(resultsDir, dataDir, outDir){
   sel <- grep(x = simulations, "^Simulation")
   simulations <- simulations[sel]
 
-  tracksig_dir = resultsDir
-
   list[res, gt_exp_l, estim_exp_l] <- TrackSig:::compare_simulation_results(
-      simulations, ground_truth_dir = dataDir,
-      method_results_dir = paste0(tracksig_dir, "/SIMULATED/"),
+      simulations, ground_truth_dir = resultsDir,
+      method_results_dir = paste0(resultsDir, "/SIMULATED/"),
       res_file_name = paste(outDir, "TrackSig_simulation_results.txt", sep = "/"))
 
   res_TrackSig <- res
@@ -33,8 +20,8 @@ compare_simulations <- function(resultsDir, dataDir, outDir){
   mean(res$kl > 0.1)
 
   print("Average KL per type: TrackSig")
-  avg_kl_per_type_TrackSig <- TrackSig:::get_results_per_sim_type(res, paste(outDir, "TrackSig", sep = "/"))
-  print(avg_kl_per_type_TrackSig)
+  #avg_kl_per_type_TrackSig <- TrackSig:::get_results_per_sim_type(res, paste(outDir, "TrackSig", sep = "/"))
+  #print(avg_kl_per_type_TrackSig)
 
   # ===========================================
   # Investigate samples with large KL
@@ -69,137 +56,137 @@ compare_simulations <- function(resultsDir, dataDir, outDir){
 
 
 
-  # ===========================================
-  # Compare SciClone exposures to ground truth
-  simulations <- list.files(dataDir)
-  sel <- grep(x = simulations, "^Simulation")
-  simulations <- simulations[sel]
-
-  sciclone_dir <- "SCDS_results/"
-  list[res, gt_exp_l, estim_exp_l] <- TrackSig:::compare_simulation_results(simulations,
-      ground_truth_dir = dataDir,
-      method_results_dir = paste0(sciclone_dir, "/SIMULATED/"),
-      res_file_name = paste(outDir, "sciclone_simulation_results.txt", sep = "/"))
-
-  res_SciClone <- res
-  estim_exp_l_sciclone <- estim_exp_l
-  TrackSig:::plot_kl_results(res, paste(outDir, "SciClone", sep = "/"))
-
-  print("sciclone: Percentage of samples with KL larger than 0.05")
-  mean(res$kl > 0.05)
-
-  print("Average KL per type: SciClone")
-  avg_kl_per_type_SciClone <- TrackSig:::get_results_per_sim_type(res_SciClone, paste(outDir, "SciClone", sep = "/"))
-  print(avg_kl_per_type_SciClone)
-
-
-
-
-  # has_sig7 <- list()
-  # for (sim in names(gt_exp_l)) {
-  #     has_sig7[[sim]] <- "SBS7" %in% colnames(gt_exp_l[[sim]][3:6])
-  # }
-
-  # sim_order <- res_SciClone[,1]
-  # has_sig7 = has_sig7[sim_order]
-
-  # has_sig7 <- as.numeric(data.frame(has_sig7))
-  # has_sig7[has_sig7 == 0] <- "darkgreen"
-  # has_sig7[has_sig7 == 1] <- "magenta"
-
-  pdf(paste(outDir, "SciClone_simulation_results_KL_vs_mean.pdf", sep = "/"), width = 5, height=5)
-  plot(res_SciClone$kl, res_SciClone$abs_diff_mean, main="SciClone versus Truth",
-     xlab="KL", ylab="mean abs diff", xlim=c(0, 1), ylim=c(0, 1)) #col=has_sig7)
-  #legend('topleft', legend = c("No SBS7", "Has SBS7"), col = c("darkgreen", "magenta"), cex = 0.8, pch = 1)
-  dev.off()
-
-  pdf(paste(outDir, "SciClone_simulation_results_KL_vs_max.pdf", sep = "/"), width = 5, height=5)
-  plot(res_SciClone$kl, res_SciClone$abs_diff_max, main="SciClone versus Truth",
-     xlab="KL", ylab="max abs diff", xlim=c(0, 1), ylim=c(0, 1)) #col=has_sig7)
-  #legend('topleft', legend = c("No SBS7", "Has SBS7"), col = c("darkgreen", "magenta"), cex = 0.8, pch = 1)
-  dev.off()
-
-
-
+#  # ===========================================
+#  # Compare SciClone exposures to ground truth
+#  simulations <- list.files(dataDir)
+#  sel <- grep(x = simulations, "^Simulation")
+#  simulations <- simulations[sel]
+#
+#  sciclone_dir <- "SCDS_results/"
+#  list[res, gt_exp_l, estim_exp_l] <- TrackSig:::compare_simulation_results(simulations,
+#      ground_truth_dir = dataDir,
+#      method_results_dir = paste0(sciclone_dir, "/SIMULATED/"),
+#      res_file_name = paste(outDir, "sciclone_simulation_results.txt", sep = "/"))
+#
+#  res_SciClone <- res
+#  estim_exp_l_sciclone <- estim_exp_l
+#  TrackSig:::plot_kl_results(res, paste(outDir, "SciClone", sep = "/"))
+#
+#  print("sciclone: Percentage of samples with KL larger than 0.05")
+#  mean(res$kl > 0.05)
+#
+#  print("Average KL per type: SciClone")
+#  avg_kl_per_type_SciClone <- TrackSig:::get_results_per_sim_type(res_SciClone, paste(outDir, "SciClone", sep = "/"))
+#  print(avg_kl_per_type_SciClone)
+#
+#
+#
+#
+#  # has_sig7 <- list()
+#  # for (sim in names(gt_exp_l)) {
+#  #     has_sig7[[sim]] <- "SBS7" %in% colnames(gt_exp_l[[sim]][3:6])
+#  # }
+#
+#  # sim_order <- res_SciClone[,1]
+#  # has_sig7 = has_sig7[sim_order]
+#
+#  # has_sig7 <- as.numeric(data.frame(has_sig7))
+#  # has_sig7[has_sig7 == 0] <- "darkgreen"
+#  # has_sig7[has_sig7 == 1] <- "magenta"
+#
+#  pdf(paste(outDir, "SciClone_simulation_results_KL_vs_mean.pdf", sep = "/"), width = 5, height=5)
+#  plot(res_SciClone$kl, res_SciClone$abs_diff_mean, main="SciClone versus Truth",
+#     xlab="KL", ylab="mean abs diff", xlim=c(0, 1), ylim=c(0, 1)) #col=has_sig7)
+#  #legend('topleft', legend = c("No SBS7", "Has SBS7"), col = c("darkgreen", "magenta"), cex = 0.8, pch = 1)
+#  dev.off()
+#
+#  pdf(paste(outDir, "SciClone_simulation_results_KL_vs_max.pdf", sep = "/"), width = 5, height=5)
+#  plot(res_SciClone$kl, res_SciClone$abs_diff_max, main="SciClone versus Truth",
+#     xlab="KL", ylab="max abs diff", xlim=c(0, 1), ylim=c(0, 1)) #col=has_sig7)
+#  #legend('topleft', legend = c("No SBS7", "Has SBS7"), col = c("darkgreen", "magenta"), cex = 0.8, pch = 1)
+#  dev.off()
+#
 
 
 
-  # ===========================================
-  # Compare TrackSig and SciClone
-  sim_order <- intersect(res_SciClone[,1], res_TrackSig[,1])
-  print("TrackSig has lower KL in this % of simulations:")
-  mean(res_TrackSig[sim_order,]$kl < res_SciClone[sim_order,]$kl)
-
-  print("Mean KL between the method and ground truth")
-  mean(res_TrackSig$kl)
-  mean(res_SciClone$kl)
-
-  print("mean and median KL diff between two methods")
-  mean(res_SciClone[sim_order,]$kl - res_TrackSig[sim_order,]$kl)
-  median(res_SciClone[sim_order,]$kl - res_TrackSig[sim_order,]$kl)
-
-  print("TrackSig has lower mean abs diff in this % of simulations:")
-  mean(res_TrackSig[sim_order,]$abs_diff_mean < res_SciClone[sim_order,]$abs_diff_mean)
-
-  print("TrackSig has lower max abs diff in this % of simulations:")
-  mean(res_TrackSig[sim_order,]$abs_diff_max < res_SciClone[sim_order,]$abs_diff_max)
-
-  print("percentage of correct reconstructions")
-  mean(res_TrackSig$kl < 0.05)
-  mean(res_SciClone$kl < 0.05)
-
-  mean(res_TrackSig$kl < 0.1)
-  mean(res_SciClone$kl < 0.1)
 
 
-  correct_tracksig = res_TrackSig[sim_order,]$kl < 0.05
+#  # ===========================================
+#  # Compare TrackSig and SciClone
+#  sim_order <- intersect(res_SciClone[,1], res_TrackSig[,1])
+#  print("TrackSig has lower KL in this % of simulations:")
+#  mean(res_TrackSig[sim_order,]$kl < res_SciClone[sim_order,]$kl)
+#
+#  print("Mean KL between the method and ground truth")
+#  mean(res_TrackSig$kl)
+#  mean(res_SciClone$kl)
+#
+#  print("mean and median KL diff between two methods")
+#  mean(res_SciClone[sim_order,]$kl - res_TrackSig[sim_order,]$kl)
+#  median(res_SciClone[sim_order,]$kl - res_TrackSig[sim_order,]$kl)
+#
+#  print("TrackSig has lower mean abs diff in this % of simulations:")
+#  mean(res_TrackSig[sim_order,]$abs_diff_mean < res_SciClone[sim_order,]$abs_diff_mean)
+#
+#  print("TrackSig has lower max abs diff in this % of simulations:")
+#  mean(res_TrackSig[sim_order,]$abs_diff_max < res_SciClone[sim_order,]$abs_diff_max)
+#
+#  print("percentage of correct reconstructions")
+#  mean(res_TrackSig$kl < 0.05)
+#  mean(res_SciClone$kl < 0.05)
+#
+#  mean(res_TrackSig$kl < 0.1)
+#  mean(res_SciClone$kl < 0.1)
+#
+#
+#  correct_tracksig = res_TrackSig[sim_order,]$kl < 0.05
+#
+#  correct_tracksig <- as.numeric(correct_tracksig)
+#  correct_tracksig[correct_tracksig == 0] <- "red"
+#  correct_tracksig[correct_tracksig == 1] <- "darkgreen"
+#
+#  pdf(paste(outDir, "sciclone_results_coloured_TrackSig_mean_diff.pdf", sep = "/"), width = 5, height=5)
+#  plot(res_SciClone[sim_order,]$kl, res_SciClone[sim_order,]$abs_diff_mean,
+#    main="Sciclone versus Truth",
+#     xlab="KL", ylab="mean abs diff", col=correct_tracksig,
+#     xlim=c(0, 1), ylim=c(0, 1))
+#  legend('topleft', legend = c("TrackSig: KL > 0.05", "TrackSig: KL < 0.05"), col = c("red", "darkgreen"), cex = 0.8, pch = 1)
+#  dev.off()
+#
+#  pdf(paste(outDir, "sciclone_results_coloured_TrackSig_max_diff.pdf", sep = "/"), width = 5, height=5)
+#  plot(res_SciClone[sim_order,]$kl, res_SciClone[sim_order,]$abs_diff_max,
+#    main="Sciclone versus Truth",
+#     xlab="KL", ylab="max abs diff", col=correct_tracksig,
+#     xlim=c(0, 1), ylim=c(0, 1))
+#  legend('topleft', legend = c("TrackSig: KL > 0.05", "TrackSig: KL < 0.05"), col = c("red", "darkgreen"), cex = 0.8, pch = 1)
+#  dev.off()
+#
+#
+#
+#  # Comparison of the KL between TrackSig and SciClone
+#  sim_order <- intersect(res_SciClone[,1], res_TrackSig[,1])
+#  pdf(paste(outDir, "TrackSig_vs_SciCLone_simulation_results_KL.pdf", sep = "/"), width = 5, height=5)
+#  plot(res_SciClone[sim_order,]$kl, res_TrackSig[sim_order,]$kl,
+#     xlab="SciClone KL", ylab="TrackSig KL", xlim=c(0, 0.5), ylim=c(0, 0.5))
+#  dev.off()
+#
+#  # for depth 30
+#  sim_order <- intersect(res_SciClone[res_SciClone$depth == 30,1], res_TrackSig[res_TrackSig$depth == 30,1])
+#  pdf(paste(outDir, "TrackSig_vs_SciCLone_simulation_results_KL_depth_30.pdf", sep = "/"), width = 5, height=5)
+#  plot(res_SciClone[sim_order,]$kl, res_TrackSig[sim_order,]$kl,
+#     xlab="SciClone KL", ylab="TrackSig KL", xlim=c(0, 0.5), ylim=c(0, 0.5))
+#  dev.off()
+#
 
-  correct_tracksig <- as.numeric(correct_tracksig)
-  correct_tracksig[correct_tracksig == 0] <- "red"
-  correct_tracksig[correct_tracksig == 1] <- "darkgreen"
-
-  pdf(paste(outDir, "sciclone_results_coloured_TrackSig_mean_diff.pdf", sep = "/"), width = 5, height=5)
-  plot(res_SciClone[sim_order,]$kl, res_SciClone[sim_order,]$abs_diff_mean,
-    main="Sciclone versus Truth",
-     xlab="KL", ylab="mean abs diff", col=correct_tracksig,
-     xlim=c(0, 1), ylim=c(0, 1))
-  legend('topleft', legend = c("TrackSig: KL > 0.05", "TrackSig: KL < 0.05"), col = c("red", "darkgreen"), cex = 0.8, pch = 1)
-  dev.off()
-
-  pdf(paste(outDir, "sciclone_results_coloured_TrackSig_max_diff.pdf", sep = "/"), width = 5, height=5)
-  plot(res_SciClone[sim_order,]$kl, res_SciClone[sim_order,]$abs_diff_max,
-    main="Sciclone versus Truth",
-     xlab="KL", ylab="max abs diff", col=correct_tracksig,
-     xlim=c(0, 1), ylim=c(0, 1))
-  legend('topleft', legend = c("TrackSig: KL > 0.05", "TrackSig: KL < 0.05"), col = c("red", "darkgreen"), cex = 0.8, pch = 1)
-  dev.off()
-
-
-
-  # Comparison of the KL between TrackSig and SciClone
-  sim_order <- intersect(res_SciClone[,1], res_TrackSig[,1])
-  pdf(paste(outDir, "TrackSig_vs_SciCLone_simulation_results_KL.pdf", sep = "/"), width = 5, height=5)
-  plot(res_SciClone[sim_order,]$kl, res_TrackSig[sim_order,]$kl,
-     xlab="SciClone KL", ylab="TrackSig KL", xlim=c(0, 0.5), ylim=c(0, 0.5))
-  dev.off()
-
-  # for depth 30
-  sim_order <- intersect(res_SciClone[res_SciClone$depth == 30,1], res_TrackSig[res_TrackSig$depth == 30,1])
-  pdf(paste(outDir, "TrackSig_vs_SciCLone_simulation_results_KL_depth_30.pdf", sep = "/"), width = 5, height=5)
-  plot(res_SciClone[sim_order,]$kl, res_TrackSig[sim_order,]$kl,
-     xlab="SciClone KL", ylab="TrackSig KL", xlim=c(0, 0.5), ylim=c(0, 0.5))
-  dev.off()
-
-
-  # ===========================================
-  # Compare number of change-points
+#  # ===========================================
+#  # Compare number of change-points
   # simulations_depth100 <- simulations[grepl("depth100$", simulations)]
   # simulations_depth1000 <- simulations[grepl("depth1000$", simulations)]
   # Compare change-points
   cp_comparison <- TrackSig:::compare_changepoints(simulations,
     ground_truth_dir = dataDir,
-    tracksig_results_dir = paste0(tracksig_dir, "/SIMULATED/"),
-    sciclone_results_dir = paste0(sciclone_dir, "/SIMULATED/"),
+    tracksig_results_dir = paste0(resultsDir, "/SIMULATED/"),
+    sciclone_results_dir = NULL,
     res_file_name = paste(outDir, "cp_comparison.txt", sep = "/"),
     change_at_cp_threshold = 0.05)
 
@@ -208,31 +195,31 @@ compare_simulations <- function(resultsDir, dataDir, outDir){
   # cp_comparison <- cp_comparison[idx, ]
 
   {
-  print("TrackSig agrees with sciclone")
-  print(mean(cp_comparison$cp_tracksig_adjusted == cp_comparison$cp_SCDS_results))
+#  print("TrackSig agrees with sciclone")
+#  print(mean(cp_comparison$cp_tracksig_adjusted == cp_comparison$cp_SCDS_results))
 
   print("TrackSig agrees with GT")
   print(mean(cp_comparison$n_gt_created_cp == cp_comparison$cp_tracksig_adjusted))
-  print("SciClone agrees with GT")
-  print(mean(cp_comparison$n_gt_created_cp == cp_comparison$cp_SCDS_results))
+#  print("SciClone agrees with GT")
+#  print(mean(cp_comparison$n_gt_created_cp == cp_comparison$cp_SCDS_results))
 
   print("TrackSig overestimates # change-points")
   print(mean(cp_comparison$n_gt_created_cp < cp_comparison$cp_tracksig_adjusted))
   print("TrackSig underestimates # change-points")
   print(mean(cp_comparison$n_gt_created_cp > cp_comparison$cp_tracksig_adjusted))
 
-  print("SciClone overestimates # change-points")
-  print(mean(cp_comparison$n_gt_created_cp < cp_comparison$cp_SCDS_results))
-  print("SciClone underestimates # change-points")
-  print(mean(cp_comparison$n_gt_created_cp > cp_comparison$cp_SCDS_results))
+#  print("SciClone overestimates # change-points")
+#  print(mean(cp_comparison$n_gt_created_cp < cp_comparison$cp_SCDS_results))
+#  print("SciClone underestimates # change-points")
+#  print(mean(cp_comparison$n_gt_created_cp > cp_comparison$cp_SCDS_results))
 
   print("Mean difference between ground truth and method")
   print(mean(cp_comparison$n_gt_created_cp - cp_comparison$cp_tracksig_adjusted))
-  print(mean(cp_comparison$n_gt_created_cp - cp_comparison$cp_SCDS_results))
+#  print(mean(cp_comparison$n_gt_created_cp - cp_comparison$cp_SCDS_results))
 
   print("Mean abs difference between ground truth and method")
   print(mean(abs(cp_comparison$n_gt_created_cp - cp_comparison$cp_tracksig_adjusted)))
-  print(mean(abs(cp_comparison$n_gt_created_cp - cp_comparison$cp_SCDS_results)))
+#  print(mean(abs(cp_comparison$n_gt_created_cp - cp_comparison$cp_SCDS_results)))
   }
 
   #print("Examples where TrackSig makes mistakes but SciClone doesn't")
@@ -241,47 +228,47 @@ compare_simulations <- function(resultsDir, dataDir, outDir){
   #print(cp_comparison[(cp_comparison$n_gt_created_cp > cp_comparison$cp_tracksig) & (cp_comparison$n_gt_exposure_cp == cp_comparison$cp_sciclone),])
 
 
-  print("Comparison of number of CP per sim type")
-  sim_types <- c("one_cluster", "two_clusters",
-      "branching", "cna_plus",
-      "inf_site_viol_plus")
+#  print("Comparison of number of CP per sim type")
+#  sim_types <- c("one_cluster", "two_clusters",
+#      "branching", "cna_plus",
+#      "inf_site_viol_plus")
 
-  depth_types <- c("depth10", "depth30", "depth100")
-  res_table <- data.frame(matrix(0, ncol = length(sim_types), nrow = length(depth_types)))
-  colnames(res_table) <- sim_types
-  rownames(res_table) <- depth_types
+#  depth_types <- c("depth10", "depth30", "depth100")
+#  res_table <- data.frame(matrix(0, ncol = length(sim_types), nrow = length(depth_types)))
+#  colnames(res_table) <- sim_types
+#  rownames(res_table) <- depth_types
 
-  TrackSig_cp_summary <- SciClone_cp_summary <- res_table
+#  TrackSig_cp_summary <- SciClone_cp_summary <- res_table
 
   # Compute the same things for over-estimating and under-estimating number of subclones
-  for (sim_type in sim_types) {
-    for (d_type in depth_types) {
-      idx <- grepl(sim_type, sapply(cp_comparison[,1],toString))
-      idx <- idx &  grepl(paste0(d_type,"$"), sapply(cp_comparison[,1],toString))
-
-      # print(sim_type)
-      # print(d_type)
-      # print(sum(idx))
-
-      # print(sim_type)
-      # print(d_type)
-      # print(mean(cp_comparison[idx,]$cp_tracksig ))
-      # print(mean(cp_comparison[idx,]$n_gt_created_cp ))
-      # print("TrackSig agrees with sciclone")
-      # print(mean(cp_comparison[idx,]$cp_tracksig == cp_comparison[idx,]$cp_sciclone))
-
-      # print("TrackSig agrees with GT")
-      # print(mean(cp_comparison[idx,]$n_gt_created_cp == cp_comparison[idx,]$cp_tracksig))
-      # print("SciClone agrees with GT")
-      # print(mean(cp_comparison[idx,]$n_gt_created_cp == cp_comparison[idx,]$cp_sciclone))
-
-      TrackSig_cp_summary[d_type, sim_type] <- mean((cp_comparison[idx,]$n_gt_created_cp == cp_comparison[idx,]$cp_tracksig_adjusted) )
-      SciClone_cp_summary[d_type, sim_type] <- mean((cp_comparison[idx,]$n_gt_created_cp == cp_comparison[idx,]$cp_SCDS_results) )
-    }
-  }
+#  for (sim_type in sim_types) {
+#    for (d_type in depth_types) {
+#      idx <- grepl(sim_type, sapply(cp_comparison[,1],toString))
+#      idx <- idx &  grepl(paste0(d_type,"$"), sapply(cp_comparison[,1],toString))
+#
+#      # print(sim_type)
+#      # print(d_type)
+#      # print(sum(idx))
+#
+#      # print(sim_type)
+#      # print(d_type)
+#      # print(mean(cp_comparison[idx,]$cp_tracksig ))
+#      # print(mean(cp_comparison[idx,]$n_gt_created_cp ))
+#      # print("TrackSig agrees with sciclone")
+#      # print(mean(cp_comparison[idx,]$cp_tracksig == cp_comparison[idx,]$cp_sciclone))
+#
+#      # print("TrackSig agrees with GT")
+#      # print(mean(cp_comparison[idx,]$n_gt_created_cp == cp_comparison[idx,]$cp_tracksig))
+#      # print("SciClone agrees with GT")
+#      # print(mean(cp_comparison[idx,]$n_gt_created_cp == cp_comparison[idx,]$cp_sciclone))
+#
+#      TrackSig_cp_summary[d_type, sim_type] <- mean((cp_comparison[idx,]$n_gt_created_cp == cp_comparison[idx,]$cp_tracksig_adjusted) )
+#      SciClone_cp_summary[d_type, sim_type] <- mean((cp_comparison[idx,]$n_gt_created_cp == cp_comparison[idx,]$cp_SCDS_results) )
+#    }
+#  }
 
   print(TrackSig_cp_summary)
-  print(SciClone_cp_summary)
+#  print(SciClone_cp_summary)
 
   sim_type <- "two_clusters"
   d_type <- "depth100"

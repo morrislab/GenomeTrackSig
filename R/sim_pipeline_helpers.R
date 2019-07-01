@@ -24,7 +24,7 @@ compare_simulation_results  <- function(simulation_list,
   for (sim in simulation_list) {
     print(sprintf("Processing simulation %s ...", sim))
 
-    gt_exposures_file = paste0(ground_truth_dir, "/", sim, "/", sim, "_sig_exp_per_mut.txt")
+    gt_exposures_file = paste0(ground_truth_dir, "/", "SIMULATED/", sim, "/", "sig_exposures_per_mut.txt")
 
     if (!file.exists(gt_exposures_file)) {
       print(sprintf("File %s not found", gt_exposures_file))
@@ -84,6 +84,7 @@ compare_simulation_results  <- function(simulation_list,
 
   results_df <- data.frame(results_df)
   rownames(results_df) <- results_df[,1]
+
   write.table(results_df, file = res_file_name, sep = "\t", row.names=F, quote=F)
 
   return(list(results_df, gt_exposures_list, estim_exposures_list))
@@ -249,19 +250,19 @@ compare_changepoints  <- function(simulation_list, ground_truth_dir,
 
     # read change-points from sciclone
     # If we ran sciclone using multiple clustering methods, we want to aggregate results from all of them
-    cp_sciclone <- list()
-    for (sciclone_results_dir in sciclone_results_dir_list) {
-      sciclone_cp_file = paste0(sciclone_results_dir, "/", sim, "/phis.txt")
-
-      if (!file.exists(sciclone_cp_file)) {
-        print(sprintf("File %s not found", sciclone_cp_file))
-        next
-      }
-      # counting change-points, not the number of clusters
-      method_name = paste0("cp_", gsub("([A-z_]*)//*SIMULATED/", "\\1", sciclone_results_dir))
-      cp_sciclone[[method_name]] <- nrow(read.table(sciclone_cp_file, header=F, stringsAsFactors=F)) - 1
-    }
-
+#    cp_sciclone <- list()
+#    for (sciclone_results_dir in sciclone_results_dir_list) {
+#      sciclone_cp_file = paste0(sciclone_results_dir, "/", sim, "/phis.txt")
+#
+#      if (!file.exists(sciclone_cp_file)) {
+#        print(sprintf("File %s not found", sciclone_cp_file))
+#        next
+#      }
+#      # counting change-points, not the number of clusters
+#      method_name = paste0("cp_", gsub("([A-z_]*)//*SIMULATED/", "\\1", sciclone_results_dir))
+#      cp_sciclone[[method_name]] <- nrow(read.table(sciclone_cp_file, header=F, stringsAsFactors=F)) - 1
+#    }
+#
     gt_exposures_file = paste0(ground_truth_dir, "/", sim, "/", sim, "_exposures.txt")
 
     if (!file.exists(gt_exposures_file)) {
@@ -292,9 +293,9 @@ compare_changepoints  <- function(simulation_list, ground_truth_dir,
       n_gt_exposure_cp = n_gt_exposure_cp,
       n_gt_created_cp = n_gt_created_cp)
 
-    for (i in 1:length(cp_sciclone)) {
-      d[[names(cp_sciclone)[i]]] <- cp_sciclone[[i]]
-    }
+#    for (i in 1:length(cp_sciclone)) {
+#      d[[names(cp_sciclone)[i]]] <- cp_sciclone[[i]]
+#    }
 
     results_df <- rbind(results_df, d)
   }
