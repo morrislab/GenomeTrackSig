@@ -25,7 +25,7 @@ compare_simulation_results  <- function(simulation_list,
 
     # check rownames condition
     if(length(gt_pos) != length(unique(gt_pos))){
-      print(sprintf("simulation %s skipped for duplicate mutation positions"), sim)
+      print(sprintf("simulation %s skipped for duplicate mutation positions", sim))
       next
     }
 
