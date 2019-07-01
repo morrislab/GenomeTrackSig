@@ -1,14 +1,3 @@
-list <- structure(NA,class="result")
-"[<-.result" <- function(x,...,value) {
-  args <- as.list(match.call())
-  args <- args[-c(1:2,length(args))]
-  length(value) <- length(args)
-  for(i in seq(along=args)) {
-    a <- args[[i]]
-    if(!missing(a)) eval.parent(substitute(a <- v,list(a=a,v=value[[i]])))
-  }
-  x
-}
 
 kldiv_multinomials <- function(multinom1, multinom2) {
   return(apply(multinom1 * log(multinom1/multinom2),1,sum))
@@ -33,6 +22,13 @@ compare_simulation_results  <- function(simulation_list,
 
     gt_exposures <- read.delim(gt_exposures_file, header=T, stringsAsFactors=F)
     gt_pos = paste0(gt_exposures[,"chromosome"], "_", gt_exposures[,"start"])
+
+    # check rownames condition
+    if(length(gt_pos) != length(unique(gt_pos))){
+      print(sprintf("simulation %s skipped for duplicate mutation positions"), sim)
+      next
+    }
+
     rownames(gt_exposures) <- gt_pos
 
     estim_exposures_file = paste0(method_results_dir, "/", sim, "/", "sig_exposures_per_mut.txt")

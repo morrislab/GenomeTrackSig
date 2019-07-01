@@ -19,7 +19,7 @@ compare_simulations <- function(resultsDir, dataDir, outDir){
   print("Percentage of samples with KL larger than 0.05")
   mean(res$kl > 0.1)
 
-  print("Average KL per type: TrackSig")
+#  print("Average KL per type: TrackSig")
   #avg_kl_per_type_TrackSig <- TrackSig:::get_results_per_sim_type(res, paste(outDir, "TrackSig", sep = "/"))
   #print(avg_kl_per_type_TrackSig)
 
