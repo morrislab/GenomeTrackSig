@@ -337,13 +337,13 @@ loadAndScoreIt_pcawg <- function(vcfFile, tumortypes, acronym,
   tumor_id <- strsplit( unlist(strsplit(vcfFile, "/"))[ length( strsplit(vcfFile, "/")[[1]] ) ] , ".vcf")[[1]]
 
   if (saveIntermediate){
-    dir.create("mut_types/", showWarnings = F)
+    dir.create(paste0(TrackSig.options()$DIR_RESULTS, "/mut_types/"), showWarnings = F, recursive = T)
   }
 
   list[phis, quadPhis, counts] <- vcfToCounts(vcfFile, cnaFile = cnaFile, purityFile = purityFile,
                                               refGenome = BSgenome.Hsapiens.UCSC.hg19,
                                               saveIntermediate = saveIntermediate,
-                                              intermediateFile = paste0("mut_types/", tumor_id, ".mut_types.txt"))
+                                              intermediateFile = paste0(TrackSig.options()$DIR_RESULTS, "/mut_types/", tumor_id, ".mut_types.txt"))
 
   # following checking is all from within compute_signatures_for_all_examples()
   # will throw a next error if check fails
