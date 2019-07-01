@@ -9,7 +9,7 @@ create_simulation_set(outdir = "simulations", mut_per_sim = 5000,
   sim_purity_file = "annotation/sim_purity.txt",
   sim_tumortype_file = "annotation/sim_tumortypes.txt",
   signature_file = "annotation/sigProfiler_SBS_signatures.txt",
-  rewrite_annotations = T)
+  rewrite_annotations = T, n_simulations = 25)
 }
 \arguments{
 \item{mut_per_sim}{int. Number of mutations per simulation. Default: 5000}
