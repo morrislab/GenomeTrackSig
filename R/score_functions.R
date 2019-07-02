@@ -15,7 +15,7 @@ gaussian_ll <- function(phis, quad_phis, bin_size, ...){
   LL <- sum(log(dnorm(phis, mean = mu, sd = sigma)))
 
   # multiply likelihood by bin_size for scaling
-  return(LL * bin_size)
+  return(LL)
 }
 
 # log_likelihood_mixture_multinomials defined in mixture_of_multinomials.R
