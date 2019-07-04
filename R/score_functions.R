@@ -9,10 +9,11 @@ gaussian_ll <- function(phis, quad_phis, bin_size, ...){
   # ... allows for various function signatures
   # Score a segment using likelihood under normal
 
-  mu = mean(phis)
-  sigma = sqrt(sum(quad_phis - mu^2))
+  phi = mean(phis)
+  theta = mean(quad_phis)
+  sigma = sqrt(theta - phi^2)
 
-  LL <- sum(log(dnorm(phis, mean = mu, sd = sigma)))
+  LL <- sum(log(dnorm(phis, mean = phi, sd = sigma)))
 
   # multiply likelihood by bin_size for scaling
   return(LL * bin_size)
