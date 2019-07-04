@@ -41,7 +41,7 @@ compare_simulation_results  <- function(simulation_list,
     estim_exposures <- read.delim(estim_exposures_file, header=T, stringsAsFactors=F)
 
     # Making the rows be in the same order
-    estim_pos = paste0(estim_exposures[,"chromosome"], "_", estim_exposures[,"start"])
+    estim_pos = paste0("chr", estim_exposures[,"chromosome"], "_", estim_exposures[,"start"])
     rownames(estim_exposures) <- estim_pos
     gt_pos <- intersect(gt_pos, estim_pos)
     estim_exposures = estim_exposures[gt_pos,]
