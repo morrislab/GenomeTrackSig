@@ -13,7 +13,7 @@ compare_simulation_results  <- function(simulation_list,
   for (sim in simulation_list) {
     print(sprintf("Processing simulation %s ...", sim))
 
-    gt_exposures_file = paste0(ground_truth_dir, "/", "SIMULATED/", sim, "/", "sig_exposures_per_mut.txt")
+    gt_exposures_file = paste0(ground_truth_dir, "/", sim, "/", sim, "_sig_exp_per_mut.txt")
 
     if (!file.exists(gt_exposures_file)) {
       print(sprintf("File %s not found", gt_exposures_file))
