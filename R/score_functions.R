@@ -11,7 +11,7 @@ gaussian_ll <- function(phis, quad_phis, bin_size, ...){
 
   phi = mean(phis)
   theta = mean(quad_phis)
-  sigma = sqrt(theta - phi^2)
+  sigma = sqrt(max((theta - phi^2), 10^-6, na.rm = T))
 
   LL <- sum(log(dnorm(phis, mean = phi, sd = sigma)))
 
