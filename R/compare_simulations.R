@@ -9,8 +9,8 @@ compare_simulations <- function(resultsDir, dataDir, outDir){
   simulations <- simulations[sel]
 
   list[res, gt_exp_l, estim_exp_l] <- TrackSig:::compare_simulation_results(
-      simulations, ground_truth_dir = resultsDir,
-      method_results_dir = paste0(dataDir),
+      simulations, ground_truth_dir = dataDir,
+      method_results_dir = resultsDir,
       res_file_name = paste(outDir, "TrackSig_simulation_results.txt", sep = "/"))
 
   res_TrackSig <- res

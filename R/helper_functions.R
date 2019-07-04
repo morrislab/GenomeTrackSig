@@ -932,8 +932,8 @@ merge_signatures <- function(mixtures, sigs_to_merge) {
 #' @export
 
 extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir,
-  bin_size = 100, samples_to_run  = c()) {
-  # activities_dir: path to the
+  bin_size = TrackSig.options()$bin_size, samples_to_run  = c()) {
+  # activities_dir: path to the tumor type results dir
   # sorted_mutations_dir: folder with files for each tumour sample (or simulations). Each file has a list of mutations SORTED BY CCF
   tumor_list <- list.dirs(activities_dir, recursive = F, full.names=F)
 
