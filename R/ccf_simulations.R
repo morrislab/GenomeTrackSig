@@ -436,7 +436,8 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
 	  	list[meaningful_sig1, meaningful_sig2] = sample(meaningful_sig_list, size = 2)
 
 	  	# Signatures change in cluster 2, but not in cluster 1
-	  	clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.6, 0.6))
+	  	#clonal_sigs <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.6, 0.6))
+	  	clonal_sigs <- list(SBS1 = 0.05, SBS5 = 0.10, SBS3 = 0.60, SBS7 = 0.25)
 
 	  	sig_activities[[1]] <- clonal_sigs
 	  	#sig_activities[[2]] <- sample_sigs_and_activities(meaningful_sig1, meaningful_sig2, sig1_range=c(0.5 + sigAdd, 0.5 + sigAdd))
