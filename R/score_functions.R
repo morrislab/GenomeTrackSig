@@ -9,14 +9,14 @@ gaussian_ll <- function(phis, quad_phis, bin_size, ...){
   # ... allows for various function signatures
   # Score a segment using likelihood under normal
 
-  phi = mean(phis)
-  theta = mean(quad_phis)
-  sigma = sqrt(max((theta - phi^2), 10^-6, na.rm = T))
+  B <- length(phis)
+  S <- bin_size
+  sigmasq <- ( mean(quad_phi) - mean(phis)^2 )
 
-  LL <- sum(log(dnorm(phis, mean = phi, sd = sigma)))
+  LL <- (S*B/2) * (log(2 * pi * sigmasq) - 1)
 
   # multiply likelihood by bin_size for scaling
-  return(LL * bin_size)
+  return(LL)
 }
 
 # log_likelihood_mixture_multinomials defined in mixture_of_multinomials.R
