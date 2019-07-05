@@ -11,7 +11,7 @@ gaussian_ll <- function(phis, quad_phis, bin_size, ...){
 
   B <- length(phis)
   S <- bin_size
-  sigmasq <- ( mean(quad_phis) - mean(phis)^2 )
+  sigmasq <- max( mean(quad_phis) - mean(phis)^2, 10^-8, na.rm = T )
 
   LL <- (S*B/2) * (log(2 * pi * sigmasq) - 1)
 
