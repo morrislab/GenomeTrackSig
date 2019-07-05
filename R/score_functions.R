@@ -11,9 +11,11 @@ gaussian_ll <- function(phis, quad_phis, bin_size, ...){
 
   B <- length(phis)
   S <- bin_size
-  sigmasq <- max( mean(quad_phis) - mean(phis)^2, 10^-8, na.rm = T )
+  sigmasq <- mean(quad_phis) - mean(phis)^2
 
-  LL <- (S*B/2) * (log(2 * pi * sigmasq) - 1)
+  scale <- max(sqrt(2 * pi * sigmasq), 10^-8, na.rm = T)
+
+  LL <- - (S * B * log(scale)) - (S * B / 2)
 
   # multiply likelihood by bin_size for scaling
   return(LL)
