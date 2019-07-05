@@ -110,7 +110,7 @@ get_sample_purity(tumor_id)
 merge_signatures(mixtures, sigs_to_merge)
 
 extract_exposures_per_mutation(activities_dir, sorted_mutations_dir,
-  bin_size = 100, samples_to_run = c())
+  bin_size = TrackSig.options()$bin_size, samples_to_run = c())
 
 load_annotation(tumortype_file = TrackSig.options()$tumortype_file,
   signature_file = TrackSig.options()$signature_file,
