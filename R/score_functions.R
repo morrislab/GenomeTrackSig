@@ -13,11 +13,14 @@ gaussian_ll <- function(phis, quad_phis, bin_size, ...){
   S <- bin_size
   sigmasq <- mean(quad_phis) - mean(phis)^2
 
+  if (mean(quad_phis) >= mean(phis)^2){
+    warning(sprintf("mean quad_phis is %s, mean phis^2 is %s", mean(quad_phis), mean(phis)^2))
+  }
+
   scale <- max(sqrt(2 * pi * sigmasq), 10^-8, na.rm = T)
 
   LL <- - (S * B * log(scale)) - (S * B / 2)
 
-  # multiply likelihood by bin_size for scaling
   return(LL)
 }
 
