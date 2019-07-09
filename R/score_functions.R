@@ -12,9 +12,9 @@ gaussian_ll <- function(phis, quad_phis, bin_size, ...){
   N <- length(phis) * bin_size
   sigmasq <- mean(quad_phis) - mean(phis)^2
 
-  if (mean(quad_phis) <= mean(phis)^2){
+  if (mean(quad_phis) < mean(phis)^2){
     warning(sprintf("mean quad_phis is %s, mean phis^2 is %s", mean(quad_phis), mean(phis)^2))
-    sigmasq <- max(sqrt(2 * pi * sigmasq), 10^-8, na.rm = T)
+    sigmasq <- max((sigmasq), 10^-8, na.rm = T)
   }
 
   LL <- (-N / 2) * (log(2 * pi * sigmasq) + 1)
