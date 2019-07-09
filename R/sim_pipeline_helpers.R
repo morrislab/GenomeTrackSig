@@ -169,20 +169,6 @@ get_max_changes_one_tumor <- function(mixtures, signatures_to_compute, tumor_id,
 }
 
 
-toHorizontalMatrix <- function(L){
-  if (is.vector(L))
-    return(matrix(L, nrow=1))
-  else
-    return(as.matrix(L))
-}
-
-toVerticalMatrix <- function(L)
-{
-  if (is.vector(L))
-    return(matrix(L, ncol=1))
-  else
-    return(as.matrix(L))
-}
 
 remove_cp_with_same_direction <- function(mixtures, change_points) {
   sigs <- rownames(mixtures)
