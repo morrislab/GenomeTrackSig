@@ -440,7 +440,8 @@ plot_signatures_real_scale <- function (dd, plot_name, phis = NULL, fitted_data 
           alpha=0.3
         }
       for (i in 1:length(change_points)) {
-        g <- g +  ggplot2::annotate("rect", xmin=round(phis,3 )[change_points[i]-1], xmax=round(phis,3 )[change_points[i]], ymin=-Inf, ymax=Inf, alpha=alpha)
+        g <- g +  ggplot2::annotate("rect", xmin=round(phis,3 )[change_points[i]-1], fill = "red",
+                                    xmax=round(phis,3 )[change_points[i]], ymin=-Inf, ymax=Inf, alpha=alpha)
       }
     }
   }
