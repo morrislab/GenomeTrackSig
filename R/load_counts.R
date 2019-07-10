@@ -327,7 +327,7 @@ compute_signatures_for_all_examples <- function(countsDir, bootstrapDir, samples
 
 loadAndScoreIt_pcawg <- function(vcfFile, tumortypes, acronym,
                                  cnaFile = NULL, purityFile = NULL,
-                                 saveIntermediate = F) {
+                                 saveIntermediate = T) {
 
 
   # load_sample() returns (inorder)
@@ -424,7 +424,7 @@ loadAndScoreIt_pcawg <- function(vcfFile, tumortypes, acronym,
 
 loadAndScoreIt_simulation <- function(vcfFile, mutTypesFile, tumortypes, acronym,
                                  cnaFile = NULL, purityFile = NULL,
-                                 saveIntermediate = F) {
+                                 saveIntermediate = T) {
 
 
   # load_sample() returns (inorder)
