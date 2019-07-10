@@ -44,7 +44,9 @@ poisson_ll <- function(phis, quad_phis, bin_size, ...){
 
   warning(sprintf("y value is %s", y))
 
+
   assertthat::assert_that(y > 0 , sprintf("y value is %s", y))
+
 
   LL <- (-N / 2) * ( log(2 * pi * y) + y) - (t/(2*y)) + s
 
