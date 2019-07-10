@@ -39,15 +39,10 @@ poisson_ll <- function(phis, quad_phis, bin_size, ...){
 
   N <- length(phis) * bin_size
   t <- N * mean(quad_phis)
-  print(sprintf("t is: %s and N is: %s", t, N))
   s <- N * mean(phis)
   y <- (1/2) * (sqrt((4*t/N) + 1) - 1) #y = mean = variance under poisson conditions
 
-  warning(sprintf("y value is %s", y))
-
-
-  assertthat::assert_that(y > 0 , sprintf("y value is %s", y))
-
+  assertthat::assert_that(y > 0 , msg = sprintf("y value is %s", y))
 
   LL <- (-N / 2) * ( log(2 * pi * y) + y) - (t/(2*y)) + s
 
