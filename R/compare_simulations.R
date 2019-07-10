@@ -61,7 +61,7 @@ compare_simulations <- function(resultsDir, dataDir, outDir){
   # Compare change-points
   cp_comparison <- TrackSig:::compare_changepoints(simulations,
     ground_truth_dir = dataDir,
-    tracksig_results_dir = paste0(resultsDir, "/SIMULATED/"),
+    tracksig_results_dir = paste0(resultsDir),
     sciclone_results_dir = NULL,
     res_file_name = paste(outDir, "cp_comparison.txt", sep = "/"),
     change_at_cp_threshold = 0.05)
