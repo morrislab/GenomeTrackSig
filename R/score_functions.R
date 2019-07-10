@@ -40,7 +40,7 @@ poisson_ll <- function(phis, quad_phis, bin_size, ...){
   N <- length(phis) * bin_size
   t <- N * mean(quad_phis)
   s <- N * mean(phis)
-  y <- (1/2) * (sqrt((t/N) + (1/4) - 1) #y = mean = variance under poisson conditions
+  y <- (1/2) * (sqrt((t/N) + (1/4)) - 1) #y = mean = variance under poisson conditions
 
   #warning(sprintf("y value is %s", y))
 
