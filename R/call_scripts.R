@@ -98,6 +98,11 @@ vcfToCounts_simulation <- function(vcfFile, mutTypesFile, cnaFile = NULL, purity
   vcaf$mutType <- mutTypes$tri
   vcaf <- vcaf[order(vcaf$phi),]
 
+  # save intermediate is necessary
+  if (saveIntermediate == TRUE){
+    mut_types <- vcaf[,c("chr", "pos", "phi", "ref", "alt", "mutType")]
+    write.table(mut_types, file = intermediateFile, quote = F, col.names = F, row.names = F, sep = "\t")
+  }
 
   return( getBinCounts(vcaf, binSize, context) )
 
