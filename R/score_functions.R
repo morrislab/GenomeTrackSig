@@ -3,8 +3,6 @@
 # Author: Cait Harrigan
 
 
-
-
 #Gaussian likelihood maximization
 gaussian_ll <- function(phis, quad_phis, bin_size, ...){
   # phis read from counts file
@@ -13,7 +11,7 @@ gaussian_ll <- function(phis, quad_phis, bin_size, ...){
   # Score a segment using likelihood under normal
 
   n <- length(phis) * bin_size
-  sigmasq <- (sum(quad_phis) / n)
+  sigmasq <- (sum(quad_phis) / n) - (sum(phis)/n)^2
 
   assertthat::assert_that((sum(quad_phis) / n) > (sum(phis)/n)^2,
                           msg = sprintf("mean quad_phis is %s, mean phis^2 is %s",
@@ -40,8 +38,8 @@ poisson_ll <- function(phis, quad_phis, bin_size, ...){
   # Score a segment using likelihood under normal
 
   N <- length(phis) * bin_size
-  t <- N * mean(quad_phis)
-  s <- N * mean(phis)
+  t <- sum(quad_phis) / N
+  s <- sum(phis) / N
   y <- (1/2) * (sqrt((4*t/N) + 1) - 1) #y = mean = variance under poisson conditions
 
   assertthat::assert_that(y > 0 , msg = sprintf("y value is %s", y))
