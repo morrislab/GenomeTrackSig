@@ -263,7 +263,7 @@ compare_changepoints  <- function(simulation_list, ground_truth_dir,
       n_gt_created_cp = 1
     } else if (grepl("one_cluster", sim)) {
       n_gt_created_cp = 0
-    } else if (grepl("inf_site_viol", sim)) {
+    } else if (grepl("three_cluster", sim)) {
       n_gt_created_cp = 2
     } else {
       n_gt_created_cp = 2
