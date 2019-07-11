@@ -2,6 +2,9 @@
 # VCF cost functions for likelihood
 # Author: Cait Harrigan
 
+
+
+
 #Gaussian likelihood maximization
 gaussian_ll <- function(phis, quad_phis, bin_size, ...){
   # phis read from counts file
@@ -10,7 +13,7 @@ gaussian_ll <- function(phis, quad_phis, bin_size, ...){
   # Score a segment using likelihood under normal
 
   n <- length(phis) * bin_size
-  sigmasq <- (sum(quad_phis) / n) - (sum(phis)/n)^2
+  sigmasq <- (sum(quad_phis) / n)
 
   assertthat::assert_that((sum(quad_phis) / n) > (sum(phis)/n)^2,
                           msg = sprintf("mean quad_phis is %s, mean phis^2 is %s",
