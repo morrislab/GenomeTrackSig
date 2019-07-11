@@ -9,15 +9,14 @@ gaussian_ll <- function(phis, quad_phis, bin_size, ...){
   # ... allows for various function signatures
   # Score a segment using likelihood under normal
 
-  N <- length(phis) * bin_size
-  sigmasq <- mean(quad_phis) - mean(phis)^2
+  n <- length(phis) * bin_size
+  sigmasq <- (sum(quad_phis) / n) - (sum(phis)/n)^2
 
-  if (mean(quad_phis) < mean(phis)^2){
-    warning(sprintf("mean quad_phis is %s, mean phis^2 is %s", mean(quad_phis), mean(phis)^2))
-    sigmasq <- max((sigmasq), 10^-8, na.rm = T)
-  }
+  assertthat::assert_that((sum(quad_phis) / n) > (sum(phis)/n)^2,
+                          msg = sprintf("mean quad_phis is %s, mean phis^2 is %s",
+                                        mean(quad_phis), mean(phis)^2))
 
-  LL <- (-N / 2) * (log(2 * pi * sigmasq) + 1)
+  LL <- (-n / 2) * (log(2 * pi * sigmasq) + 1)
 
   return(LL)
 }
