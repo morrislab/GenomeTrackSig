@@ -450,6 +450,7 @@ loadAndScoreIt_simulation <- function(vcfFile, mutTypesFile, tumortypes, acronym
     list[alex.t, matched_type, acronym] <- TrackSig:::get_signatures_for_current_sample(tumor_id, active_signatures.our_samples, alex, TrackSig.options()$noise_sig)
   } else {
     alex.t <- alex
+
   }
 
   if (is.null(acronym) || acronym == "") {
@@ -482,7 +483,7 @@ loadAndScoreIt_simulation <- function(vcfFile, mutTypesFile, tumortypes, acronym
   if (!file.exists(paste0(dir_name, "mixtures.csv")) || !file.exists(paste0(dir_name, "changepoints.txt")))
   {
     if (TrackSig.options()$changepoint_method == "PELT") {
-      list[changepoints, mixtures] <- TrackSig:::find_changepoints_pelt(counts, alex.t, phis, quadPhis)
+      list[changepoints, mixtures] <- TrackSig:::find_changepoints_pelt(vcf = counts, alex.t = alex.t, phis = phis, quadratic_phis = quadPhis)
     } else {
       list[bics, optimal, changepoints, mixtures] <- find_changepoints_over_all_signatures_one_by_one(counts, alex.t, n_signatures = ncol(alex.t))
     }

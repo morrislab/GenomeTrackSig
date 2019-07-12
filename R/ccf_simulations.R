@@ -366,7 +366,7 @@ create_simulation_set <- function(outdir = "simulations", mut_per_sim = 5000,
                                   sim_purity_file = "annotation/sim_purity.txt",
                                   sim_tumortype_file = "annotation/sim_tumortypes.txt",
                                   signature_file = "annotation/sigProfiler_SBS_signatures.txt",
-                                  rewrite_annotations=T,
+                                  rewrite_annotations=T
                                   ) {
 
 	dir.create(outdir, showWarnings = FALSE)
