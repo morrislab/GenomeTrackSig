@@ -356,12 +356,13 @@ find_changepoints_and_signature_set <- function(vcf, alex.t, prior_signatures = 
 }
 
 # Find optimal changepoint and mixtures using PELT method.
-find_changepoints_pelt <- function(vcf, alex.t, phis, quadratic_phis)
+find_changepoints_pelt <- function(vcf, alex.t, phis, quadratic_phis, y_i)
 {
-  score_matrix <- score_partitions_pelt(vcf, alex.t, phis, quadratic_phis,
+  score_matrix <- score_partitions_pelt(vcf, alex.t, phis, quadratic_phis, y_i,
                                         penalty = TrackSig.options()$pelt_penalty,
                                         score_fxn = TrackSig.options()$pelt_score_fxn,
                                         bin_size = TrackSig.options()$bin_size)
+
   changepoints <- recover_changepoints(score_matrix)
 
   mixtures <- fit_mixture_of_multinomials_in_time_slices(vcf, changepoints, alex.t)
@@ -370,7 +371,7 @@ find_changepoints_pelt <- function(vcf, alex.t, phis, quadratic_phis)
 }
 
 # Calculate penalized BIC score for all partitions using PELT method.
-score_partitions_pelt <- function(vcf, alex.t, phis, quadratic_phis,
+score_partitions_pelt <- function(vcf, alex.t, phis, quadratic_phis, y_i,
                                   penalty, score_fxn, bin_size)
 {
   n_bins <- ncol(vcf)
@@ -404,9 +405,10 @@ score_partitions_pelt <- function(vcf, alex.t, phis, quadratic_phis,
       r_seg_phis <- phis[(last_cp+1) : sp_len]
       r_seg_quadratic_phis <- quadratic_phis[(last_cp+1) : sp_len]
       r_seg_counts <- rowSums(vcf[, (last_cp + 1):sp_len, drop = FALSE])
-      r_seg_mix <- fit_mixture_of_multinomials_EM(r_seg_counts, alex.t)
+      #r_seg_mix <- fit_mixture_of_multinomials_EM(r_seg_counts, alex.t)
+      r_seg_mix <- NULL
       r_seg_score <- 2 * score_fxn(multinomial_vector = r_seg_counts, phis = r_seg_phis, quad_phis = r_seg_quadratic_phis,
-                                   composing_multinomials = alex.t, mixtures = r_seg_mix, bin_size = bin_size)
+                                   composing_multinomials = alex.t, mixtures = r_seg_mix, bin_size = bin_size, y_i = y_i)
 
       l_seg_score <- ifelse(last_cp == 0, penalty, max_sp_scores[last_cp])
 
