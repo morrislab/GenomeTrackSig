@@ -437,7 +437,7 @@ loadAndScoreIt_simulation <- function(vcfFile, mutTypesFile, tumortypes, acronym
     dir.create(paste0(TrackSig.options()$DIR_RESULTS, "/mut_types/"), showWarnings = F, recursive = T)
   }
 
-  list[sumstats, counts] <- vcfToCounts_simulation(vcfFile, mutTypesFile = mutTypesFile, cnaFile = cnaFile, purityFile = purityFile,
+  list[vcaf, counts] <- vcfToCounts_simulation(vcfFile, mutTypesFile = mutTypesFile, cnaFile = cnaFile, purityFile = purityFile,
                                               refGenome = BSgenome.Hsapiens.UCSC.hg19,
                                               saveIntermediate = saveIntermediate,
                                               intermediateFile = paste0(TrackSig.options()$DIR_RESULTS, "/mut_types/", tumor_id, ".mut_types.txt"))
@@ -483,7 +483,7 @@ loadAndScoreIt_simulation <- function(vcfFile, mutTypesFile, tumortypes, acronym
   if (!file.exists(paste0(dir_name, "mixtures.csv")) || !file.exists(paste0(dir_name, "changepoints.txt")))
   {
     if (TrackSig.options()$changepoint_method == "PELT") {
-      list[changepoints, mixtures] <- TrackSig:::find_changepoints_pelt(counts, alex.t, sumstats$phis, sumstats$quadPhis, sumstats$y_i)
+      list[changepoints, mixtures] <- TrackSig:::find_changepoints_pelt(counts, alex.t, vcaf)
     } else {
       list[bics, optimal, changepoints, mixtures] <- find_changepoints_over_all_signatures_one_by_one(counts, alex.t, n_signatures = ncol(alex.t))
     }

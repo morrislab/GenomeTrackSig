@@ -2,7 +2,18 @@
 # VCF cost functions for likelihood
 # Author: Cait Harrigan
 
+beta_ll <- function(y_i, bin_size, ...){
 
+#  n <- length(phis) * bin_size
+#
+#  alpha <- n * sum(x_t) + n
+#  beta <- (n^2 - sum(x_t)) + n
+#
+#  LL <- (alpha - 1)
+
+  stop("not implemented")
+
+}
 
 
 #Gaussian likelihood maximization
@@ -13,7 +24,7 @@ gaussian_ll <- function(phis, quad_phis, bin_size, ...){
   # Score a segment using likelihood under normal
 
   n <- length(phis) * bin_size
-  sigmasq <- (sum(quad_phis) / n)
+  sigmasq <- (sum(quad_phis) / n) - (sum(phis)/n)^2
 
   assertthat::assert_that((sum(quad_phis) / n) > (sum(phis)/n)^2,
                           msg = sprintf("mean quad_phis is %s, mean phis^2 is %s",

@@ -305,19 +305,6 @@ getBinCounts <- function(vcaf, binSize, context){
   # aggregate on bins
   binCounts <- data.frame(row.names = 1:nBins)
 
-
-  sumstats <- list()
-
-  # sum phis
-  sumstats$phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = sum)$x
-
-  # sumsq phis
-  sumstats$quadPhis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = function(x){return(sum(x^2))})$x
-
-  # beta stat
-  y_i <- unlist(lapply( (vcaf$phi/2) , 1, FUN = min))
-  sumstats$y_i <- aggregate(y_i, by = list(vcaf$binAssignment), FUN = sum)$x
-
   # counts for each bin
   binCounts <- cbind (binCounts, aggregate(paste(vcaf$ref, vcaf$alt, vcaf$mutType, sep = "_"), by = list(vcaf$binAssignment), FUN = function(x){return(as.array(table(x)))})$x )
 
@@ -327,7 +314,7 @@ getBinCounts <- function(vcaf, binSize, context){
     binCounts[col] <- 0
   }
 
-  return ( list(sumstats, t(binCounts)) )
+  return ( list(vcaf, t(binCounts)) )
 
 }
 
