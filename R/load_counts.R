@@ -512,7 +512,7 @@ loadAndScoreIt_simulation <- function(vcfFile, mutTypesFile, tumortypes, acronym
 
 
   mark_cp <- !is.null(changepoints)
-  plotting <- TrackSig:::plot_signatures_real_scale(mixtures*100, plot_name=plot_name, phis = vacf$phi, mark_change_points=mark_cp, change_points=changepoints,
+  plotting <- TrackSig:::plot_signatures_real_scale(mixtures*100, plot_name=plot_name, phis = vcaf$phi, mark_change_points=mark_cp, change_points=changepoints,
                                                     transition_points = NULL)
   plotting <- plotting[[1]]
   plotting$data$id <- tumor_id
