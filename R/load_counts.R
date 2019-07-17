@@ -437,10 +437,11 @@ loadAndScoreIt_simulation <- function(vcfFile, mutTypesFile, tumortypes, acronym
     dir.create(paste0(TrackSig.options()$DIR_RESULTS, "/mut_types/"), showWarnings = F, recursive = T)
   }
 
-  list[phis, quadPhis, counts] <- vcfToCounts_simulation(vcfFile, mutTypesFile = mutTypesFile, cnaFile = cnaFile, purityFile = purityFile,
+  list[vcaf, counts] <- vcfToCounts_simulation(vcfFile, mutTypesFile = mutTypesFile, cnaFile = cnaFile, purityFile = purityFile,
                                               refGenome = BSgenome.Hsapiens.UCSC.hg19,
                                               saveIntermediate = saveIntermediate,
                                               intermediateFile = paste0(TrackSig.options()$DIR_RESULTS, "/mut_types/", tumor_id, ".mut_types.txt"))
+
 
   # following checking is all from within compute_signatures_for_all_examples()
   # will throw a next error if check fails
@@ -483,7 +484,9 @@ loadAndScoreIt_simulation <- function(vcfFile, mutTypesFile, tumortypes, acronym
   if (!file.exists(paste0(dir_name, "mixtures.csv")) || !file.exists(paste0(dir_name, "changepoints.txt")))
   {
     if (TrackSig.options()$changepoint_method == "PELT") {
-      list[changepoints, mixtures] <- TrackSig:::find_changepoints_pelt(vcf = counts, alex.t = alex.t, phis = phis, quadratic_phis = quadPhis)
+
+      list[changepoints, mixtures] <- TrackSig:::find_changepoints_pelt(counts, alex.t, vcaf)
+
     } else {
       list[bics, optimal, changepoints, mixtures] <- find_changepoints_over_all_signatures_one_by_one(counts, alex.t, n_signatures = ncol(alex.t))
     }
@@ -510,10 +513,10 @@ loadAndScoreIt_simulation <- function(vcfFile, mutTypesFile, tumortypes, acronym
   #  plot_name <- paste0(dir_name, "/", acronym, "_", data_method, "_multMix_fittedPerTimeSlice_", sig_amount, "_noPrior_", method_name, postfix, ".pdf")
   #}
 
-
+  binned_phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = sum)$x
   mark_cp <- !is.null(changepoints)
-  plotting <- TrackSig:::plot_signatures_real_scale(mixtures*100, plot_name=plot_name, phis = phis, mark_change_points=mark_cp, change_points=changepoints,
-                                                    transition_points = NULL)
+  plotting <- TrackSig:::plot_signatures_real_scale(mixtures, plot_name=plot_name, phis = binned_phis, mark_change_points=mark_cp,
+                                                    change_points=changepoints, transition_points = NULL)
   plotting <- plotting[[1]]
   plotting$data$id <- tumor_id
 

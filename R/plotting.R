@@ -73,6 +73,8 @@ plot_signatures <- function (dd, plot_name, phis = NULL, fitted_data = NULL, mar
   sigs_to_remove <- apply(dd, 1, mean) < remove_sigs_below
   dd <- dd[!sigs_to_remove, ]
 
+  # order phis if not
+  phis <- phis[order(phis)]
 
   # Weight matrix is edited with appropriate row and column names
   signatures <- rownames(dd)
@@ -251,6 +253,9 @@ plot_signatures_real_scale <- function (dd, plot_name, phis = NULL, fitted_data 
   if (!is.null(error_bars) & sum(dim(dd) == dim(error_bars)) != 2) {
     stop("Dimentions of error bar matrix should be the same as dimentions of mixture matrix")
   }
+
+  # order phis if not
+  phis <- phis[order(phis)]
 
   sigs_to_remove <- apply(dd, 1, mean) < remove_sigs_below
   dd <- dd[!sigs_to_remove, ]

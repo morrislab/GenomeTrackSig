@@ -305,12 +305,6 @@ getBinCounts <- function(vcaf, binSize, context){
   # aggregate on bins
   binCounts <- data.frame(row.names = 1:nBins)
 
-  # mean phis
-  phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = sum)$x
-
-  # meansq phis
-  quadPhis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = function(x){return(sum(x^2))})$x
-
   # counts for each bin
   binCounts <- cbind (binCounts, aggregate(paste(vcaf$ref, vcaf$alt, vcaf$mutType, sep = "_"), by = list(vcaf$binAssignment), FUN = function(x){return(as.array(table(x)))})$x )
 
@@ -320,7 +314,7 @@ getBinCounts <- function(vcaf, binSize, context){
     binCounts[col] <- 0
   }
 
-  return ( list(phis, quadPhis, t(binCounts)) )
+  return ( list(vcaf, t(binCounts)) )
 
 }
 
