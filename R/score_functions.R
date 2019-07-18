@@ -2,16 +2,19 @@
 # VCF cost functions for likelihood
 # Author: Cait Harrigan
 
-beta_ll <- function(y_i, bin_size, ...){
+# beta likelihood maximization
+beta_ll <- function(qis, bin_size, ...){
 
-#  n <- length(phis) * bin_size
-#
-#  alpha <- n * sum(x_t) + n
-#  beta <- (n^2 - sum(x_t)) + n
-#
-#  LL <- (alpha - 1)
+  #qis are the (half) VAFs for the subproblem
 
-  stop("not implemented")
+  n <- length(qis)
+
+  alpha <- n * sum(qis) + 1
+  beta <- sum(n - n*qis) + 1
+
+  LL <- (alpha - 1) * sum(log(qis)) + (beta - 1) * sum(log(1 - qis)) - n*lbeta(alpha, beta)
+
+  return(LL)
 
 }
 

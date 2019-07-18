@@ -358,10 +358,7 @@ find_changepoints_and_signature_set <- function(vcf, alex.t, prior_signatures = 
 # Find optimal changepoint and mixtures using PELT method.
 find_changepoints_pelt <- function(vcf, alex.t, vcaf)
 {
-  score_matrix <- score_partitions_pelt(vcf, alex.t, vcaf,
-                                        penalty = TrackSig.options()$pelt_penalty,
-                                        score_fxn = TrackSig.options()$pelt_score_fxn,
-                                        bin_size = TrackSig.options()$bin_size)
+  score_matrix <- score_partitions_pelt(vcf, alex.t, vcaf)
 
   changepoints <- recover_changepoints(score_matrix)
 
@@ -373,7 +370,9 @@ find_changepoints_pelt <- function(vcf, alex.t, vcaf)
 
 # Calculate penalized BIC score for all partitions using PELT method.
 score_partitions_pelt <- function(vcf, alex.t, vcaf,
-                                  penalty, score_fxn, bin_size)
+                                  penalty = TrackSig.options()$pelt_penalty,
+                                  score_fxn = TrackSig.options()$pelt_score_fxn,
+                                  bin_size = TrackSig.options()$bin_size)
 {
   n_bins <- ncol(vcf)
   n_sigs <- ncol(alex.t)
@@ -407,13 +406,20 @@ score_partitions_pelt <- function(vcf, alex.t, vcaf,
         next
       }
 
-      r_seg_phis <- phis[(last_cp+1) : sp_len]
-      r_seg_quadratic_phis <- quadratic_phis[(last_cp+1) : sp_len]
-      r_seg_counts <- rowSums(vcf[, (last_cp + 1):sp_len, drop = FALSE])
-      #r_seg_mix <- fit_mixture_of_multinomials_EM(r_seg_counts, alex.t)
-      r_seg_mix <- NULL
+      sp_slice <- c(last_cp + 1, sp_len)
+
+      r_seg_phis <- phis[sp_slice[1] : sp_slice[2]]
+      r_seg_quadratic_phis <- quadratic_phis[sp_slice[1] : sp_slice[2]]
+      r_seg_qis <- vcaf$phi[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
+      r_seg_qis <- unlist(lapply(r_seg_qis/2, 1, FUN = min))
+
+      r_seg_counts <- rowSums(vcf[, sp_slice[1] : sp_slice[2], drop = FALSE])
+      r_seg_mix <- fit_mixture_of_multinomials_EM(r_seg_counts, alex.t)
+      #r_seg_mix <- NULL
+
+
       r_seg_score <- 2 * score_fxn(multinomial_vector = r_seg_counts, phis = r_seg_phis, quad_phis = r_seg_quadratic_phis,
-                                   composing_multinomials = alex.t, mixtures = r_seg_mix, bin_size = bin_size, vcaf = vcaf)
+                                   composing_multinomials = alex.t, mixtures = r_seg_mix, bin_size = bin_size, qis = r_seg_qis)
 
       l_seg_score <- ifelse(last_cp == 0, penalty, max_sp_scores[last_cp])
 
