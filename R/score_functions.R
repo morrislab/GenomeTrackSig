@@ -5,12 +5,12 @@
 # beta likelihood maximization
 beta_ll <- function(qis, bin_size, ...){
 
-  #qis are the (half) VAFs for the subproblem
+  #qis are the VAFs for the subproblem
 
   n <- length(qis)
 
   alpha <- n * sum(qis) + 1
-  beta <- sum(n - n*qis) + 1
+  beta <- n * sum(1-qis) + 1
 
   LL <- (alpha - 1) * sum(log(qis)) + (beta - 1) * sum(log(1 - qis)) - n*lbeta(alpha, beta)
 
@@ -18,6 +18,25 @@ beta_ll <- function(qis, bin_size, ...){
 
 }
 
+
+#Gaussian likelihood maximization
+gaussian_ll_BIC <- function(phis, quad_phis, bin_size, ...){
+  # phis read from counts file
+  # quadratic_phis read from quadratic phis file
+  # ... allows for various function signatures
+  # Score a segment using likelihood under normal
+
+  n <- length(phis) * bin_size
+  sigmasq <- (sum(quad_phis) / n) - (sum(phis)/n)^2
+
+  assertthat::assert_that((sum(quad_phis) / n) > (sum(phis)/n)^2,
+                          msg = sprintf("mean quad_phis is %s, mean phis^2 is %s",
+                                        mean(quad_phis), mean(phis)^2))
+
+  LL <- (-n / 2) * (log(2 * pi * sigmasq) + 1)  -log(n)
+
+  return(LL)
+}
 
 #Gaussian likelihood maximization
 gaussian_ll <- function(phis, quad_phis, bin_size, ...){
