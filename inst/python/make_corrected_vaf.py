@@ -19,7 +19,6 @@ cutoff = 10000
 min_readdepth=0
 
 half_with_highest_depth = False
-sample_vaf_from_posterior = True
 
 class ReadCountsUnavailableError(Exception):
 	pass
@@ -226,6 +225,8 @@ def filter_vcf(vcf_parser, variants):
 
 	return variants_filtered
 
+def _compute_ccf(vaf, purity, copy_number):
+	return (2 + purity * (copy_number-2)) * vaf
 
 def get_correct_vaf(cnv_regions, vcf_file, purity):
 	formatter = CnvFormatter(None, None, None, None)
@@ -242,8 +243,6 @@ def get_correct_vaf(cnv_regions, vcf_file, purity):
 		variants = random.sample(variants, cutoff)
 	# print("Variants after cutoff (" + str(cutoff)+ "): " + str(len(variants)))
 
-	vafs = []
-	vafs_new = []
 	for record in variants:
 		ref_count, total_count = vcf_parser._calc_read_counts(record)
 		alt_count = total_count - ref_count
@@ -252,26 +251,23 @@ def get_correct_vaf(cnv_regions, vcf_file, purity):
 		if vaf is None:
 			vaf = round(alt_count / float(total_count),4)
 
-		vafs.append(vaf)
-		if (sample_vaf_from_posterior):
-			vaf_new =  round(beta.rvs(alt_count+1, ref_count+1),4)
-
-			vafs_new.append(vaf_new)
-			vaf = vaf_new
+		alpha_param, beta_param = alt_count + 1, ref_count + 1
+		sampled_vaf_1 = beta.rvs(alpha_param, beta_param)
+		sampled_vaf_2 = beta.rvs(alpha_param, beta_param)
 
 		if cnv_regions is not None:
 			copy_number = formatter._find_copy_number(record, cnv_regions[record.CHROM])
 		else:
 			copy_number = 2
-
 		if purity is None:
 			purity = 1
 
-		corrected_vaf = (2 + purity * (copy_number-2)) * vaf
+		sampled_ccf_1 = _compute_ccf(sampled_vaf_1, purity, copy_number)
+		sampled_ccf_2 = _compute_ccf(sampled_vaf_2, purity, copy_number)
 
-		output = output.append([[str(record.CHROM), str(record.POS), str(record.REF), str(record.ALT), str(corrected_vaf)]], ignore_index = True)
+		output = output.append([[str(record.CHROM), str(record.POS), str(record.REF), str(record.ALT), str(sampled_ccf_1), str(sampled_ccf_2)]], ignore_index = True)
 
-  # reticulate to package function instead of file
+	# reticulate to package function instead of file
 	return output
 
 def read_purity(purity_file):

@@ -137,6 +137,9 @@ NULL
   # save space on simulation output
   , simulation_pdf = TRUE
 
+  # allow permutaiton of vafs
+  , permute_vafs = FALSE
+
 )
 
 #check DIR_RESULTS exists

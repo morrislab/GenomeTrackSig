@@ -383,6 +383,14 @@ score_partitions_pelt <- function(vcf, alex.t, vcaf,
   phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = sum)$x
   quadratic_phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = function(x){return(sum(x^2))})$x
 
+  # allow vaf permutation
+  if(TrackSig.options()$permute_vafs){
+
+    phis <- aggregate(vcaf$phi2, by = list(vcaf$binAssignment), FUN = sum)$x
+    quadratic_phis <- aggregate(vcaf$phi2, by = list(vcaf$binAssignment), FUN = function(x){return(sum(x^2))})$x
+
+  }
+
   # Bayeisan Information Criterion penalization constant defalut parameter
 
   # Store score for all partitions of all sub-problems
