@@ -20,7 +20,7 @@ beta_ll <- function(qis, bin_size, ...){
 
 
 #Gaussian likelihood maximization
-gaussian_ll_BIC <- function(phis, quad_phis, bin_size, ...){
+gaussian_ll_MBIC <- function(phis, quad_phis, bin_size, ...){
   # phis read from counts file
   # quadratic_phis read from quadratic phis file
   # ... allows for various function signatures
@@ -63,6 +63,15 @@ sum_gaussian_mixture_ll <- function(phis, quad_phis, multinomial_vector,
 
   return( sum(log_likelihood_mixture_multinomials(multinomial_vector, composing_multinomials, mixtures),
               gaussian_ll(phis, quad_phis, bin_size)) )
+}
+
+
+# log_likelihood_mixture_multinomials defined in mixture_of_multinomials.R
+sum_gaussian_MBIC_mixture_ll <- function(phis, quad_phis, multinomial_vector,
+                                    composing_multinomials, mixtures, bin_size, ...){
+
+  return( sum(log_likelihood_mixture_multinomials(multinomial_vector, composing_multinomials, mixtures),
+              gaussian_ll_MBIC(phis, quad_phis, bin_size)) )
 }
 
 #Poisson likelihood maximization
