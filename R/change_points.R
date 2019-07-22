@@ -414,7 +414,7 @@ score_partitions_pelt <- function(vcf, alex.t, vcaf,
         next
       }
 
-      sp_slice <- c(last_cp + 1, sp_len)
+      sp_slice <- c((last_cp + 1), sp_len)
 
       r_seg_phis <- phis[sp_slice[1] : sp_slice[2]]
       r_seg_quadratic_phis <- quadratic_phis[sp_slice[1] : sp_slice[2]]
