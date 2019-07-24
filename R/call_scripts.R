@@ -130,9 +130,11 @@ getVcaf <- function(vcfFile, cnaFile, purityFile, refGenome){
 
   # formatting - vcf and vaf concatenated and dataframe hold strings
   vcaf <- make_vcaf(vcfFile, cnv = cnaFile, purity_file = purityFile)
-  colnames(vcaf) <- c("chr", "pos", "ref", "alt", "phi", "phi2")
+  colnames(vcaf) <- c("chr", "pos", "ref", "alt", "phi", "phi2", "vi", "ri")
   vcaf$phi <- as.numeric(vcaf$phi)
   vcaf$phi2 <- as.numeric(vcaf$phi2)
+  vcaf$vi <- as.numeric(vcaf$vi)
+  vcaf$ri <- as.numeric(vcaf$ri)
   vcaf$pos <- as.numeric(vcaf$pos)
 
   # multiallelic hits keep only the first allele
@@ -162,7 +164,7 @@ checkVcaf <- function(vcaf, refGenome){
   # input checking
   assertthat::assert_that(class(refGenome) == "BSgenome")
   assertthat::assert_that(class(vcaf) == "data.frame")
-  assertthat::assert_that(all(colnames(vcaf) == c("chr", "pos", "ref", "alt", "phi", "phi2")))
+  assertthat::assert_that(all(colnames(vcaf) == c("chr", "pos", "ref", "alt", "phi", "phi2", "vi", "ri")))
 
   # some VCF formatting checks, filter for SNP's
   # no read quality filtering performed.

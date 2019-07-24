@@ -265,7 +265,7 @@ def get_correct_vaf(cnv_regions, vcf_file, purity):
 		sampled_ccf_1 = _compute_ccf(sampled_vaf_1, purity, copy_number)
 		sampled_ccf_2 = _compute_ccf(sampled_vaf_2, purity, copy_number)
 
-		output = output.append([[str(record.CHROM), str(record.POS), str(record.REF), str(record.ALT), str(sampled_ccf_1), str(sampled_ccf_2)]], ignore_index = True)
+		output = output.append([[str(record.CHROM), str(record.POS), str(record.REF), str(record.ALT), str(sampled_ccf_1), str(sampled_ccf_2), str(alt_count), str(ref_count)]], ignore_index = True)
 
 	# reticulate to package function instead of file
 	return output
