@@ -2,21 +2,50 @@
 # VCF cost functions for likelihood
 # Author: Cait Harrigan
 
+
+beta_mom <- function(qis, vis, ris, ...){
+
+  n <- length(qis)
+
+  mu_hat <- mean(qis)
+  v_hat <- (1/(n-1)) * sum((qis - mu_hat)^2)
+
+  assertthat::assert_that(v_hat < mu_hat * (1-mu_hat), msg = "method of moments assumption violated")
+
+  a_mom <- mu_hat * (((mu_hat * (1 - mu_hat)) / v_hat) -1)
+  b_mom <- (1-mu_hat) * (((mu_hat * (1 - mu_hat)) / v_hat) -1)
+
+  LL <- (a_mom - 1) * sum(log(qis)) + (b_mom - 1) * sum(log(1 - qis)) - n*lbeta(a_mom, b_mom)
+
+  print(c(a_mom, b_mom, LL))
+
+
+  return(LL)
+
+}
+
+
 # beta likelihood maximization
-beta_ll <- function(qis, bin_size, ...){
+beta_ll <- function(vis, ris, qis, bin_size, ...){
 
   #qis are the VAFs for the subproblem
 
   n <- length(qis)
 
-  alpha <- n * sum(qis) + 1
-  beta <- n * sum(1-qis) + 1
+  assertthat::assert_that(length(qis) == length(vis), length(qis) == length(ris), msg = "problem subsetting is not good!")
 
-  LL <- (alpha - 1) * sum(log(qis)) + (beta - 1) * sum(log(1 - qis)) - n*lbeta(alpha, beta)
+  alpha <- sum(qis) + 1
+  beta <- sum(1-qis) + 1
+
+  LL <- lbeta(alpha, beta) + log(pbeta(max(qis), alpha, beta) - pbeta(min(qis), alpha, beta))
+
+  print(c(alpha, beta, LL))
 
   return(LL)
 
 }
+
+beta_sum_ll <- function()
 
 
 #Gaussian likelihood maximization
@@ -98,6 +127,16 @@ sum_poisson_mixture_ll <- function(phis, quad_phis, multinomial_vector,
 
   return( sum(log_likelihood_mixture_multinomials(multinomial_vector, composing_multinomials, mixtures),
               poisson_ll(phis, quad_phis, bin_size)) )
+}
+
+
+cpt.gamma <- function(phis, quad_phis, bin_size,...){
+
+
+  n <- length(phis) * bin_size
+  x <- sum(phis)
+
+  return(2*n*(log(x)-log(n)) - log(n))
 }
 
 # [END]
