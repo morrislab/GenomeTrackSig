@@ -406,7 +406,7 @@ create_simulation_set_123 <- function(outdir = "simulations", mut_per_sim = 5000
 		"SBS34", "SBS35", "SBS36", "SBS37", "SBS38", "SBS39", "SBS40",
 		"SBS17", "SBS2.13", "SBS10")
 
-  bin_sizes <- c(100)
+  bin_size <- 100
   depth_list <- c(100)
   n_simulations <- 100
 
