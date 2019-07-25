@@ -418,7 +418,14 @@ score_partitions_pelt <- function(vcf, alex.t, vcaf,
 
       r_seg_phis <- phis[sp_slice[1] : sp_slice[2]]
       r_seg_quadratic_phis <- quadratic_phis[sp_slice[1] : sp_slice[2]]
-      r_seg_qis <- vcaf$phi2[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
+
+      r_seg_qis <- vcaf$phi[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
+
+      # allow vaf permutation
+      if(TrackSig.options()$permute_vafs){
+        r_seg_qis <- vcaf$phi2[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
+      }
+
       r_seg_qis <- unlist(lapply(r_seg_qis/2, 1, FUN = min))
 
       r_seg_vi <- vcaf$vi[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]

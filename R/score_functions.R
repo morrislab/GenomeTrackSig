@@ -26,7 +26,7 @@ beta_mom <- function(qis, vis, ris, ...){
 
 
 # beta likelihood maximization
-beta_ll <- function(vis, ris, qis, bin_size, ...){
+beta_ll <- function(qis, ...){
 
   #qis are the VAFs for the subproblem
 
@@ -45,7 +45,13 @@ beta_ll <- function(vis, ris, qis, bin_size, ...){
 
 }
 
-beta_sum_ll <- function()
+sum_beta_mixture_ll <- function(qis, multinomial_vector,
+                                composing_multinomials, mixtures, ...){
+
+  return( sum(log_likelihood_mixture_multinomials(multinomial_vector, composing_multinomials, mixtures),
+              beta_ll(qis)) )
+
+}
 
 
 #Gaussian likelihood maximization
