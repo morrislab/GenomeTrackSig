@@ -432,9 +432,9 @@ score_partitions_pelt <- function(vcf, alex.t, vcaf,
       r_seg_ri <- vcaf$ri[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
 
       r_seg_counts <- rowSums(vcf[, sp_slice[1] : sp_slice[2], drop = FALSE])
+
+      r_seg_mix <- fit_mixture_of_multinomials_EM(r_seg_counts, alex.t)
       #r_seg_mix <- NULL
-      #r_seg_mix <- fit_mixture_of_multinomials_EM(r_seg_counts, alex.t)
-      r_seg_mix <- NULL
 
 
       r_seg_score <- 2 * score_fxn(multinomial_vector = r_seg_counts, phis = r_seg_phis, quad_phis = r_seg_quadratic_phis,
