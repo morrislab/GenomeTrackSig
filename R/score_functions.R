@@ -32,7 +32,7 @@ beta_ll <- function(qis, ...){
 
   n <- length(qis)
 
-  assertthat::assert_that(length(qis) == length(vis), length(qis) == length(ris), msg = "problem subsetting is not good!")
+  #assertthat::assert_that(length(qis) == length(vis), length(qis) == length(ris), msg = "problem subsetting is not good!")
 
   alpha <- sum(qis) + 1
   beta <- sum(1-qis) + 1
