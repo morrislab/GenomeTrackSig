@@ -513,7 +513,7 @@ loadAndScoreIt_simulation <- function(vcfFile, mutTypesFile, tumortypes, acronym
   #  plot_name <- paste0(dir_name, "/", acronym, "_", data_method, "_multMix_fittedPerTimeSlice_", sig_amount, "_noPrior_", method_name, postfix, ".pdf")
   #}
 
-  binned_phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = sum)$x / 100
+  binned_phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = sum)$x / TrackSig.options()$bin_size
   mark_cp <- !is.null(changepoints)
   plotting <- TrackSig:::plot_signatures_real_scale(mixtures, plot_name=plot_name, phis = binned_phis, mark_change_points=mark_cp,
                                                     change_points=changepoints, transition_points = NULL)
