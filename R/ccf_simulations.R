@@ -453,7 +453,8 @@ create_simulation_set_123 <- function(outdir = "simulations", mut_per_sim = 5000
         signature_def = signature_def,
         simulation_name = simulation_name,
         mean_depth = depth,
-        outdir = paste0(outdir, "/", simulation_name))
+        outdir = paste0(outdir, "/", simulation_name),
+        bin_size = bin_size)
 
       write_sim_annotation(simulation_name, sig_activities, sig_header,
                            sim_activity_file, sim_purity_file, sim_tumortype_file)
@@ -509,7 +510,8 @@ create_simulation_set_123 <- function(outdir = "simulations", mut_per_sim = 5000
 	      signature_def = signature_def,
 	      simulation_name = simulation_name,
 	      mean_depth = depth,
-	      outdir = paste0(outdir, "/", simulation_name))
+	      outdir = paste0(outdir, "/", simulation_name),
+	      bin_size = bin_size)
 
 	    write_sim_annotation(simulation_name, sig_activities, sig_header,
 	                         sim_activity_file, sim_purity_file, sim_tumortype_file)
@@ -548,7 +550,8 @@ create_simulation_set_123 <- function(outdir = "simulations", mut_per_sim = 5000
 	      signature_def = signature_def,
 	      simulation_name = simulation_name,
 	      mean_depth = depth,
-	      outdir = paste0(outdir, "/", simulation_name))
+	      outdir = paste0(outdir, "/", simulation_name),
+	      bin_size = bin_size)
 
 	    write_sim_annotation(simulation_name, sig_activities, sig_header,
 	                         sim_activity_file, sim_purity_file, sim_tumortype_file)
