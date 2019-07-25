@@ -366,7 +366,7 @@ create_simulation_set_123 <- function(outdir = "simulations", mut_per_sim = 5000
                                   sim_purity_file = "annotation/sim_purity.txt",
                                   sim_tumortype_file = "annotation/sim_tumortypes.txt",
                                   signature_file = "annotation/sigProfiler_SBS_signatures.txt",
-                                  rewrite_annotations=T,
+                                  rewrite_annotations=T
                                   ) {
 
 	dir.create(outdir, showWarnings = FALSE)
@@ -564,8 +564,8 @@ create_simulation_set_123 <- function(outdir = "simulations", mut_per_sim = 5000
 }
 
 
-##' \code{create_simulation_set} generates simulated data files for knobs simualtions (n x n)
-##' @rdname create_simulation_set
+##' \code{create_simulation_set_knobs} generates simulated data files for knobs simualtions (n x n)
+##' @rdname create_simulation_set_knobs
 ##' @param mut_per_sim int. Number of mutations per simulation. Default: 5000
 ##' @export
 create_simulation_set_knobs <- function(outdir = "simulations", mut_per_sim = 5000,
