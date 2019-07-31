@@ -99,6 +99,7 @@ NULL
   , mutation_order = "data/mut_order/"
   , BOOTSTRAP_COUNTS = "data/bootstrap/"
   , purity_file = "data/example_purity.txt"
+  , cna_file = "data/example_cna.txt"
 
   # folder to write results to
   , DIR_RESULTS = "results_signature_trajectories/"
