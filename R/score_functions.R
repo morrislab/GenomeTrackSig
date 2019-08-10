@@ -17,7 +17,7 @@ beta_mom <- function(qis, vis, ris, ...){
 
   LL <- (a_mom - 1) * sum(log(qis)) + (b_mom - 1) * sum(log(1 - qis)) - n*lbeta(a_mom, b_mom)
 
-  print(c(a_mom, b_mom, LL))
+  #print(c(a_mom, b_mom, LL))
 
 
   return(LL)
@@ -39,7 +39,7 @@ beta_ll <- function(qis, ...){
 
   LL <- lbeta(alpha, beta) + log(pbeta(max(qis), alpha, beta) - pbeta(min(qis), alpha, beta))
 
-  print(c(alpha, beta, LL))
+  #print(c(alpha, beta, LL))
 
   return(LL)
 
