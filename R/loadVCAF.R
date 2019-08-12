@@ -43,11 +43,8 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
   # get cna reconstruction
   cna <- parseCnaFile(cnaFile)
 
-  # annotate the vcf with copy number
-  vcf <- annotateCn(vcf, cna)
-
   # vcaf has vcf and vaf data concatenated
-  vcaf <- getVcaf(vcf, purity, refGenome)
+  vcaf <- getVcaf(vcf, purity, cna, refGenome)
   vcaf <- getTrinuc(vcaf, refGenome, saveIntermediate, intermediateFile)
 
   return( getBinCounts(vcaf, binSize, context) )
@@ -66,8 +63,6 @@ parseVcfFile <- function(vcfFile, cutoff = 10000, refGenome = BSgenome.Hsapiens.
   # TODO: remove any duplicates
 
   # TODO: remove samples with missing ref or alt counts
-
-  # TODO: drop secondary alleles in mulltiallelic alt hits
 
   # implement cutoff if too many variants present in sample
   if (dim(vcf)[1] > cutoff){
@@ -128,7 +123,13 @@ annotateCn <- function(vcf, cnaGR = NULL){
     vcfGR$cn[to(overlaps)] <- cnaGR$cn[from(overlaps)]
   }
 
-  rowRanges(vcf) <- vcfGR
+  # update header information with cn
+  cnInfoHeader <- data.frame(row.names = c("cn"), Number = 1, Type = "Integer",
+                             Description = "Locus copy number as provided to TrackSig",
+                             stringsAsFactors = F)
+  info(header(vcf)) <- rbind(info(header(vcf)), cnInfoHeader)
+
+  info(vcf)$cn <- vcfGR$cn
 
   return(vcf)
 
@@ -139,26 +140,20 @@ annotateCn <- function(vcf, cnaGR = NULL){
 #' @rdname callScripts
 #' @name getVcaf
 #'
-#' @param vcf CollapsedVCF object with cna annotation
-#' @param purityFile path to sample purity file
+#' @param vcf CollapsedVCF object
+#' @param purity sample purity percentage between 0 and 1
+#' @param cna GRanges object with cna information for the sample
 #' @param refGenome reference BSgenome to use
 #' @return A vcaf dataframe that has vcf and vaf data concatenated
 
-getVcaf <- function(vcf, purity, refGenome = BSgenome.Hsapiens.UCSC.hg19){
+getVcaf <- function(vcf, purity, cna, refGenome = BSgenome.Hsapiens.UCSC.hg19){
   #replaces make_corrected_vaf.py
 
-  # TODO: check that cn is annotated
+  # annotate the vcf with copy number
+  vcf <- annotateCn(vcf, cna)
 
-  print("making vaf")
-
-  # formatting - vcf and vaf concatenated and dataframe hold strings
-  vcaf <- as.data.frame(rowRanges(vcf))[c("seqnames", "start", "REF", "ALT", "cn")]
-
-  # want alt and ref counts for all loci
-  assertthat::assert_that(dim(vcaf)[1] == length(info(vcf)$t_alt_count), dim(vcaf)[1] == length(info(vcf)$t_ref_count))
-  colnames(vcaf) <- c("chr", "pos", "ref", "alt", "cn")
-
-  # TODO: vcf formats may provide vi and depth, rather than vi and ri
+  # prelim formatting check
+  vcaf <- vcafConstruction(vcf, refGenome)
 
   vcaf$vi <- info(vcf)$t_alt_count
   vcaf$ri <- info(vcf)$t_ref_count
@@ -171,9 +166,6 @@ getVcaf <- function(vcf, purity, refGenome = BSgenome.Hsapiens.UCSC.hg19){
   # TODO: depricate phi
   # sort on phi
   vcaf <- vcaf[order(vcaf$phi, decreasing = T), ]
-
-  # prelim formatting check
-  vcaf <- checkVcaf(vcaf, refGenome)
 
   return(vcaf)
 }
@@ -189,21 +181,48 @@ getVcaf <- function(vcf, purity, refGenome = BSgenome.Hsapiens.UCSC.hg19){
 #' @param refGenome reference BSgenome to use
 #' @return A vcaf dataframe that has vcf and vaf data concatenated
 
-checkVcaf <- function(vcaf, refGenome = BSgenome.Hsapiens.UCSC.hg19){
-
-  # input checking
-  assertthat::assert_that(class(refGenome) == "BSgenome")
-  assertthat::assert_that(class(vcaf) == "data.frame")
-  #assertthat::assert_that(all(colnames(vcaf) == c("chr", "pos", "ref", "alt", "phi", "phi2", "vi", "ri", "purity")))
-
+vcafConstuction <- function(vcf, refGenome = BSgenome.Hsapiens.UCSC.hg19){
   # some VCF formatting checks, filter for SNP's
   # no read quality filtering performed.
 
+  # input checking
+  assertthat::assert_that(class(refGenome) == "BSgenome")
+  assertthat::assert_that(class(vcf) == "CollapsedVCF")
+  assertthat::assert_that("REF" %in% colnames(fixed(vcf)))
+  assertthat::assert_that("ALT" %in% colnames(fixed(vcf)))
+
+  # mutations in vcf should be SNPs => one ref, one alt allele
+  # drop those that are not SNVs
+  rmSel <- !isSNV(vcf, singleAltOnly = F)
+
+  if (sum(rmSel) > 0){
+    warning( sprintf("%s mutations dropped for not meeting SNP cirteria" , sum(rmSel) ) )
+    vcaf <- vcaf[!rmSel,]
+  }
+
+  # formatting vcaf - vcf and vaf concatenated
+  # using CharacterList for alt, ref is 400x faster than casting CollapsedVCF object directly
+  # subset with [0,] to avoid casting metadata columns
+  vcaf <- as.data.frame(rowRanges(vcf)[,0])[c("seqnames", "start")]
+
+  # take first variant of those with multiallelic alternate variant
+  allAlts <- CharacterList(rowRanges(vcf)$ALT)
+  vcaf$alt <- unlist(lapply(allAlts, function(x){return(x[[1]][1])}))
+
+  # want alt and ref counts for all loci
+  assertthat::assert_that(dim(vcaf)[1] == length(info(vcf)$t_alt_count), dim(vcaf)[1] == length(info(vcf)$t_ref_count))
+  colnames(vcaf) <- c("chr", "pos", "ref", "alt", "cn")
+
+  # TODO: vcf formats may provide vi and depth, rather than vi and ri
+
+  # drop secondary alleles in multiallelic alt hits
+  oneCharAllele <- function(alt){alt[[1]][1]}
+
   # ref should not match alt in a mutation
-  rmSet <- vcaf$ref == vcaf$alt
-  if (sum(rmSet) > 0){
+  rmSel <- vcaf$ref == vcaf$alt
+  if (sum(rmSel) > 0){
     warning(sprintf("%s mutations dropped for refrence allele matching alt", length(rmSet)))
-    vcaf <- vcaf[!rmSet,]
+    vcaf <- vcaf[!rmSel,]
   }
 
   # mutation should be a SNP
