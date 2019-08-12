@@ -57,7 +57,7 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
 
 
 #' @rdname loadVCAF
-#' @name parseVcf
+#' @name parseVcfFile
 
 parseVcfFile <- function(vcfFile, cutoff = 10000, refGenome = BSgenome.Hsapiens.UCSC.hg19){
 
@@ -67,6 +67,7 @@ parseVcfFile <- function(vcfFile, cutoff = 10000, refGenome = BSgenome.Hsapiens.
 
   # TODO: remove samples with missing ref or alt counts
 
+  # TODO: drop secondary alleles in mulltiallelic alt hits
 
   # implement cutoff if too many variants present in sample
   if (dim(vcf)[1] > cutoff){
@@ -81,7 +82,7 @@ parseVcfFile <- function(vcfFile, cutoff = 10000, refGenome = BSgenome.Hsapiens.
 }
 
 #' @rdname loadVCAF
-#' @name parseCna
+#' @name parseCnaFile
 
 parseCnaFile <- function(cnaFile){
 
@@ -92,7 +93,7 @@ parseCnaFile <- function(cnaFile){
 }
 
 #' @rdname loadVCAF
-#' @name annotateCn
+#' @name parsePurityFile
 
 parsePurityFile <- function(purityFile){
 
@@ -143,32 +144,33 @@ annotateCn <- function(vcf, cnaGR = NULL){
 #' @param refGenome reference BSgenome to use
 #' @return A vcaf dataframe that has vcf and vaf data concatenated
 
-getVcaf <- function(vcfVA, purity, refGenome){
+getVcaf <- function(vcf, purity, refGenome = BSgenome.Hsapiens.UCSC.hg19){
   #replaces make_corrected_vaf.py
+
+  # TODO: check that cn is annotated
 
   print("making vaf")
 
   # formatting - vcf and vaf concatenated and dataframe hold strings
-  vcaf <- as.data.frame(rowRanges(vcfVA))[c("seqnames", "start", "REF", "ALT", "cn")]
+  vcaf <- as.data.frame(rowRanges(vcf))[c("seqnames", "start", "REF", "ALT", "cn")]
 
   # want alt and ref counts for all loci
-  assertthat::assert_that(dim(vcaf)[1] == length(info(vcfVA)$t_alt_count), dim(vcaf)[1] == length(info(vcfVA)$t_ref_count))
+  assertthat::assert_that(dim(vcaf)[1] == length(info(vcf)$t_alt_count), dim(vcaf)[1] == length(info(vcf)$t_ref_count))
+  colnames(vcaf) <- c("chr", "pos", "ref", "alt", "cn")
 
+  # TODO: vcf formats may provide vi and depth, rather than vi and ri
 
+  vcaf$vi <- info(vcf)$t_alt_count
+  vcaf$ri <- info(vcf)$t_ref_count
+  vcaf$purity <- purity
+  vcaf$phat1 <- rbeta(dim(vcaf)[1], vcaf$vi + 1, vcaf$ri + 1)
+  vcaf$phat2 <- rbeta(dim(vcaf)[1], vcaf$vi + 1, vcaf$ri + 1)
+  vcaf$phi <- (2 + vcaf$purity * (vcaf$cn - 2)) * vcaf$phat1   #phi = ccf * purity
+  vcaf$phi2 <- (2 + vcaf$purity * (vcaf$cn - 2)) * vcaf$phat2
 
-  colnames(vcaf) <- c("chr", "pos", "ref", "alt", "phi", "phi2", "vi", "ri", "purity")
-  vcaf$phi <- as.numeric(vcaf$phi)
-  vcaf$phi2 <- as.numeric(vcaf$phi2)
-  vcaf$vi <- as.numeric(vcaf$vi)
-  vcaf$ri <- as.numeric(vcaf$ri)
-  vcaf$pos <- as.numeric(vcaf$pos)
-  vcaf$purity <- as.numeric(vcaf$purity)
-
-  # multiallelic hits keep only the first allele
-  vcaf$alt <- substr(vcaf$alt, 2, 2)
-
-  # order mutations by phi
-  vcaf <- vcaf[order(vcaf$phi, decreasing = T),]
+  # TODO: depricate phi
+  # sort on phi
+  vcaf <- vcaf[order(vcaf$phi, decreasing = T), ]
 
   # prelim formatting check
   vcaf <- checkVcaf(vcaf, refGenome)
@@ -192,7 +194,7 @@ checkVcaf <- function(vcaf, refGenome = BSgenome.Hsapiens.UCSC.hg19){
   # input checking
   assertthat::assert_that(class(refGenome) == "BSgenome")
   assertthat::assert_that(class(vcaf) == "data.frame")
-  assertthat::assert_that(all(colnames(vcaf) == c("chr", "pos", "ref", "alt", "phi", "phi2", "vi", "ri", "purity")))
+  #assertthat::assert_that(all(colnames(vcaf) == c("chr", "pos", "ref", "alt", "phi", "phi2", "vi", "ri", "purity")))
 
   # some VCF formatting checks, filter for SNP's
   # no read quality filtering performed.
@@ -234,14 +236,6 @@ checkVcaf <- function(vcaf, refGenome = BSgenome.Hsapiens.UCSC.hg19){
 
   return ( vcaf )
 }
-
-#' @rdname loadVCAF
-#' @name annotateCn
-#' \code{annotateCn} add copy number aberation information as metadata to the data read from VCF file
-#' @param vcfGR GRanges object with vcf data
-#' @param cnaGR GRanges object with copy number as metadata, stored in cnaGR$cn. If none provided, copy number is assumed to be two for all loci.
-#' @return passed vcfGR, augmented with copy number metadata
-
 
 
 # [END]
