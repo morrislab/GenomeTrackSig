@@ -2,6 +2,11 @@
 % Please edit documentation in R/loadVCAF.R
 \name{vcfToCounts}
 \alias{vcfToCounts}
+\alias{vcfToCounts_simulation}
+\alias{parseVcfFile}
+\alias{parseCnaFile}
+\alias{parsePurityFile}
+\alias{annotateCn}
 \alias{getVcaf}
 \alias{checkVcaf}
 \alias{vcafConstruction}
@@ -12,6 +17,20 @@
 vcfToCounts(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
   context = generateContext(c("CG", "TA")),
   refGenome = BSgenome.Hsapiens.UCSC.hg19)
+
+vcfToCounts_simulation(vcfFile, mutTypesFile, cnaFile = NULL,
+  purityFile = NULL, context = generateContext(c("CG", "TA")),
+  refGenome = BSgenome.Hsapiens.UCSC.hg19, binSize = 100,
+  saveIntermediate = F, intermediateFile = NULL)
+
+parseVcfFile(vcfFile, cutoff = 10000,
+  refGenome = BSgenome.Hsapiens.UCSC.hg19)
+
+parseCnaFile(cnaFile)
+
+parsePurityFile(purityFile)
+
+annotateCn(vcf, cnaGR = NULL)
 
 getVcaf(vcf, purity, cna, refGenome = BSgenome.Hsapiens.UCSC.hg19)
 
@@ -34,6 +53,8 @@ getBinCounts(vcaf, binSize, context)
 
 \item{refGenome}{refrence genome used to create VCF file}
 
+\item{intermediateFile}{file where to save intermediate results if saveIntermediate is True}
+
 \item{vcf}{CollapsedVCF object}
 
 \item{cna}{GRanges object with cna information for the sample}
@@ -49,8 +70,6 @@ getBinCounts(vcaf, binSize, context)
 \item{vcaf}{vcaf data frame}
 
 \item{refGenome}{reference BSgenome to use}
-
-\item{intermediateFile}{file where to save intermediate results if saveIntermediate is True}
 
 \item{vcaf}{vcaf data frame}
 
@@ -69,6 +88,8 @@ A data frame of summary statistics and mutation type counts for each bin.
 }
 \description{
 \code{vcfToCounts} Take an input vcf file and annotation and generate the counts data
+
+\code{vcfToCounts_simulation} Man placeholder
 
 \code{getVcaf} Take an input vcf file and annotation and make vaf data
 

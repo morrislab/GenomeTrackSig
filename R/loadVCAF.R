@@ -4,7 +4,7 @@
 
 #' \code{vcfToCounts} Take an input vcf file and annotation and generate the counts data
 #'
-#' @rdname callScripts
+#' @rdname loadVCAF
 #' @name vcfToCounts
 #'
 #' @param vcfFile path to variant calling format (VCF) file
@@ -49,8 +49,10 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
 
 }
 
+#' \code{vcfToCounts_simulation} Man placeholder
+#' @rdname loadVCAF
+#' @name vcfToCounts_simulation
 
-#' @export
 vcfToCounts_simulation <- function(vcfFile, mutTypesFile, cnaFile = NULL, purityFile = NULL,
                                    context = generateContext(c("CG", "TA")), refGenome = BSgenome.Hsapiens.UCSC.hg19, binSize = 100,
                                    saveIntermediate = F, intermediateFile = NULL) {
@@ -197,8 +199,7 @@ annotateCn <- function(vcf, cnaGR = NULL){
 }
 
 #' \code{getVcaf} Take an input vcf file and annotation and make vaf data
-#'
-#' @rdname callScripts
+#' @rdname loadVCAF
 #' @name getVcaf
 #'
 #' @param vcf CollapsedVCF object
@@ -234,7 +235,7 @@ getVcaf <- function(vcf, purity, cna, refGenome = BSgenome.Hsapiens.UCSC.hg19){
 #' Check for SNP criteria, and remove instances where reference allele matches alt allele.\cr
 #' Check chromosome and position is valid in reference genome.
 #'
-#' @rdname callScripts
+#' @rdname loadVCAF
 #' @name checkVcaf
 #'
 #' @param vcaf vcaf data frame
@@ -317,7 +318,7 @@ vcafConstruction <- function(vcf, refGenome = BSgenome.Hsapiens.UCSC.hg19){
 }
 
 #' \code{getTrinuc} Get the trinucleotide context for each mutation in a vcaf data frame
-#' @rdname callScripts
+#' @rdname loadVCAF
 #' @name getTrinuc
 #'
 #' @param vcaf vcaf data frame
@@ -380,7 +381,7 @@ getTrinuc <- function(vcaf, refGenome){
 
 #' \code{getBinCounts} Get the mutation type counts data for a vcaf dataframe
 #'
-#' @rdname callScripts
+#' @rdname loadVCAF
 #' @name getBinCounts
 #'
 #' @param vcaf vcaf data frame
