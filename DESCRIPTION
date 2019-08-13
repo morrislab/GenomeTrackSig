@@ -21,7 +21,6 @@ Imports:
     reshape2,
     ggplot2,
     NMF,
-    reticulate,
     assertthat,
     BSgenome.Hsapiens.UCSC.hg19
 LinkingTo: 
