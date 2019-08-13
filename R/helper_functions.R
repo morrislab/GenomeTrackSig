@@ -1,6 +1,80 @@
 # AUTHOR: Yulia Rubanova
 # Modified for package TrackSig by Cait Harrigan
 
+#' \code{checkForPyModules} Check that the python used by reticulate has access to the required module dependancies for TrackSig to function
+#'
+#' @return None
+#'
+#' @rdname helper_functions
+#' @name checkForPyModules
+#' @export
+
+checkForPyModules <- function(){
+
+  modulesRequired <- c("__future__", "sys", "pandas", "vcf", "csv", "random", "collections", "scipy.stats")
+
+  w <- F
+
+  for (module in modulesRequired){
+    if (!reticulate::py_module_available(module)){
+      warning(sprintf("Python module \"%s\" is not available. Please install it, or see help(\"reticulate::use_python\") for more information on how to configure your python environment for use with package TrackSig.", module))
+      w <- T
+    }
+  }
+
+  if (!w) {
+    return("All required python modules are available.")
+  }
+  else{
+    return("uh oh...")
+  }
+}
+
+
+
+#' \code{generateContext} Generate a trinucleotide context from an alphabet. Note: this involves finding all three-member
+#' permutations of the alphabet, which can be inconveinent for large alphabets. Nucleotides are assumed to be provided as complementary pairs,
+#' where the first of each pair is used as the reference to build the context.
+#'
+#' @param alphabet list of pairs of characters to create combinations of as a mutation context type
+#' @return data.frame containing all the possible trinucleotide contextes for a mutation in the supplied alphabet
+#'
+#' @examples
+#' context <- TrackSig:::generateContext(c("CG", "TA"))
+#' dim(context)
+#' head(context)
+#'
+#' @rdname helper_functions
+#' @name generateContext
+#' @export
+
+generateContext <- function(alphabet){
+
+  if (any(nchar(alphabet) != 2)){
+    stop("Alphabet is malformed. Please provide alphabet as a list of complementary pairs")
+  }
+
+  allpha <- unlist(strsplit(alphabet, split=NULL))
+  nTypes <- (length(allpha) - 1) * length(allpha)^3 * 1/2
+
+  context <- data.frame()
+
+  for (i in seq(1, length(allpha), by = 2)){
+
+    midRef <- allpha[i]
+    rest <- setdiff(allpha, midRef)
+    repSize <- length(allpha)^2 - length(allpha)
+
+    midSet <- cbind(rep(midRef, length.out = repSize), rep(rest, length.out=repSize),
+                    paste0(sort(rep(allpha, repSize)), rep(midRef, length.out = repSize), rep(allpha, repSize)))
+    context <- rbind(context, midSet)
+  }
+
+  stopifnot( dim(context)[1] == nTypes )
+
+  return (context)
+}
+
 #' Helper functions for \code{TrackSig}
 #'
 #' Non-exported functions called by \code{TrackSig} functions. \cr
@@ -97,6 +171,9 @@ IgnoreVectorOrMatrix <- function(x, FUN)
 #' \code{get_sliding_window_data} <man content>
 #' @rdname helper_functions
 get_sliding_window_data <- function (data, shift, gap = 1) {
+
+  warning("get_sliding_window_data() is depricated.")
+
   if (is.null(gap)) {
     gap = 1
   }
@@ -118,7 +195,7 @@ get_sliding_window_data <- function (data, shift, gap = 1) {
 }
 
 
-#' \code{get_sliding_window_data} <man content>
+#' \code{merge_data_chunks} <man content>
 #' @rdname helper_functions
 merge_data_chunks <- function (vcfData) {
   vcf <- matrix(nrow = nrow(vcfData)/2, ncol = ncol(vcfData))
@@ -131,7 +208,7 @@ merge_data_chunks <- function (vcfData) {
   return(vcf)
 }
 
-#' \code{get_sliding_window_data} <man content>
+#' \code{get_noise_sig} <man content>
 #' @rdname helper_functions
 get_noise_sig <- function(noise_sig){
   if (is.null(noise_sig))
@@ -496,6 +573,9 @@ extract_data_for_example <- function (example, dir_counts, tumortypes, dir_resul
 #' \code{extract_data_for_simulation} <man content>
 #' @rdname helper_functions
 extract_data_for_simulation <- function (example, dir_counts, dir_results = DIR_RESULTS, dir_create = T) {
+
+  warning("DEPRICATED")
+
   #example <- "1c3df485-8e75-4378-87f6-c6463a520624"
 
   vcfFile <- paste0(dir_counts, "/", example, ".csv")
@@ -805,6 +885,9 @@ truncate_to_range <- function(mixtures, range_) {
 #' \code{get_sample_purity} <man content>
 #' @rdname helper_functions
 get_sample_purity <- function(tumor_id) {
+
+  warning("get_sample_purity called. phi scaling should be done when corrected VAF made")
+
   purities <-read.delim(TrackSig.options()$purity_file)
 
   sample_purity = NULL
@@ -848,9 +931,9 @@ merge_signatures <- function(mixtures, sigs_to_merge) {
 #' @rdname helper_functions
 #' @export
 
-extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir, 
-  bin_size = 100, samples_to_run  = c()) {
-  # activities_dir: path to the
+extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir,
+  bin_size = TrackSig.options()$bin_size, samples_to_run  = c()) {
+  # activities_dir: path to the tumor type results dir
   # sorted_mutations_dir: folder with files for each tumour sample (or simulations). Each file has a list of mutations SORTED BY CCF
   tumor_list <- list.dirs(activities_dir, recursive = F, full.names=F)
 
@@ -862,7 +945,7 @@ extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir,
   print("Extracting exposures per mutation...")
   for (tumor in tumor_list) {
     print(tumor)
-    
+
     sorted_mut_file = paste0(sorted_mutations_dir, "/", tumor, ".mut_types.txt")
     if (!file.exists(sorted_mut_file)) {
       print(sprintf("File %s does not exist", sorted_mut_file))
@@ -902,7 +985,7 @@ extract_exposures_per_mutation <- function(activities_dir, sorted_mutations_dir,
     }
 
     stopifnot(nrow(activities_per_mut) == nrow(mut_list))
-    write.table(activities_per_mut, file = paste0(activities_dir, "/", tumor, "/sig_exposures_per_mut.txt"), 
+    write.table(activities_per_mut, file = paste0(activities_dir, "/", tumor, "/sig_exposures_per_mut.txt"),
         sep = "\t", row.names=F, quote=F)
   }
 }
@@ -986,7 +1069,7 @@ load_annotation_pcawg <- function(tumortype_file = TrackSig.options()$tumortype_
   names_trinucleotide <- apply(names_trinucleotide, 1, function(x) { do.call("paste", c(as.list(x), sep = "_"))})
 
   # Load the tumor types for tumor IDs.
-  tumortypes <- read.delim(tumortype_file, header = F, stringsAsFactors=F)
+  tumortypes <- read.delim(tumortype_file, header = T, stringsAsFactors=F)
   colnames(tumortypes) <- c("ID", "tumor_type")
 
   # Signatures from PCAWG group

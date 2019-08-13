@@ -82,9 +82,9 @@ NULL
   # bootstrapping provides the uncertainty estimations on the trajectories
   # warning: by default, mutations are bootstrapped 30 times and the script will run 30 time longer
   , compute_bootstrap = TRUE
-  , sliding_window = FALSE
+#  , sliding_window = FALSE
   , noise_sig = NULL
-  , simulated_data = FALSE
+#  , simulated_data = FALSE
   , postfix = ""
 
   # specifies the changepoint detection algorithm.
@@ -99,6 +99,7 @@ NULL
   , mutation_order = "data/mut_order/"
   , BOOTSTRAP_COUNTS = "data/bootstrap/"
   , purity_file = "data/example_purity.txt"
+  , cna_file = "data/example_cna.txt"
 
   # folder to write results to
   , DIR_RESULTS = "results_signature_trajectories/"
@@ -136,6 +137,9 @@ NULL
 
   # save space on simulation output
   , simulation_pdf = TRUE
+
+  # allow permutaiton of vafs
+  , permute_vafs = FALSE
 
 )
 

@@ -20,7 +20,9 @@ SystemRequirements:
 Imports:
     reshape2,
     ggplot2,
-    NMF
+    NMF,
+    assertthat,
+    BSgenome.Hsapiens.UCSC.hg19
 LinkingTo: 
 Suggests:
     testthat,

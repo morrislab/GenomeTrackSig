@@ -356,26 +356,40 @@ find_changepoints_and_signature_set <- function(vcf, alex.t, prior_signatures = 
 }
 
 # Find optimal changepoint and mixtures using PELT method.
-find_changepoints_pelt <- function(vcf, alex.t, phis, quadratic_phis)
+find_changepoints_pelt <- function(vcf, alex.t, vcaf)
 {
-  score_matrix <- score_partitions_pelt(vcf, alex.t, phis, quadratic_phis,
-                                        penalty = TrackSig.options()$pelt_penalty,
-                                        score_fxn = TrackSig.options()$pelt_score_fxn)
+  score_matrix <- score_partitions_pelt(vcf, alex.t, vcaf)
+
   changepoints <- recover_changepoints(score_matrix)
 
   mixtures <- fit_mixture_of_multinomials_in_time_slices(vcf, changepoints, alex.t)
+  #mixtures <- NULL
 
   return(list(changepoints = changepoints, mixtures = mixtures))
 }
 
 # Calculate penalized BIC score for all partitions using PELT method.
-score_partitions_pelt <- function(vcf, alex.t, phis, quadratic_phis,
-                                  penalty, score_fxn)
+score_partitions_pelt <- function(vcf, alex.t, vcaf,
+                                  penalty = TrackSig.options()$pelt_penalty,
+                                  score_fxn = TrackSig.options()$pelt_score_fxn,
+                                  bin_size = TrackSig.options()$bin_size)
 {
   n_bins <- ncol(vcf)
   n_sigs <- ncol(alex.t)
 
   penalty <- eval(penalty)
+
+  # aggregate bin summary stats
+  phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = sum)$x
+  quadratic_phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = function(x){return(sum(x^2))})$x
+
+  # allow vaf permutation
+  if(TrackSig.options()$permute_vafs){
+
+    phis <- aggregate(vcaf$phi2, by = list(vcaf$binAssignment), FUN = sum)$x
+    quadratic_phis <- aggregate(vcaf$phi2, by = list(vcaf$binAssignment), FUN = function(x){return(sum(x^2))})$x
+
+  }
 
   # Bayeisan Information Criterion penalization constant defalut parameter
 
@@ -400,12 +414,31 @@ score_partitions_pelt <- function(vcf, alex.t, phis, quadratic_phis,
         next
       }
 
-      r_seg_phis <- phis[(last_cp+1) : 18]
-      r_seg_quadratic_phis <- quadratic_phis[(last_cp+1) : sp_len]
-      r_seg_counts <- rowSums(vcf[, (last_cp + 1):sp_len, drop = FALSE])
-      r_seg_mix <- fit_mixture_of_multinomials_EM(r_seg_counts, alex.t)
-      r_seg_score <- 2 * score_fxn(multinomial_vector = r_seg_counts, phis = r_seg_phis, quadratic_phis = r_seg_quadratic_phis,
-                                   composing_multinomials = alex.t, mixtures = r_seg_mix)
+      sp_slice <- c((last_cp + 1), sp_len)
+
+      r_seg_phis <- phis[sp_slice[1] : sp_slice[2]]
+      r_seg_quadratic_phis <- quadratic_phis[sp_slice[1] : sp_slice[2]]
+
+      r_seg_qis <- vcaf$phi[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
+
+      # allow vaf permutation
+      if(TrackSig.options()$permute_vafs){
+        r_seg_qis <- vcaf$phi2[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
+      }
+
+      r_seg_qis <- unlist(lapply(r_seg_qis/(vcaf$purity[1]), 1, FUN = min))
+
+      r_seg_vi <- vcaf$vi[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
+      r_seg_ri <- vcaf$ri[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
+
+      r_seg_counts <- rowSums(vcf[, sp_slice[1] : sp_slice[2], drop = FALSE])
+
+
+
+
+      r_seg_score <- 2 * score_fxn(multinomial_vector = r_seg_counts, phis = r_seg_phis, quad_phis = r_seg_quadratic_phis,
+                                   composing_multinomials = alex.t, mixtures = r_seg_mix, bin_size = bin_size, qis = r_seg_qis,
+                                   vis = r_seg_vi, ris = r_seg_ri)
 
       l_seg_score <- ifelse(last_cp == 0, penalty, max_sp_scores[last_cp])
 

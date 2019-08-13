@@ -73,6 +73,8 @@ plot_signatures <- function (dd, plot_name, phis = NULL, fitted_data = NULL, mar
   sigs_to_remove <- apply(dd, 1, mean) < remove_sigs_below
   dd <- dd[!sigs_to_remove, ]
 
+  # order phis if not
+  phis <- phis[order(phis)]
 
   # Weight matrix is edited with appropriate row and column names
   signatures <- rownames(dd)
@@ -237,13 +239,23 @@ plot_signatures <- function (dd, plot_name, phis = NULL, fitted_data = NULL, mar
 }
 
 
-plot_signatures_real_scale <- function (dd, plot_name, phis = NULL, fitted_data = NULL, mark_max_signature=F, mark_change_points=F,
-                             change_points=NULL, error_bars = NULL, save=T, ytitle = "Signature exposure (%)",
-                             xtitle = "Avg number of mutant alleles per cancer cell",
-                             assigns_phylo_nodes = NULL,  transition_points = NULL, remove_sigs_below = 0, cut_at_range = NULL, sig_colors = NULL) {
+plot_signatures_real_scale <- function (dd, plot_name, phis = NULL, fitted_data = NULL,
+                                        mark_max_signature=F, mark_change_points=F,
+                                        change_points=NULL, error_bars = NULL, save=T,
+                                        #ytitle = "Signature exposure (%)",
+                                        #xtitle = "Avg number of mutant alleles per cancer cell",
+                                        ytitle = NULL,
+                                        xtitle = "",
+                                        assigns_phylo_nodes = NULL,  transition_points = NULL,
+                                        remove_sigs_below = 0, cut_at_range = NULL, sig_colors = NULL) {
+
+
   if (!is.null(error_bars) & sum(dim(dd) == dim(error_bars)) != 2) {
     stop("Dimentions of error bar matrix should be the same as dimentions of mixture matrix")
   }
+
+  # order phis if not
+  phis <- phis[order(phis)]
 
   sigs_to_remove <- apply(dd, 1, mean) < remove_sigs_below
   dd <- dd[!sigs_to_remove, ]
@@ -350,13 +362,17 @@ plot_signatures_real_scale <- function (dd, plot_name, phis = NULL, fitted_data 
     }
   }
 
-  g <- ggplot2::ggplot(data = df.m, ggplot2::aes(x = variable, y = value, group = Signatures, color = Signatures)) +
-   ggplot2::geom_line(alpha=alpha, size=1.7) + ggplot2::xlab(xtitle) + ggplot2::ylab(ytitle) +
-    ggplot2::geom_point(alpha=alpha, size=1.7) +
-    ggplot2::theme_bw() + ggplot2::theme(text = ggplot2::element_text(size = 20)) +
-    ggplot2::theme(axis.title = ggplot2::element_text(size = 20)) +
-    ggplot2::theme(axis.text = ggplot2::element_text(size = 15))  +
-    ggplot2::theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
+  g <- ( ggplot2::ggplot(data = df.m, ggplot2::aes(x = variable, y = value, group = Signatures, color = Signatures))
+        + ggplot2::geom_line(alpha=alpha, size=1.7)
+        + ggplot2::xlab(xtitle)
+        + ggplot2::ylab(ytitle)
+        + ggplot2::geom_point(alpha=alpha, size=1.7)
+        + ggplot2::theme_bw()
+        + ggplot2::theme(text = ggplot2::element_text(size = 5))
+        + ggplot2::theme(axis.title = ggplot2::element_text(size = 5))
+        + ggplot2::theme(axis.text = ggplot2::element_text(size = 5))
+        + ggplot2::theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
+  )
 
   if (!is.null(sig_colors)) {
     g <- g + scale_colour_manual(values=sig_colors)
@@ -429,7 +445,8 @@ plot_signatures_real_scale <- function (dd, plot_name, phis = NULL, fitted_data 
           alpha=0.3
         }
       for (i in 1:length(change_points)) {
-        g <- g +  ggplot2::annotate("rect", xmin=round(phis,3 )[change_points[i]-1], xmax=round(phis,3 )[change_points[i]], ymin=-Inf, ymax=Inf, alpha=alpha)
+        g <- g +  ggplot2::annotate("rect", xmin=round(phis,3 )[change_points[i]-1], fill = "red",
+                                    xmax=round(phis,3 )[change_points[i]], ymin=-Inf, ymax=Inf, alpha=alpha)
       }
     }
   }
@@ -469,7 +486,13 @@ plot_signatures_real_scale <- function (dd, plot_name, phis = NULL, fitted_data 
   }
 
   return(list(plot = g, data = df))
-}
+
+
+
+
+  }
+
+
 
 
 run_example <- function (example) {

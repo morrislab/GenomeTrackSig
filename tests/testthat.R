@@ -1,6 +1,6 @@
 library(testthat)
-#library(TrackSig)
+library(TrackSig)
 
-#test_check("TrackSig")
+test_check("TrackSig")
 
 # [END]

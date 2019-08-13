@@ -13,7 +13,7 @@
     # optRpt[["nameOfOption"]] <- value
     #
     # optionsToSet <- !(names(optTrackSig) %in% names(options()))
-    #
+     #
     # if(any(optionsToSet)) {
     #     options(optShi[optionsToSet])
     # }
