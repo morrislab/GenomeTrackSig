@@ -420,20 +420,22 @@ score_partitions_pelt <- function(vcf, alex.t, vcaf,
       r_seg_quadratic_phis <- quadratic_phis[sp_slice[1] : sp_slice[2]]
 
       r_seg_qis <- vcaf$phi[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
+      r_seg_q_cni <- vcaf$cn[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
 
       # allow vaf permutation
       if(TrackSig.options()$permute_vafs){
         r_seg_qis <- vcaf$phi2[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
       }
 
-      r_seg_qis <- unlist(lapply(r_seg_qis/(vcaf$purity[1]), 1, FUN = min))
+      r_seg_qis <- r_seg_qis / (2 + vcaf$purity[1] * (r_seg_q_cni - 2))
+      r_seg_qis <- unlist(lapply(r_seg_qis, 1, FUN = min))
 
       r_seg_vi <- vcaf$vi[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
       r_seg_ri <- vcaf$ri[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
 
       r_seg_counts <- rowSums(vcf[, sp_slice[1] : sp_slice[2], drop = FALSE])
 
-
+      r_seg_mix <- fit_mixture_of_multinomials_EM(r_seg_counts, alex.t)
 
 
       r_seg_score <- 2 * score_fxn(multinomial_vector = r_seg_counts, phis = r_seg_phis, quad_phis = r_seg_quadratic_phis,

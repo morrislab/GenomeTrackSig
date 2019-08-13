@@ -735,3 +735,23 @@ make_cumulative_plot <- function(data, xlab, ylab, font = 1) {
          border = NA, cex=font*0.7)
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
