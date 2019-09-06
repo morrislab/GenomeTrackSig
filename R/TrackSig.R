@@ -66,7 +66,7 @@ TrackSig <- function(vcfFile,
   # side effect: plot
   tryCatch({
             plot_name <- paste0(sampleID, " Signature Trajectory")
-            binned_phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = sum)$x / TrackSig.options()$bin_size
+            binned_phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = sum)$x / bin_size
             mark_cp <- !is.null(changepoints)
             print(plot_signatures_real_scale(mixtures * 100, plot_name=plot_name, phis = binned_phis, mark_change_points=mark_cp,
                                        change_points=changepoints, transition_points = NULL, save = F)[[1]])

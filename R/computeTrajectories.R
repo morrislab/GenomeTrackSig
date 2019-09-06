@@ -314,8 +314,8 @@ score_partitions_pelt <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSi
   phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = sum)$x
   quadratic_phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = function(x){return(sum(x^2))})$x
 
-  # allow vaf permutation
-  if(TrackSig.options()$permute_vafs){
+  # force vaf permutation
+  if(TRUE){
     phis <- aggregate(vcaf$phi2, by = list(vcaf$binAssignment), FUN = sum)$x
     quadratic_phis <- aggregate(vcaf$phi2, by = list(vcaf$binAssignment), FUN = function(x){return(sum(x^2))})$x
 
@@ -352,8 +352,8 @@ score_partitions_pelt <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSi
       r_seg_qis <- vcaf$phi[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
       r_seg_q_cni <- vcaf$cn[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
 
-      # allow vaf permutation
-      if(TrackSig.options()$permute_vafs){
+      # force vaf permutation
+      if(TRUE){
         r_seg_qis <- vcaf$phi2[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
       }
 
