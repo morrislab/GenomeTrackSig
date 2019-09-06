@@ -1,8 +1,11 @@
 # AUTHOR: Yulia Rubanova
+# modified for package TrackSig by Cait Harrigan
 
 # main function: get change points from vector of time points using change points lasso
 get_changepoints_vector <- function(data, lambda_type="lambda.1se")
 {
+  warning("get_changepoints_vector() is depricated.")
+
   X_dim = length(data)
 
   X <- matrix(0, ncol=X_dim, nrow=X_dim)
@@ -26,6 +29,8 @@ get_changepoints_vector <- function(data, lambda_type="lambda.1se")
 # get change points for each row of the matrix. Each row is considered a time series
 get_changepoints_per_row <- function(data_matrix)
 {
+  warning("get_changepoints_per_row() is depricated.")
+
   change_points <- c()
   for (i in 1:nrow(data_matrix))
   {
@@ -45,6 +50,8 @@ get_changepoints_matrix_jointly <- function(data, lambda_type="lambda.1se")
 {
   # fitting all the rows of data jointly to find common change points for all signatures
   # each row represents one time series
+
+  warning("get_changepoints_matrix_jointly() is depricated.")
 
   X_dim = ncol(data)
   X <- matrix(0, ncol=X_dim, nrow=X_dim)
@@ -76,6 +83,9 @@ get_changepoints_matrix_jointly <- function(data, lambda_type="lambda.1se")
 # we pass n_params -- the number of ther params of the model, besides number of checkpoints
 find_changepoints_over_all_signatures_one_by_one <- function(vcf, alex.t, n_signatures, parallelized=F)
 {
+
+  warning("find_changepoints_over_all_signatures_one_by_one() is depricated.")
+
   n_timepoints = nrow(alex.t)
 
   overall_mixtures <- fit_mixture_of_multinomials_EM(apply(vcf, 1, sum), as.matrix(alex.t))
@@ -125,6 +135,9 @@ find_changepoints_over_all_signatures_one_by_one <- function(vcf, alex.t, n_sign
 # Find the next change point by fitting every possible time split and evaluating them using BIC.
 find_next_change_point_over_all_signatures <- function(vcf, alex.t, changepoints, mixtures, parallelized=F)
 {
+
+  warning("find_changepoints_over_all_signatures() is depricated.")
+
   if (parallelized)
   {
     likelihood_per_time_split <- foreach (time_point = 2:ncol(vcf)) %dopar%
@@ -177,6 +190,9 @@ find_next_change_point_over_all_signatures <- function(vcf, alex.t, changepoints
 
 find_next_change_point_over_all_signatures_job <- function(vcf, alex.t, changepoints, mixtures, time_point)
 {
+
+  warning("find_changepoints_over_all_signatures_job() is depricated.")
+
     new_changepoints <- sort(c(changepoints, time_point))
     current_change_point <- which(new_changepoints == time_point)
     if (current_change_point > 1) {
@@ -234,6 +250,8 @@ find_next_change_point_over_all_signatures_job <- function(vcf, alex.t, changepo
 # Then try to remove unnecessary signatures -- for each signature in the set, compute change points and see if it yields better bic
 find_changepoints_and_signature_set <- function(vcf, alex.t, prior_signatures = c())
 {
+  warning("find_changepoints_and_signature_set() is depricated.")
+
   n_timepoints = nrow(alex.t)
 
   if (length(prior_signatures) == 0)
@@ -359,11 +377,9 @@ find_changepoints_and_signature_set <- function(vcf, alex.t, prior_signatures = 
 find_changepoints_pelt <- function(vcf, alex.t, vcaf)
 {
   score_matrix <- score_partitions_pelt(vcf, alex.t, vcaf)
-
   changepoints <- recover_changepoints(score_matrix)
 
   mixtures <- fit_mixture_of_multinomials_in_time_slices(vcf, changepoints, alex.t)
-  #mixtures <- NULL
 
   return(list(changepoints = changepoints, mixtures = mixtures))
 }
