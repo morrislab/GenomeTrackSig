@@ -16,15 +16,15 @@
 \usage{
 vcfToCounts(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
   context = generateContext(c("CG", "TA")),
-  refGenome = BSgenome.Hsapiens.UCSC.hg19)
+  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
 
 vcfToCounts_simulation(vcfFile, mutTypesFile, cnaFile = NULL,
-  purityFile = NULL, context = generateContext(c("CG", "TA")),
-  refGenome = BSgenome.Hsapiens.UCSC.hg19, binSize = 100,
-  saveIntermediate = F, intermediateFile = NULL)
+  purity = 1, context = generateContext(c("CG", "TA")),
+  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19,
+  binSize = 100, saveIntermediate = F, intermediateFile = NULL)
 
 parseVcfFile(vcfFile, cutoff = 10000,
-  refGenome = BSgenome.Hsapiens.UCSC.hg19)
+  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
 
 parseCnaFile(cnaFile)
 
@@ -32,9 +32,9 @@ parsePurityFile(purityFile)
 
 annotateCn(vcf, cnaGR = NULL)
 
-getVcaf(vcf, purity, cna, refGenome = BSgenome.Hsapiens.UCSC.hg19)
+getVcaf(vcf, purity, cna, refGenome)
 
-vcafConstruction(vcf, refGenome = BSgenome.Hsapiens.UCSC.hg19)
+vcafConstruction(vcf, refGenome)
 
 getTrinuc(vcaf, refGenome)
 
