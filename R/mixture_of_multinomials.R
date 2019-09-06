@@ -250,13 +250,9 @@ fit_mixture_of_multinomials_in_time_slices <- function(data, change_points, alex
 }
 
 
-log_likelihood_mixture_multinomials <- function (multinomial_vector, composing_multinomials, mixtures, ...) {
-  mutation_probabilities_under_mixture <- compute_mutation_probabilities_under_mixture(
-                                            multinomial_vector, composing_multinomials, mixtures)
-  return(sum(mutation_probabilities_under_mixture))
-}
 
-compute_mutation_probabilities_under_mixture <- function(multinomial_vector, composing_multinomials, mixtures_at_timepoint) {
+sig_mixture_ll <- function(multinomial_vector, composing_multinomials, mixtures, ...) {
+ # replaces log_likelihood_mixture_multinomials
   mutation_binary_table <-  make_binary_table(multinomial_vector)
 
   # mutation_probabilities_under_multinomial[i,n] corresponds to class/signature i and sample/mutation n
@@ -265,8 +261,8 @@ compute_mutation_probabilities_under_mixture <- function(multinomial_vector, com
     mutation_probabilities_under_multinomial[sig,] <- apply(composing_multinomials[,sig]^mutation_binary_table,2,prod)
   }
 
-  mutation_probabilities_under_mixture <-  log(t(mutation_probabilities_under_multinomial) %*% as.matrix(mixtures_at_timepoint))
+  mutation_probabilities_under_mixture <-  log(t(mutation_probabilities_under_multinomial) %*% as.matrix(mixtures))
   stopifnot(length(mutation_probabilities_under_mixture) == sum(multinomial_vector))
 
-  return(mutation_probabilities_under_mixture)
+  return(sum(mutation_probabilities_under_mixture))
 }

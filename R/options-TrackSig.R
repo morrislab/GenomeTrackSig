@@ -133,7 +133,7 @@ NULL
 
   # likelihoods
   , pelt_penalty = expression((n_sigs - 1) * log(n_bins))
-  , pelt_score_fxn = TrackSig:::log_likelihood_mixture_multinomials
+  , pelt_score_fxn = TrackSig:::sig_mixture_ll
 
   # save space on simulation output
   , simulation_pdf = TRUE
