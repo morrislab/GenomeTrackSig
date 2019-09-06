@@ -22,7 +22,10 @@ Imports:
     ggplot2,
     NMF,
     assertthat,
-    BSgenome.Hsapiens.UCSC.hg19
+    BSgenome.Hsapiens.UCSC.hg19,
+    GenomicRanges,
+    Biostrings,
+    SummarizedExperiment
 LinkingTo: 
 Suggests:
     testthat,
