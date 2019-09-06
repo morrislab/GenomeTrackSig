@@ -50,19 +50,19 @@ loadAndScoreIt_pcawg <- function(vcfFile,
   }
 
   # TODO: other parameters non-default options
-  list[vcaf, counts] <- vcfToCounts(vcfFile, cnaFile, purity)
+  list[vcaf, countsPerBin] <- vcfToCounts(vcfFile, cnaFile, purity)
 
-  assertthat::assert_that(all(rownames(counts) == rownames(refrenceSignatures)), msg = "Mutation type counts failed.")
+  assertthat::assert_that(all(rownames(countsPerBin) == rownames(refrenceSignatures)), msg = "Mutation type counts failed.")
 
   # subset refrenceSignatures with activeInSample
   refrenceSignatures <- refrenceSignatures[activeInSample]
 
-  if ( any(rowSums(counts)[rowSums(refrenceSignatures) == 0] != 0) ) {
+  if ( any(rowSums(countsPerBin)[rowSums(refrenceSignatures) == 0] != 0) ) {
     print(sprintf("Error in sample %s: Some mutation types have probability 0 under the model, but their count is non-zero. This count vector is impossible under the model.", sampleID))
   }
 
   # compute results
-  list[changepoints, mixtures] <- find_changepoints_pelt(counts, refrenceSignatures, vcaf)
+  list[changepoints, mixtures] <- find_changepoints_pelt(countsPerBin, refrenceSignatures, vcaf)
 
   # side effect: plot
   tryCatch({

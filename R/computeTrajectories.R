@@ -251,28 +251,63 @@ sum_beta_mixture_ll <- function(qis, multinomial_vector,
 
 }
 
+parseScoreMethod <- function(scoreMethod){
+  # return the penalty and score function to use when computing partitions
 
+  assertthat::assert_that(scoreMethod %in% c("TrackSig", "TrackSigFreq"), msg = "scoreMethod should be one of \"TrackSig\", \"TrackSigFreq\".
+                                                                                 Please see documentation for more information on selecting a scoreMethod)")
+  if(scoreMethod == "TrackSig"){
+    return(list(penalty = expression((n_sigs - 1) * log(n_bins * bin_size)),
+                score_fxn = sig_mixture_ll))
+  }
+
+  if(scoreMethod == "TrackSigFreq"){
+    return(list(penalty = expression(-log(0.1) + (n_sigs + 1) * log(n_bins * bin_size)),
+                score_fxn = sum_beta_mixture_ll))
+  }
+
+}
+
+getActualMinSegLen <- function(desiredMinSegLen, binSize){
+  # return the minimum segment length to use.
+
+  # for best segment scoring, use at least 400 mutations per segment.
+  if(is.null(desiredMinSegLen)){
+    return (ceiling(400/binSize))
+  }
+
+  # for accurate segment scoring, reqire at least 100 mutations per segment.
+  actualMinSegLen <- max(desiredMinSegLen, ceiling(100/binSize))
+
+  if (actualMinSegLen != desiredMinSegLen){
+    warning(sprintf("Could not use desiredMinSegLen, too few mutations for accurate segment scoring. minSegLen set to: %s", actualMinSegLen))
+  }
+
+  return(actualMinSegLen)
+}
 
 # Find optimal changepoint and mixtures using PELT method.
-find_changepoints_pelt <- function(vcf, alex.t, vcaf)
+# if desiredMinSegLen is NULL, the value will be selected by default based off binSize to try to give good performance
+find_changepoints_pelt <- function(countsPerBin, alex.t, vcaf, scoreMethod = "TrackSigFreq", binSize = 100, desiredMinSegLen = NULL)
 {
-  score_matrix <- score_partitions_pelt(vcf, alex.t, vcaf)
+
+  minSegLen <- getActualMinSegLen(desiredMinSegLen, binSize)
+
+  score_matrix <- score_partitions_pelt(countsPerBin, alex.t, vcaf, scoreMethod, binSize, minSegLen)
   changepoints <- recover_changepoints(score_matrix)
 
-  mixtures <- fit_mixture_of_multinomials_in_time_slices(vcf, changepoints, alex.t)
+  mixtures <- fit_mixture_of_multinomials_in_time_slices(countsPerBin, changepoints, alex.t)
 
   return(list(changepoints = changepoints, mixtures = mixtures))
 }
 
 # Calculate penalized BIC score for all partitions using PELT method.
-score_partitions_pelt <- function(vcf, alex.t, vcaf,
-                                  penalty = TrackSig.options()$pelt_penalty,
-                                  score_fxn = TrackSig.options()$pelt_score_fxn,
-                                  bin_size = TrackSig.options()$bin_size)
+score_partitions_pelt <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSize, minSegLen)
 {
-  n_bins <- ncol(vcf)
-  n_sigs <- ncol(alex.t)
+  n_bins <- dim(countsPerBin)[2]
+  n_sigs <- dim(alex.t)[2]
 
+  list[penalty, score_fxn] <- parseScoreMethod(scoreMethod)
   penalty <- eval(penalty)
 
   # aggregate bin summary stats
@@ -281,7 +316,6 @@ score_partitions_pelt <- function(vcf, alex.t, vcaf,
 
   # allow vaf permutation
   if(TrackSig.options()$permute_vafs){
-
     phis <- aggregate(vcaf$phi2, by = list(vcaf$binAssignment), FUN = sum)$x
     quadratic_phis <- aggregate(vcaf$phi2, by = list(vcaf$binAssignment), FUN = function(x){return(sum(x^2))})$x
 
@@ -329,7 +363,7 @@ score_partitions_pelt <- function(vcf, alex.t, vcaf,
       r_seg_vi <- vcaf$vi[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
       r_seg_ri <- vcaf$ri[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
 
-      r_seg_counts <- rowSums(vcf[, sp_slice[1] : sp_slice[2], drop = FALSE])
+      r_seg_counts <- rowSums(countsPerBin[, sp_slice[1] : sp_slice[2], drop = FALSE])
 
       r_seg_mix <- fit_mixture_of_multinomials_EM(r_seg_counts, alex.t)
 
