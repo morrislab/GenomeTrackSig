@@ -1,51 +1,6 @@
 # computeTrajectories.R
 # Authors: Yulia Rubanova, Cait Harrigan
 
-fit_signatures_linear_regression <- function (vcf, alex.t, alpha = 0,
-                                              lambda_type=c("lambda.min","lambda.1se", "lambda0"), prior = NULL) {
-  if (!is.null(prior))
-    if (length(prior) != ncol(alex.t))
-      stop(paste0("Length of prior should be equal to ", ncol(alex.t)))
-
-  # RIDGE REGRESSION
-  # The trinucleotide counts (response) are regressed against Alexandrov frequencies
-  # The weights for the 30 mutational signatures are stored in a new matrix (dd)
-  # GLMNET (generalized linear model) is used for this regression with the following parameters:
-  # stdArray.glmnet: used for 10-fold cross-validation
-  # family: "Poisson" is used because of nonnegative counts
-  # lower.limits: set to 0 in order to obtain nonnegative weights
-  # Ridge penalty is used with alpha = 0
-  # lambda.min is used for calculating the coefficients of the regression for minimum cross-validated error
-  dd <- matrix(nrow = (ncol(alex.t)+1), ncol = 0)
-  for (m in 1:ncol(vcf)) {
-    to_fit <- vcf[,m]
-    lower.limits = 0
-
-    if (!is.null(prior))
-    {
-      to_fit <- to_fit - as.matrix(alex.t) %*% prior
-      to_fit[to_fit < 0] <- 0
-      lower.limits = -prior
-    }
-
-    if (lambda_type == "lambda0")
-    {
-      glm <- glmnet(as.matrix(alex.t),to_fit, family = "poisson", lower.limits = lower.limits, alpha = alpha, lambda=0)
-      lambda = 0
-    } else {
-      glm <- cv.glmnet(as.matrix(alex.t), to_fit, family = "poisson", lower.limits = lower.limits, alpha = alpha)
-      lambda <- glm[[lambda_type]]
-    }
-
-    dd <- cbind(dd, as.array(coef(glm, s=lambda)))
-    mse.min <- glm$cvm[glm$lambda == lambda]
-  }
-
-  dd <- dd[2:nrow(dd),] # First row that contains intercepts of the regression results is ignored
-  #dd <- apply(dd, 2, function(x)(x/sum(x))) # Weights are normalized
-  return(dd)
-}
-
 
 
 make_binary_table <- function(multinomial_vector)
