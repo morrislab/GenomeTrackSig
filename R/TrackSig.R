@@ -3,11 +3,6 @@
 # Author: Cait Harrigan
 
 
-TrackSig <- function(){NULL}
-
-TrackSigFreq <- function(){NULL}
-
-
 detectActiveSignatures <- function(){
 
   # return list of active signatures in sample, whether by matching per-cancer-type to provided data,
@@ -16,11 +11,11 @@ detectActiveSignatures <- function(){
   NULL
 }
 
-#' \code{loadAndScoreIt_pcawg} Take an input vcf file and annotation and generate the counts data.
+#' \code{TrackSig} Take an input vcf file and annotation and generate the counts data.
 #' Create all plotting output that compute_signatures_for_all_examples does.
 #'
-#' @rdname load_counts
-#' @name loadAndScoreIt_pcawg
+#' @rdname TrackSig
+#' @name TrackSig
 #'
 #' @param vcfFile path to variant calling format (vcf) file
 #' @param cnaFile path to copy number abberation (cna) file
@@ -32,13 +27,16 @@ detectActiveSignatures <- function(){
 #'
 #' @export
 
-loadAndScoreIt_pcawg <- function(vcfFile,
-                                 cnaFile = NULL,
-                                 purity = NULL,
-                                 activeInSample = c("SBS1", "SBS5"),
-                                 sampleID = NULL,
-                                 refrenceSignatures = alex,
-                                 refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19) {
+TrackSig <- function(vcfFile,
+                     cnaFile = NULL,
+                     purity = NULL,
+                     activeInSample = c("SBS1", "SBS5"),
+                     sampleID = NULL,
+                     refrenceSignatures = alex,
+                     scoreMethod = "TrackSigFreq",
+                     binSize = 100,
+                     desiredMinSegLen = NULL,
+                     refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19) {
 
   # input checking
   # TODO: activeSignatures %in% rownames(referenceSignatures) must be TRUE
@@ -62,7 +60,8 @@ loadAndScoreIt_pcawg <- function(vcfFile,
   }
 
   # compute results
-  list[changepoints, mixtures] <- find_changepoints_pelt(countsPerBin, refrenceSignatures, vcaf)
+  # TODO: other parameters non-default options
+  list[changepoints, mixtures] <- find_changepoints_pelt(countsPerBin, refrenceSignatures, vcaf, scoreMethod, binSize, desiredMinSegLen)
 
   # side effect: plot
   tryCatch({
@@ -73,7 +72,7 @@ loadAndScoreIt_pcawg <- function(vcfFile,
                                        change_points=changepoints, transition_points = NULL, save = F)[[1]])
            },
            warning = function(w){w},
-           error = function(e){print("Error: failed to plot Signature trajectory")}
+           error = function(e){print("Error: failed to plot signature trajectory")}
           )
 
 
