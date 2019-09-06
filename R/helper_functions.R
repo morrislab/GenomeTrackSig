@@ -3,73 +3,8 @@
 
 
 
-#' \code{generateContext} Generate a trinucleotide context from an alphabet. Note: this involves finding all three-member
-#' permutations of the alphabet, which can be inconveinent for large alphabets. Nucleotides are assumed to be provided as complementary pairs,
-#' where the first of each pair is used as the reference to build the context.
-#'
-#' @param alphabet list of pairs of characters to create combinations of as a mutation context type
-#' @return data.frame containing all the possible trinucleotide contextes for a mutation in the supplied alphabet
-#'
-#' @examples
-#' context <- TrackSig:::generateContext(c("CG", "TA"))
-#' dim(context)
-#' head(context)
-#'
-#' @rdname helper_functions
-#' @name generateContext
-#' @export
-
-generateContext <- function(alphabet){
-
-  if (any(nchar(alphabet) != 2)){
-    stop("Alphabet is malformed. Please provide alphabet as a list of complementary pairs")
-  }
-
-  allpha <- unlist(strsplit(alphabet, split=NULL))
-  nTypes <- (length(allpha) - 1) * length(allpha)^3 * 1/2
-
-  context <- data.frame()
-
-  for (i in seq(1, length(allpha), by = 2)){
-
-    midRef <- allpha[i]
-    rest <- setdiff(allpha, midRef)
-    repSize <- length(allpha)^2 - length(allpha)
-
-    midSet <- cbind(rep(midRef, length.out = repSize), rep(rest, length.out=repSize),
-                    paste0(sort(rep(allpha, repSize)), rep(midRef, length.out = repSize), rep(allpha, repSize)))
-    context <- rbind(context, midSet)
-  }
-
-  stopifnot( dim(context)[1] == nTypes )
-
-  return (context)
-}
-
-#' Helper functions for \code{TrackSig}
-#'
-#' Non-exported functions called by \code{TrackSig} functions. \cr
-#' Not intended for end-user use.
-#'
-#' @rdname helper_functions
-#' @name helper_functions
-NULL
 
 
-#' \code{list} Succinct object assignment
-#' @rdname helper_functions
-#'
-list <- structure(NA,class="result")
-"[<-.result" <- function(x,...,value) {
-  args <- as.list(match.call())
-  args <- args[-c(1:2,length(args))]
-  length(value) <- length(args)
-  for(i in seq(along=args)) {
-    a <- args[[i]]
-    if(!missing(a)) eval.parent(substitute(a <- v,list(a=a,v=value[[i]])))
-  }
-  x
-}
 
 #' \code{get_values_from_list} Retrieve values by name from list
 #' @rdname helper_functions

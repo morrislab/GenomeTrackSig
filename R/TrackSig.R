@@ -48,7 +48,9 @@ TrackSig <- function(vcfFile,
   }
 
   # TODO: other parameters non-default options
-  list[vcaf, countsPerBin] <- vcfToCounts(vcfFile, cnaFile, purity)
+  data <- vcfToCounts(vcfFile, cnaFile, purity)
+  vcaf <- data[[1]]
+  countsPerBin <- data[[2]]
 
   assertthat::assert_that(all(rownames(countsPerBin) == rownames(refrenceSignatures)), msg = "Mutation type counts failed.")
 
@@ -61,12 +63,15 @@ TrackSig <- function(vcfFile,
 
   # compute results
   # TODO: other parameters non-default options
-  list[changepoints, mixtures] <- find_changepoints_pelt(countsPerBin, refrenceSignatures, vcaf, scoreMethod, binSize, desiredMinSegLen)
+  trajectory <- find_changepoints_pelt(countsPerBin, refrenceSignatures, vcaf, scoreMethod, binSize, desiredMinSegLen)
+  changepoints <- trajectory[[1]]
+  mixtures <- trajectory[[2]]
+
 
   # side effect: plot
   tryCatch({
             plot_name <- paste0(sampleID, " Signature Trajectory")
-            binned_phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = sum)$x / bin_size
+            binned_phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = sum)$x / binSize
             mark_cp <- !is.null(changepoints)
             print(plot_signatures_real_scale(mixtures * 100, plot_name=plot_name, phis = binned_phis, mark_change_points=mark_cp,
                                        change_points=changepoints, transition_points = NULL, save = F)[[1]])
