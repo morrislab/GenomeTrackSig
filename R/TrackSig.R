@@ -20,6 +20,7 @@ detectActiveSignatures <- function(){
 #' @param vcfFile path to variant calling format (vcf) file
 #' @param cnaFile path to copy number abberation (cna) file
 #' @param purityFile path to sample purity file
+#' @param sampleID name to call sample. If none provided, name will be automatically drawn from the provided vcf file name.
 #' @param saveIntermediate boolean whether to save intermediate results (mutation types)
 #'
 #'
@@ -33,18 +34,32 @@ TrackSig <- function(vcfFile,
                      activeInSample = c("SBS1", "SBS5"),
                      sampleID = NULL,
                      refrenceSignatures = alex,
-                     scoreMethod = "TrackSigFreq",
+                     scoreMethod = "SigFreq",
                      binSize = 100,
                      desiredMinSegLen = NULL,
                      refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19) {
 
   # input checking
+
+  assertthat::assert_that(grepl(".vcf$", vcfFile) | grepl(".txt$", vcfFile), msg = "Unsupported VCF file extension. Expected file type .vcf or .txt")
+
+  assertthat::assert_that(scoreMethod %in% c("SigFreq", "Signature", "Frequency"),
+  msg = "scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod)")
+
   # TODO: activeSignatures %in% rownames(referenceSignatures) must be TRUE
   # TODO: length(activeInSample) >1 should be true, else no mixture to fit
 
-  # TODO: implement optional arg sampleID -> allow sampleID from file name override
+  # take sampleID from file name if not provided
   if (is.null(sampleID)){
-    sampleID <- strsplit( unlist(strsplit(vcfFile, "/"))[ length( strsplit(vcfFile, "/")[[1]] ) ] , ".vcf")[[1]]
+
+    if (grepl(".txt$", vcfFile)){
+      sampleID <- strsplit( unlist(strsplit(vcfFile, "/"))[ length( strsplit(vcfFile, "/")[[1]] ) ] , ".txt")[[1]]
+    }
+
+    if (grepl(".vcf$", vcfFile)){
+      sampleID <- strsplit( unlist(strsplit(vcfFile, "/"))[ length( strsplit(vcfFile, "/")[[1]] ) ] , ".vcf")[[1]]
+    }else{stop("Failed setting sampleID. Please check input vcf file.")}
+
   }
 
   # TODO: other parameters non-default options
@@ -83,6 +98,22 @@ TrackSig <- function(vcfFile,
 
   return (NULL)
 }
+
+# list unpacker util: used internally in package TrackSig
+# source: https://stat.ethz.ch/pipermail/r-help/2004-June/053343.html
+
+list <- structure(NA,class="result")
+"[<-.result" <- function(x,...,value) {
+  args <- as.list(match.call())
+  args <- args[-c(1:2,length(args))]
+  length(value) <- length(args)
+  for(i in seq(along=args)) {
+    a <- args[[i]]
+    if(!missing(a)) eval.parent(substitute(a <- v,list(a=a,v=value[[i]])))
+  }
+  x
+}
+
 
 
 # [END]
