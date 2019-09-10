@@ -102,6 +102,7 @@ vcfToCounts_simulation <- function(vcfFile, mutTypesFile, cnaFile = NULL, purity
     write.table(mut_types, file = intermediateFile, quote = F, col.names = F, row.names = F, sep = "\t")
   }
 
+
   return( getBinCounts(vcaf, binSize, context) )
 
 
@@ -417,7 +418,7 @@ getBinCounts <- function(vcaf, binSize, context){
     binCounts[col] <- 0
   }
 
-  return ( list(vcaf, t(binCounts)) )
+  return ( list(vcaf = vcaf, countsPerBin = t(binCounts)) )
 
 }
 

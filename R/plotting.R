@@ -1,6 +1,19 @@
 # AUTHORS: Yulia Rubanova and Nil Sahin
 # Modified for package trackSig by Cait Harrigan
 
+truncate_to_range <- function(mixtures, range_) {
+  warning("Called a depricated function.")
+  min = range_[1]
+  max = range_[2]
+
+  x <- mixtures
+  col_names <- as.numeric(colnames(x))
+  to_leave <- which(col_names <= max+0.01 & col_names >= min-0.01)
+
+  x2 <- x[,to_leave, drop=F]
+  colnames(x2) <- col_names[to_leave]
+  return(list(x2,to_leave))
+}
 
 
 plot_signatures <- function (dd, plot_name, phis = NULL, fitted_data = NULL, mark_max_signature=F, mark_change_points=F,

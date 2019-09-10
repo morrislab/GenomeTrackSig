@@ -1,6 +1,60 @@
 # computeTrajectories.R
 # Authors: Yulia Rubanova, Cait Harrigan
 
+#' \code{generateContext} Generate a trinucleotide context from an alphabet. Note: this involves finding all three-member
+#' permutations of the alphabet, which can be inconveinent for large alphabets. Nucleotides are assumed to be provided as complementary pairs,
+#' where the first of each pair is used as the reference to build the context.
+#'
+#' @param alphabet list of pairs of characters to create combinations of as a mutation context type
+#' @return data.frame containing all the possible trinucleotide contextes for a mutation in the supplied alphabet
+#'
+#' @examples
+#' context <- TrackSig:::generateContext(c("CG", "TA"))
+#' dim(context)
+#' head(context)
+#'
+#' @name generateContext
+#' @export
+
+generateContext <- function(alphabet){
+
+  if (any(nchar(alphabet) != 2)){
+    stop("Alphabet is malformed. Please provide alphabet as a list of complementary pairs")
+  }
+
+  allpha <- unlist(strsplit(alphabet, split=NULL))
+  nTypes <- (length(allpha) - 1) * length(allpha)^3 * 1/2
+
+  context <- data.frame()
+
+  for (i in seq(1, length(allpha), by = 2)){
+
+    midRef <- allpha[i]
+    rest <- setdiff(allpha, midRef)
+    repSize <- length(allpha)^2 - length(allpha)
+
+    midSet <- cbind(rep(midRef, length.out = repSize), rep(rest, length.out=repSize),
+                    paste0(sort(rep(allpha, repSize)), rep(midRef, length.out = repSize), rep(allpha, repSize)))
+    context <- rbind(context, midSet)
+  }
+
+  stopifnot( dim(context)[1] == nTypes )
+
+  return (context)
+}
+
+
+list <- structure(NA,class="result")
+"[<-.result" <- function(x,...,value) {
+  args <- as.list(match.call())
+  args <- args[-c(1:2,length(args))]
+  length(value) <- length(args)
+  for(i in seq(along=args)) {
+    a <- args[[i]]
+    if(!missing(a)) eval.parent(substitute(a <- v,list(a=a,v=value[[i]])))
+  }
+  x
+}
 
 
 make_binary_table <- function(multinomial_vector)
@@ -112,6 +166,31 @@ fit_mixture_of_multinomials_EM <- function(multinomial_vector, composing_multino
 # fit mixture of mutinomials in each time slice specified by change_points
 fit_mixture_of_multinomials_in_time_slices <- function(data, change_points, alex.t, split_data_at_change_point = T)
 {
+
+  toVerticalMatrix <- function(L)
+  {
+    if (is.vector(L))
+      return(matrix(L, ncol=1))
+    else
+      return(as.matrix(L))
+  }
+
+  IgnoreVectorOrMatrix <- function(x, FUN)
+  {
+    warning("Called a depricated function.")
+    if (is.vector(x))
+    {
+      return(x)
+    } else if (is.matrix(x) | is.data.frame(x)) {
+      FUN <- match.fun(FUN)
+      return(FUN(x))
+    } else
+    {
+      stop(paste("Unknown type of data:", head(x)))
+    }
+  }
+
+
   fitted_values <- matrix(NA, ncol=ncol(data), nrow=ncol(alex.t))
   rownames(fitted_values) <- colnames(alex.t)
 
@@ -257,12 +336,12 @@ parseScoreMethod <- function(scoreMethod){
   assertthat::assert_that(scoreMethod %in% c("TrackSig", "TrackSigFreq"), msg = "scoreMethod should be one of \"TrackSig\", \"TrackSigFreq\".
                                                                                  Please see documentation for more information on selecting a scoreMethod)")
   if(scoreMethod == "TrackSig"){
-    return(list(penalty = expression((n_sigs - 1) * log(n_bins * bin_size)),
+    return(list(penalty = expression((n_sigs - 1) * log(n_bins * binSize)),
                 score_fxn = sig_mixture_ll))
   }
 
   if(scoreMethod == "TrackSigFreq"){
-    return(list(penalty = expression(-log(0.1) + (n_sigs + 1) * log(n_bins * bin_size)),
+    return(list(penalty = expression(-log(0.1) + (n_sigs + 1) * log(n_bins * binSize)),
                 score_fxn = sum_beta_mixture_ll))
   }
 
