@@ -13,7 +13,6 @@
 #' dim(context)
 #' head(context)
 #'
-#' @rdname helper_functions
 #' @name generateContext
 #' @export
 
@@ -167,6 +166,31 @@ fit_mixture_of_multinomials_EM <- function(multinomial_vector, composing_multino
 # fit mixture of mutinomials in each time slice specified by change_points
 fit_mixture_of_multinomials_in_time_slices <- function(data, change_points, alex.t, split_data_at_change_point = T)
 {
+
+  toVerticalMatrix <- function(L)
+  {
+    if (is.vector(L))
+      return(matrix(L, ncol=1))
+    else
+      return(as.matrix(L))
+  }
+
+  IgnoreVectorOrMatrix <- function(x, FUN)
+  {
+    warning("Called a depricated function.")
+    if (is.vector(x))
+    {
+      return(x)
+    } else if (is.matrix(x) | is.data.frame(x)) {
+      FUN <- match.fun(FUN)
+      return(FUN(x))
+    } else
+    {
+      stop(paste("Unknown type of data:", head(x)))
+    }
+  }
+
+
   fitted_values <- matrix(NA, ncol=ncol(data), nrow=ncol(alex.t))
   rownames(fitted_values) <- colnames(alex.t)
 
