@@ -43,64 +43,60 @@ generateContext <- function(alphabet){
   return (context)
 }
 
-# TODO: vectorize
-make_binary_table <- function(multinomial_vector)
+makeBinaryTable <- function(multinomial_vector)
 {
-  N = sum(multinomial_vector)
-  mutation_types <- length(multinomial_vector)
 
-  # Make a matrix of samples for fitting  of multinomials.
-  # Each sample contains the one mutation.
-  # data.matrix is a binary matrix with N columns and mutation_types rows.
-  data.matrix <- matrix(0, ncol=N, nrow=mutation_types)
-  current_index <- 1
-  for (i in 1:length(multinomial_vector))
-  {
-    if (multinomial_vector[i] != 0)
-    {
-      data.matrix[i, current_index:min(current_index+multinomial_vector[i]-1, N) ] <- 1
-    }
-    current_index <- current_index + multinomial_vector[i]
-  }
+  nMut <- sum(multinomial_vector)
+  nMutTypes <- length(multinomial_vector)
 
-  if (current_index != N + 1)
-    stop("Something went wrong during binary matrix construction: current_index is off")
+  # one-hot encoded column vector of mutation type for each mutation
+  oneHotTypes <- diag(1, nMutTypes, nMutTypes)
 
-  return(data.matrix)
+  sel <- rep(1:nMutTypes, times = multinomial_vector)
+  binaryTable <- oneHotTypes[,sel]
+
+  assertthat::assert_that(all(dim(binaryTable) == c(nMutTypes, nMut)),
+                          msg = "Binary matrix construction failed: dimensions don't match input")
+
+  return(binaryTable)
+
 }
+
+
 
 # fit mixture of multinomials to the vector
 fit_mixture_of_multinomials_EM <- function(multinomial_vector, composing_multinomials, prior=NULL)
 {
   # Number of mutations to fit
-  N = sum(multinomial_vector)
+  nMut = sum(multinomial_vector)
+
   # Number of mutation types / categories of mutinomial
-  mutation_types <- length(multinomial_vector)
+  nMutTypes <- length(multinomial_vector)
+
   # Number of multinomials/signatures to fit and to make mixture of
-  M <- ncol(composing_multinomials)
+  nSig <- ncol(composing_multinomials)
 
-  if (length(multinomial_vector) != nrow(composing_multinomials))
-  {
-    print(length(multinomial_vector))
-    print(dim(composing_multinomials))
-    stop("Length of data vector is not equal to nrow of matrix to fit. Did you forget to transpose the matrix?")
-  }
-  data.matrix <- make_binary_table(multinomial_vector)
 
-  # data_given_class[i,n] corresponds to class/signature i and sample/mutation n
-  data_given_class <- matrix(0, nrow=M, ncol=N)
-  for (i in 1:M)
+  assertthat::assert_that(length(multinomial_vector) == nrow(composing_multinomials),
+                          msg = "Length of data vector is not equal to nrow of matrix to fit. Did you forget to transpose the matrix?")
+
+  mutType <- makeBinaryTable(multinomial_vector)
+
+  # pDataGivenClass[i,n] corresponds to class/signature i and sample/mutation n
+  pDataGivenClass <- matrix(0, nrow=nSig, ncol=nMut)
+
+  for (i in 1:nSig)
   {
-    data_given_class[i,] <- apply(composing_multinomials[,i]^data.matrix,2,prod)
+    pDataGivenClass[i,] <- apply(composing_multinomials[,i]^mutType,2,prod)
   }
 
   # Mixtures of multinomials. Use uniform prior unless the prior is specified
   if (!is.null(prior))
   {
-    if (length(prior) != M)
-      stop(paste0("Length of prior should be equal to ", M))
+    if (length(prior) != nSig)
+      stop(paste0("Length of prior should be equal to ", nSig))
   } else {
-    prior <- rep(1/M, M)
+    prior <- rep(1/nSig, nSig)
   }
 
   pi <- prior
@@ -110,13 +106,13 @@ fit_mixture_of_multinomials_EM <- function(multinomial_vector, composing_multino
   while (pi_diff > 0.001 & iteration < 1000)
   {
     # E-step: update posterior.
-    p_x <- apply(data_given_class * pi, 2, sum)
+    p_x <- apply(pDataGivenClass * pi, 2, sum)
 
     # class_given_data[i,n] corresponds to class/signature i and sample/mutation n
-    class_given_data <- t(t(data_given_class * pi) / p_x)
+    class_given_data <- t(t(pDataGivenClass * pi) / p_x)
 
     # S-step: update mixtures
-    pi_new <- 1/N * apply(class_given_data,1,sum)
+    pi_new <- 1/nMut * apply(class_given_data,1,sum)
 
     if (sum(pi_new > 1) != 0) {
       stop("Mixture ratio is greater than 1")
@@ -231,7 +227,7 @@ fit_mixture_of_multinomials_in_time_slices <- function(data, changepoints, alex.
 
 sig_mixture_ll <- function(multinomial_vector, composing_multinomials, mixtures, ...) {
   # replaces log_likelihood_mixture_multinomials
-  mutation_binary_table <-  make_binary_table(multinomial_vector)
+  mutation_binary_table <-  makeBinaryTable(multinomial_vector)
 
   # mutation_probabilities_under_multinomial[i,n] corresponds to class/signature i and sample/mutation n
   mutation_probabilities_under_multinomial <- matrix(0, nrow=ncol(composing_multinomials), ncol=ncol(mutation_binary_table))
