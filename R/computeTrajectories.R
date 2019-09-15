@@ -82,24 +82,31 @@ fit_mixture_of_multinomials_EM <- function(multinomial_vector, composing_multino
 
   mutType <- makeBinaryTable(multinomial_vector)
 
+  applyMutTypeMask <- function(sigMultinom, mutType){
+    return(exp(colSums(sigMultinom^mutType)))
+  }
+
   # pDataGivenClass[i,n] corresponds to class/signature i and sample/mutation n
   pDataGivenClass <- matrix(0, nrow=nSig, ncol=nMut)
 
+
+
   for (i in 1:nSig)
   {
-    pDataGivenClass[i,] <- apply(composing_multinomials[,i]^mutType,2,prod)
+    pDataGivenClass[i,] <- exp(colSums(log(composing_multinomials[,i]^mutType)))
   }
+
 
   # Mixtures of multinomials. Use uniform prior unless the prior is specified
-  if (!is.null(prior))
-  {
-    if (length(prior) != nSig)
-      stop(paste0("Length of prior should be equal to ", nSig))
-  } else {
-    prior <- rep(1/nSig, nSig)
+  pi <- rep(1/nSig, nSig)
+
+  if (!is.null(prior)){
+
+    assertthat::assert_that(length(prior) == nSig,
+                            msg = sprintf("Length of prior should be equal to %s", nSig))
+    pi <- prior
   }
 
-  pi <- prior
   pi_diff <- Inf
   iteration <- 1
 
@@ -171,7 +178,7 @@ fit_mixture_of_multinomials_in_time_slices <- function(data, changepoints, alex.
   # if no changepoints, use all data
   if (length(changepoints) == 0) {
 
-    fitted_for_time_slice <- fit_mixture_of_multinomials_EM(S4Vectors::rowSums(data), alex.t)
+    fitted_for_time_slice <- fit_mixture_of_multinomials_EM(rowSums(data), alex.t)
     fitted_values <- matrix(rep(fitted_for_time_slice, ncol(fitted_values)), nrow=nrow(fitted_values),
                             dimnames = list(colnames(alex.t), colnames(data)))
     return(fitted_values)
@@ -198,7 +205,7 @@ fit_mixture_of_multinomials_in_time_slices <- function(data, changepoints, alex.
     }
 
     # all counts should be present
-    assertthat::assert_that(all(S4Vectors::rowSums(data) == S4Vectors::rowSums(do.call(cbind,chunkSums))),
+    assertthat::assert_that(all(rowSums(data) == rowSums(do.call(cbind,chunkSums))),
                             msg = "Timepoints lost in chunking")
 
 
@@ -207,7 +214,7 @@ fit_mixture_of_multinomials_in_time_slices <- function(data, changepoints, alex.
     chunkSums <- lapply(slices, data, FUN = sumSlice)
 
     # all counts should be present
-    assertthat::assert_that(all(S4Vectors::rowSums(data) == S4Vectors::rowSums(do.call(cbind,chunkSums))),
+    assertthat::assert_that(all(rowSums(data) == rowSums(do.call(cbind,chunkSums))),
                             msg = "Timepoints lost in chunking")
   }
 
