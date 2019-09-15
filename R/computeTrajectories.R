@@ -83,19 +83,12 @@ fit_mixture_of_multinomials_EM <- function(multinomial_vector, composing_multino
   mutType <- makeBinaryTable(multinomial_vector)
 
   applyMutTypeMask <- function(sigMultinom, mutType){
-    return(exp(colSums(sigMultinom^mutType)))
+    return(exp(colSums(log(sigMultinom^mutType))))
   }
 
   # pDataGivenClass[i,n] corresponds to class/signature i and sample/mutation n
-  pDataGivenClass <- matrix(0, nrow=nSig, ncol=nMut)
-
-
-
-  for (i in 1:nSig)
-  {
-    pDataGivenClass[i,] <- exp(colSums(log(composing_multinomials[,i]^mutType)))
-  }
-
+  pDataGivenClass <- t(apply(composing_multinomials, MARGIN = 2,
+                             mutType = mutType, FUN = applyMutTypeMask))
 
   # Mixtures of multinomials. Use uniform prior unless the prior is specified
   pi <- rep(1/nSig, nSig)
@@ -113,13 +106,13 @@ fit_mixture_of_multinomials_EM <- function(multinomial_vector, composing_multino
   while (pi_diff > 0.001 & iteration < 1000)
   {
     # E-step: update posterior.
-    p_x <- apply(pDataGivenClass * pi, 2, sum)
+    p_x <- colSums(pDataGivenClass * pi)
 
     # class_given_data[i,n] corresponds to class/signature i and sample/mutation n
     class_given_data <- t(t(pDataGivenClass * pi) / p_x)
 
     # S-step: update mixtures
-    pi_new <- 1/nMut * apply(class_given_data,1,sum)
+    pi_new <- 1/nMut * rowSums(class_given_data)
 
     if (sum(pi_new > 1) != 0) {
       stop("Mixture ratio is greater than 1")
