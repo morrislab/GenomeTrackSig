@@ -65,7 +65,7 @@ makeBinaryTable <- function(multinomial_vector)
 
 
 # fit mixture of multinomials to the vector
-fit_mixture_of_multinomials_EM <- function(multinomial_vector, composing_multinomials, prior=NULL)
+fitMixturesEM <- function(multinomial_vector, composing_multinomials, prior=NULL)
 {
   # Number of mutations to fit
   nMut = sum(multinomial_vector)
@@ -132,6 +132,7 @@ fit_mixture_of_multinomials_EM <- function(multinomial_vector, composing_multino
   return(pi)
 }
 
+
 distributeBinCounts <- function(binCounts, leftChunk, rightChunk){
   # split the counts of a changepoint bin and add them to the chunks that surround it
 
@@ -153,9 +154,8 @@ distributeBinCounts <- function(binCounts, leftChunk, rightChunk){
 }
 
 
-
 # fit mixture of mutinomials in each time slice specified by change_points
-fit_mixture_of_multinomials_in_time_slices <- function(data, changepoints, alex.t, split_data_at_change_point = T)
+fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_change_point = T)
 {
 
   # cast to matrix if possible
@@ -171,7 +171,7 @@ fit_mixture_of_multinomials_in_time_slices <- function(data, changepoints, alex.
   # if no changepoints, use all data
   if (length(changepoints) == 0) {
 
-    fitted_for_time_slice <- fit_mixture_of_multinomials_EM(rowSums(data), alex.t)
+    fitted_for_time_slice <- fitMixturesEM(rowSums(data), alex.t)
     fitted_values <- matrix(rep(fitted_for_time_slice, ncol(fitted_values)), nrow=nrow(fitted_values),
                             dimnames = list(colnames(alex.t), colnames(data)))
     return(fitted_values)
@@ -212,7 +212,7 @@ fit_mixture_of_multinomials_in_time_slices <- function(data, changepoints, alex.
   }
 
 
-  chunkFits <- lapply(chunkSums, composing_multinomials = alex.t, FUN = fit_mixture_of_multinomials_EM)
+  chunkFits <- lapply(chunkSums, composing_multinomials = alex.t, FUN = fitMixturesEM)
   chunkFits <- mapply(chunkFits, times = c(changepoints, dim(data)[2]) - c(0, changepoints),
                       nSig = dim(alex.t)[2], FUN = repChunk)
 
@@ -225,7 +225,7 @@ fit_mixture_of_multinomials_in_time_slices <- function(data, changepoints, alex.
 
 
 
-sig_mixture_ll <- function(multinomial_vector, composing_multinomials, mixtures, ...) {
+mixtureLL <- function(multinomial_vector, composing_multinomials, mixtures, ...) {
   # replaces log_likelihood_mixture_multinomials
   mutation_binary_table <-  makeBinaryTable(multinomial_vector)
 
@@ -242,7 +242,7 @@ sig_mixture_ll <- function(multinomial_vector, composing_multinomials, mixtures,
 }
 
 # beta likelihood maximization
-beta_ll <- function(qis, ...){
+betaLL <- function(qis, ...){
 
   #qis are the VAFs for the subproblem
 
@@ -261,11 +261,15 @@ beta_ll <- function(qis, ...){
 
 }
 
-sum_beta_mixture_ll <- function(qis, multinomial_vector,
+sumBetaMixtureLL <- function(qis, multinomial_vector,
                                 composing_multinomials, mixtures, ...){
 
-  return( sum(sig_mixture_ll(multinomial_vector, composing_multinomials, mixtures),
-              beta_ll(qis)) )
+  score <- sum(
+               mixtureLL(multinomial_vector, composing_multinomials, mixtures),
+               betaLL(qis)
+              )
+
+  return(score)
 
 }
 
@@ -277,17 +281,17 @@ parseScoreMethod <- function(scoreMethod){
 
   if(scoreMethod == "SigFreq"){
     return(list(penalty = expression(-log(0.1) + (n_sigs + 1) * log(n_bins * binSize)),
-                score_fxn = sum_beta_mixture_ll))
+                score_fxn = sumBetaMixtureLL))
   }
 
   if(scoreMethod == "Signature"){
     return(list(penalty = expression((n_sigs - 1) * log(n_bins * binSize)),
-                score_fxn = sig_mixture_ll))
+                score_fxn = mixtureLL))
   }
 
   if(scoreMethod == "Frequency"){
     return(list(penalty = expression((n_sigs + 2) * log(n_bins * binSize)),
-                score_fxn = beta_ll))
+                score_fxn = betaLL))
   }
 
 }
@@ -312,20 +316,20 @@ getActualMinSegLen <- function(desiredMinSegLen, binSize){
 
 # Find optimal changepoint and mixtures using PELT method.
 # if desiredMinSegLen is NULL, the value will be selected by default based off binSize to try to give good performance
-find_changepoints_pelt <- function(countsPerBin, sigDef, vcaf, scoreMethod = "TrackSigFreq", binSize = 100, desiredMinSegLen = NULL)
+getChangepointsPELT <- function(countsPerBin, sigDef, vcaf, scoreMethod = "TrackSigFreq", binSize = 100, desiredMinSegLen = NULL)
 {
 
   minSegLen <- getActualMinSegLen(desiredMinSegLen, binSize)
-  score_matrix <- score_partitions_pelt(countsPerBin, sigDef, vcaf, scoreMethod, binSize, minSegLen)
+  score_matrix <- scorePartitionsPELT(countsPerBin, sigDef, vcaf, scoreMethod, binSize, minSegLen)
 
-  changepoints <- recover_changepoints(score_matrix)
-  mixtures <- fit_mixture_of_multinomials_in_time_slices(countsPerBin, changepoints, sigDef)
+  changepoints <- recoverChangepoints(score_matrix)
+  mixtures <- fitMixturesInTimeline(countsPerBin, changepoints, sigDef)
 
   return(list(changepoints = changepoints, mixtures = mixtures))
 }
 
 # Calculate penalized BIC score for all partitions using PELT method.
-score_partitions_pelt <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSize, minSegLen)
+scorePartitionsPELT <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSize, minSegLen)
 {
   n_bins <- dim(countsPerBin)[2]
   n_sigs <- dim(alex.t)[2]
@@ -388,7 +392,7 @@ score_partitions_pelt <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSi
 
       r_seg_counts <- rowSums(countsPerBin[, sp_slice[1] : sp_slice[2], drop = FALSE])
 
-      r_seg_mix <- fit_mixture_of_multinomials_EM(r_seg_counts, alex.t)
+      r_seg_mix <- fitMixturesEM(r_seg_counts, alex.t)
 
 
       r_seg_score <- 2 * score_fxn(multinomial_vector = r_seg_counts, phis = r_seg_phis, quad_phis = r_seg_quadratic_phis,
@@ -420,7 +424,7 @@ score_partitions_pelt <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSi
 }
 
 # Recover optimal changepoints by from subproblem matrix
-recover_changepoints <- function(sp_score_matrix)
+recoverChangepoints <- function(sp_score_matrix)
 {
   changepoints <- c()
 
