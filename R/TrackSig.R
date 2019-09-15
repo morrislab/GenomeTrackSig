@@ -3,7 +3,7 @@
 # Author: Cait Harrigan
 
 
-detectActiveSignatures <- function(){
+detectActiveSignatures <- function(sample, referenceSignatures){
 
   # return list of active signatures in sample, whether by matching per-cancer-type to provided data,
   # or fitting all counts by EM. If not using this function, must provide active signatures per sample
@@ -24,7 +24,7 @@ detectActiveSignatures <- function(){
 #' @param saveIntermediate boolean whether to save intermediate results (mutation types)
 #'
 #'
-#' activeInSample is list used to subset refrenceSignatures
+#' activeInSample is list used to subset referenceSignatures
 #'
 #' @export
 
@@ -33,7 +33,7 @@ TrackSig <- function(vcfFile,
                      purity = NULL,
                      activeInSample = c("SBS1", "SBS5"),
                      sampleID = NULL,
-                     refrenceSignatures = alex,
+                     referenceSignatures = alex,
                      scoreMethod = "SigFreq",
                      binSize = 100,
                      desiredMinSegLen = NULL,
@@ -67,18 +67,18 @@ TrackSig <- function(vcfFile,
   vcaf <- data[[1]]
   countsPerBin <- data[[2]]
 
-  assertthat::assert_that(all(rownames(countsPerBin) == rownames(refrenceSignatures)), msg = "Mutation type counts failed.")
+  assertthat::assert_that(all(rownames(countsPerBin) == rownames(referenceSignatures)), msg = "Mutation type counts failed.")
 
-  # subset refrenceSignatures with activeInSample
-  refrenceSignatures <- refrenceSignatures[activeInSample]
+  # subset referenceSignatures with activeInSample
+  referenceSignatures <- referenceSignatures[activeInSample]
 
-  if ( any(rowSums(countsPerBin)[rowSums(refrenceSignatures) == 0] != 0) ) {
+  if ( any(rowSums(countsPerBin)[rowSums(referenceSignatures) == 0] != 0) ) {
     print(sprintf("Error in sample %s: Some mutation types have probability 0 under the model, but their count is non-zero. This count vector is impossible under the model.", sampleID))
   }
 
   # compute results
   # TODO: other parameters non-default options
-  trajectory <- getChangepointsPELT(countsPerBin, refrenceSignatures, vcaf, scoreMethod, binSize, desiredMinSegLen)
+  trajectory <- getChangepointsPELT(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, desiredMinSegLen)
   changepoints <- trajectory[[1]]
   mixtures <- trajectory[[2]]
 

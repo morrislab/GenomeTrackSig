@@ -7,7 +7,7 @@ Create all plotting output that compute_signatures_for_all_examples does.}
 \usage{
 TrackSig(vcfFile, cnaFile = NULL, purity = NULL,
   activeInSample = c("SBS1", "SBS5"), sampleID = NULL,
-  refrenceSignatures = alex, scoreMethod = "SigFreq", binSize = 100,
+  referenceSignatures = alex, scoreMethod = "SigFreq", binSize = 100,
   desiredMinSegLen = NULL,
   refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
 }
@@ -23,7 +23,7 @@ TrackSig(vcfFile, cnaFile = NULL, purity = NULL,
 \item{saveIntermediate}{boolean whether to save intermediate results (mutation types)
 
 
-activeInSample is list used to subset refrenceSignatures}
+activeInSample is list used to subset referenceSignatures}
 }
 \description{
 \code{TrackSig} Take an input vcf file and annotation and generate the counts data.
