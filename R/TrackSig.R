@@ -48,6 +48,7 @@ TrackSig <- function(vcfFile,
 
   # TODO: activeSignatures %in% rownames(referenceSignatures) must be TRUE
   # TODO: length(activeInSample) >1 should be true, else no mixture to fit
+  # TODO: binSize has to make sense; positive, not larger than nMut, maybe throw warning if it's some ratio too large for low-resolution.
 
   # take sampleID from file name if not provided
   if (is.null(sampleID)){
@@ -96,7 +97,7 @@ TrackSig <- function(vcfFile,
           )
 
 
-  return (NULL)
+  return (changepoints)
 }
 
 # list unpacker util: used internally in package TrackSig

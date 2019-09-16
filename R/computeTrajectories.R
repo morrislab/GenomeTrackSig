@@ -299,7 +299,7 @@ parseScoreMethod <- function(scoreMethod){
 getActualMinSegLen <- function(desiredMinSegLen, binSize){
   # return the minimum segment length to use.
 
-  # for best segment scoring, use at least 400 mutations per segment.
+  # for high resolution segment scoring, use at least 400 mutations per segment.
   if(is.null(desiredMinSegLen)){
     return (ceiling(400/binSize))
   }
@@ -337,16 +337,10 @@ scorePartitionsPELT <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSize
   list[penalty, score_fxn] <- parseScoreMethod(scoreMethod)
   penalty <- eval(penalty)
 
-  # aggregate bin summary stats
-  phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = sum)$x
-  quadratic_phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = function(x){return(sum(x^2))})$x
-
   # force vaf permutation
-  if(TRUE){
-    phis <- aggregate(vcaf$phi2, by = list(vcaf$binAssignment), FUN = sum)$x
-    quadratic_phis <- aggregate(vcaf$phi2, by = list(vcaf$binAssignment), FUN = function(x){return(sum(x^2))})$x
+  phis <- aggregate(vcaf$phi2, by = list(vcaf$binAssignment), FUN = sum)$x
+  quadratic_phis <- aggregate(vcaf$phi2, by = list(vcaf$binAssignment), FUN = function(x){return(sum(x^2))})$x
 
-  }
 
   # Bayeisan Information Criterion penalization constant defalut parameter
 
@@ -365,7 +359,7 @@ scorePartitionsPELT <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSize
     for (last_cp in valid_cps)
     {
       # Segments with length less than 4 cannot be accurately scored
-      if (sp_len - last_cp < 4)
+      if (sp_len - last_cp < minSegLen)
       {
         sp_scores[sp_len, last_cp + 1] <- -Inf
         next
@@ -373,10 +367,10 @@ scorePartitionsPELT <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSize
 
       sp_slice <- c((last_cp + 1), sp_len)
 
-      r_seg_phis <- phis[sp_slice[1] : sp_slice[2]]
-      r_seg_quadratic_phis <- quadratic_phis[sp_slice[1] : sp_slice[2]]
+      #r_seg_phis <- phis[sp_slice[1] : sp_slice[2]]
+      #r_seg_quadratic_phis <- quadratic_phis[sp_slice[1] : sp_slice[2]]
 
-      r_seg_qis <- vcaf$phi[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
+      #r_seg_qis <- vcaf$phi[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
       r_seg_q_cni <- vcaf$cn[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
 
       # force vaf permutation
@@ -387,17 +381,16 @@ scorePartitionsPELT <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSize
       r_seg_qis <- r_seg_qis / (2 + vcaf$purity[1] * (r_seg_q_cni - 2))
       r_seg_qis <- unlist(lapply(r_seg_qis, 1, FUN = min))
 
-      r_seg_vi <- vcaf$vi[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
-      r_seg_ri <- vcaf$ri[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
+      #r_seg_vi <- vcaf$vi[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
+      #r_seg_ri <- vcaf$ri[vcaf$binAssignment %in% (sp_slice[1] : sp_slice[2])]
 
       r_seg_counts <- rowSums(countsPerBin[, sp_slice[1] : sp_slice[2], drop = FALSE])
-
       r_seg_mix <- fitMixturesEM(r_seg_counts, alex.t)
 
 
-      r_seg_score <- 2 * score_fxn(multinomial_vector = r_seg_counts, phis = r_seg_phis, quad_phis = r_seg_quadratic_phis,
-                                   composing_multinomials = alex.t, mixtures = r_seg_mix, bin_size = bin_size, qis = r_seg_qis,
-                                   vis = r_seg_vi, ris = r_seg_ri)
+      r_seg_score <- 2 * score_fxn(multinomial_vector = r_seg_counts, #phis = r_seg_phis, quad_phis = r_seg_quadratic_phis,
+                                   composing_multinomials = alex.t, mixtures = r_seg_mix, bin_size = bin_size, qis = r_seg_qis)
+                                   #vis = r_seg_vi, ris = r_seg_ri)
 
       l_seg_score <- ifelse(last_cp == 0, penalty, max_sp_scores[last_cp])
 
@@ -409,7 +402,7 @@ scorePartitionsPELT <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSize
     # Evaluate all changepoints for pruning condition
     for (cp in valid_cps)
     {
-      if (sp_len - cp < 4)
+      if (sp_len - cp < minSegLen)
       {
         next
       }
