@@ -10,7 +10,7 @@
 #'
 #' @examples
 #' context <- TrackSig:::generateContext(c("CG", "TA"))
-#' dim(context)
+#' dim(context) == c(96, 3)
 #' head(context)
 #'
 #' @name generateContext
@@ -43,107 +43,76 @@ generateContext <- function(alphabet){
   return (context)
 }
 
-
-list <- structure(NA,class="result")
-"[<-.result" <- function(x,...,value) {
-  args <- as.list(match.call())
-  args <- args[-c(1:2,length(args))]
-  length(value) <- length(args)
-  for(i in seq(along=args)) {
-    a <- args[[i]]
-    if(!missing(a)) eval.parent(substitute(a <- v,list(a=a,v=value[[i]])))
-  }
-  x
-}
-
-
-make_binary_table <- function(multinomial_vector)
+makeBinaryTable <- function(multinomial_vector)
 {
-  N = sum(multinomial_vector)
-  mutation_types <- length(multinomial_vector)
 
-  # Make a matrix of samples for fitting  of multinomials.
-  # Each sample contains the one mutation.
-  # data.matrix is a binary matrix with N columns and mutation_types rows.
-  data.matrix <- matrix(0, ncol=N, nrow=mutation_types)
-  current_index <- 1
-  for (i in 1:length(multinomial_vector))
-  {
-    if (multinomial_vector[i] != 0)
-    {
-      data.matrix[i, current_index:min(current_index+multinomial_vector[i]-1, N) ] <- 1
-    }
-    current_index <- current_index + multinomial_vector[i]
-  }
+  nMut <- sum(multinomial_vector)
+  nMutTypes <- length(multinomial_vector)
 
-  if (current_index != N + 1)
-    stop("Something went wrong during binary matrix construction: current_index is off")
+  # one-hot encoded column vector of mutation type for each mutation
+  oneHotTypes <- diag(1, nMutTypes, nMutTypes)
 
-  return(data.matrix)
+  sel <- rep(1:nMutTypes, times = multinomial_vector)
+  binaryTable <- oneHotTypes[,sel]
+
+  assertthat::assert_that(all(dim(binaryTable) == c(nMutTypes, nMut)),
+                          msg = "Binary matrix construction failed: dimensions don't match input")
+
+  return(binaryTable)
+
 }
 
-# Fit mixture of multinomials for each column of the matrix
-fit_mixture_of_multinomials_matrix <- function (vcf, alex.t, prior=NULL)
-{
-  dd <- matrix(nrow = ncol(alex.t), ncol = 0)
-  for (m in 1:ncol(vcf)) {
-    mixtures <- fit_mixture_of_multinomials_EM(vcf[,m], as.matrix(alex.t))
-    dd <- cbind(dd, as.array(mixtures))
-  }
 
-  rownames(dd) <- colnames(alex.t)
-
-  return(dd)
-}
 
 # fit mixture of multinomials to the vector
-fit_mixture_of_multinomials_EM <- function(multinomial_vector, composing_multinomials, prior=NULL)
+fitMixturesEM <- function(multinomial_vector, composing_multinomials, prior=NULL)
 {
   # Number of mutations to fit
-  N = sum(multinomial_vector)
+  nMut = sum(multinomial_vector)
+
   # Number of mutation types / categories of mutinomial
-  mutation_types <- length(multinomial_vector)
+  nMutTypes <- length(multinomial_vector)
+
   # Number of multinomials/signatures to fit and to make mixture of
-  M <- ncol(composing_multinomials)
+  nSig <- ncol(composing_multinomials)
 
-  if (length(multinomial_vector) != nrow(composing_multinomials))
-  {
-    print(length(multinomial_vector))
-    print(dim(composing_multinomials))
-    stop("Length of data vector is not equal to nrow of matrix to fit. Did you forget to transpose the matrix?")
-  }
-  data.matrix <- make_binary_table(multinomial_vector)
 
-  # data_given_class[i,n] corresponds to class/signature i and sample/mutation n
-  data_given_class <- matrix(0, nrow=M, ncol=N)
-  for (i in 1:M)
-  {
-    data_given_class[i,] <- apply(composing_multinomials[,i]^data.matrix,2,prod)
+  assertthat::assert_that(length(multinomial_vector) == nrow(composing_multinomials),
+                          msg = "Length of data vector is not equal to nrow of matrix to fit. Did you forget to transpose the matrix?")
+
+  mutType <- makeBinaryTable(multinomial_vector)
+
+  applyMutTypeMask <- function(sigMultinom, mutType){
+    return(exp(colSums(log(sigMultinom^mutType))))
   }
+
+  # pDataGivenClass[i,n] corresponds to class/signature i and sample/mutation n
+  pDataGivenClass <- t(apply(composing_multinomials, MARGIN = 2,
+                             mutType = mutType, FUN = applyMutTypeMask))
 
   # Mixtures of multinomials. Use uniform prior unless the prior is specified
-  if (!is.null(prior))
-  {
-    if (length(prior) != M)
-      stop(paste0("Length of prior should be equal to ", M))
-  } else {
-    prior <- rep(1/M, M)
+  pi <- rep(1/nSig, nSig)
+
+  if (!is.null(prior)){
+
+    assertthat::assert_that(length(prior) == nSig,
+                            msg = sprintf("Length of prior should be equal to %s", nSig))
+    pi <- prior
   }
 
-  pi <- prior
   pi_diff <- Inf
   iteration <- 1
 
   while (pi_diff > 0.001 & iteration < 1000)
   {
     # E-step: update posterior.
-    p_x <- apply(data_given_class * pi, 2, sum)
+    p_x <- colSums(pDataGivenClass * pi)
 
     # class_given_data[i,n] corresponds to class/signature i and sample/mutation n
-    class_given_data <- t(t(data_given_class * pi) / p_x)
+    class_given_data <- t(t(pDataGivenClass * pi) / p_x)
 
     # S-step: update mixtures
-    pi_new <- 1/N * apply(class_given_data,1,sum)
+    pi_new <- 1/nMut * rowSums(class_given_data)
 
     if (sum(pi_new > 1) != 0) {
       stop("Mixture ratio is greater than 1")
@@ -163,132 +132,102 @@ fit_mixture_of_multinomials_EM <- function(multinomial_vector, composing_multino
   return(pi)
 }
 
+
+distributeBinCounts <- function(binCounts, leftChunk, rightChunk){
+  # split the counts of a changepoint bin and add them to the chunks that surround it
+
+  # distribute evenly what can be
+  leftChunk <- leftChunk + floor(binCounts / 2)
+  rightChunk <- rightChunk + floor(binCounts / 2)
+
+  # sample masks to assign remaining counts
+  binCounts <- binCounts - (2 * floor(binCounts/2))
+  leftMask <- sample( which(binCounts > 0), (length(which(binCounts > 0)) / 2) )
+  rightMask <- Biostrings::setdiff(which(binCounts >0), leftMask)
+
+  # distribute remaining counts
+  leftChunk[leftMask] <- leftChunk[leftMask] + binCounts[leftMask]
+  rightChunk[rightMask] <- rightChunk[rightMask] + binCounts[rightMask]
+
+  return(list(leftChunk = leftChunk, rightChunk = rightChunk))
+
+}
+
+
 # fit mixture of mutinomials in each time slice specified by change_points
-fit_mixture_of_multinomials_in_time_slices <- function(data, change_points, alex.t, split_data_at_change_point = T)
+fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_change_point = T)
 {
 
-  toVerticalMatrix <- function(L)
-  {
-    if (is.vector(L))
-      return(matrix(L, ncol=1))
-    else
-      return(as.matrix(L))
+  # cast to matrix if possible
+  data <- as.matrix(data)
+
+  # allocate fitted values matrix
+  fitted_values <- matrix(NA, ncol=ncol(data), nrow=ncol(alex.t),
+                          dimnames = list(colnames(alex.t), colnames(data)))
+
+  sumSlice <- function(slice, data){return(rowSums(subset(data, select = slice)))}
+  repChunk <- function(chunkFit, times, nSig){return(matrix(rep(chunkFit, times), nrow = nSig))}
+
+  # if no changepoints, use all data
+  if (length(changepoints) == 0) {
+
+    fitted_for_time_slice <- fitMixturesEM(rowSums(data), alex.t)
+    fitted_values <- matrix(rep(fitted_for_time_slice, ncol(fitted_values)), nrow=nrow(fitted_values),
+                            dimnames = list(colnames(alex.t), colnames(data)))
+    return(fitted_values)
+
   }
 
-  IgnoreVectorOrMatrix <- function(x, FUN)
-  {
-    warning("Called a depricated function.")
-    if (is.vector(x))
-    {
-      return(x)
-    } else if (is.matrix(x) | is.data.frame(x)) {
-      FUN <- match.fun(FUN)
-      return(FUN(x))
-    } else
-    {
-      stop(paste("Unknown type of data:", head(x)))
+  # ensure changepoints are valid
+  assertthat::assert_that((1 %in% changepoints) == FALSE, msg = "Impossible changepoint, cannot segment before first timepoint")
+  assertthat::assert_that((dim(data)[2] %in% changepoints) == FALSE, msg = "Impossible changepoint, cannot segment after last timepoint")
+  changepoints <- sort(changepoints)
+
+
+  # if changepoints, get changepoints as data indices
+  if (split_data_at_change_point){
+
+    slices <- mapply(c(1, changepoints + 1), c(changepoints - 1, dim(data)[2]), FUN = `:`)
+    chunkSums <- lapply(slices, data, FUN = sumSlice)
+
+    # split change point bins over chunks
+    for (cp_i in 1:length(changepoints)){
+      list[chunkSums[[cp_i]], chunkSums[[(cp_i + 1)]]] <- distributeBinCounts(data[,changepoints[cp_i]],
+                                                                              chunkSums[[cp_i]],
+                                                                              chunkSums[[(cp_i + 1)]])
     }
-  }
+
+    # all counts should be present
+    assertthat::assert_that(all(rowSums(data) == rowSums(do.call(cbind,chunkSums))),
+                            msg = "Timepoints lost in chunking")
 
 
-  fitted_values <- matrix(NA, ncol=ncol(data), nrow=ncol(alex.t))
-  rownames(fitted_values) <- colnames(alex.t)
-
-  # Get first time slice until the first check point and get sum of it
-  if (length(change_points) == 0) {
-    end_of_first_slice <- ncol(data)
-    slice_indices <- 1:(end_of_first_slice)
   } else {
-    end_of_first_slice <- change_points[1]
-    slice_indices <- 1:(end_of_first_slice-1)
-  }
+    slices <- mapply(c(1, changepoints + 1), c(changepoints, dim(data)[2]), FUN = `:`)
+    chunkSums <- lapply(slices, data, FUN = sumSlice)
 
-  d <- list()
-
-  d[[1]] <- list()
-  d[[1]]$data <-  toVerticalMatrix(data[,slice_indices])
-  d[[1]]$slice_indices <- slice_indices
-
-  if (split_data_at_change_point)
-  {
-    right_side <- left_side <- floor(data[,end_of_first_slice] / 2)
-    leftovers <- data[,end_of_first_slice] - right_side - left_side
-    leftovers_right <- leftovers
-    leftovers_right[ sort(sample(which(leftovers > 0), length(which(leftovers > 0)) / 2))] <- 0
-    leftovers_left <- leftovers - leftovers_right
-
-    right_side <- right_side + leftovers_right
-    left_side <- left_side + leftovers_left
-
-    stopifnot(sum(data[,end_of_first_slice]) == sum(right_side) + sum(left_side))
-
-    d[[1]]$data <- cbind(d[[1]]$data, left_side)
-    left_side <- c()
-  }
-
-  if (length(change_points) > 1)
-  {
-    for (i in 2:length(change_points))
-    {
-      slice_indices <- (change_points[i-1]):(change_points[i]-1)
-      d[[i]] <- list()
-      d[[i]]$data <- toVerticalMatrix(data[,slice_indices])
-      d[[i]]$slice_indices <- slice_indices
-
-      if (split_data_at_change_point)
-      {
-        d[[i]]$data <- toVerticalMatrix(cbind(right_side, d[[i]]$data[,-1]))
-        right_side <- c()
-
-        right_side <- left_side <- floor(data[,slice_indices[length(slice_indices)]] / 2)
-        leftovers <- data[,slice_indices[length(slice_indices)]] - right_side - left_side
-        leftovers_right <- leftovers
-        leftovers_right[ sort(sample(which(leftovers > 0), length(which(leftovers > 0)) / 2))] <- 0
-        leftovers_left <- leftovers - leftovers_right
-
-        right_side <- right_side + leftovers_right
-        left_side <- left_side + leftovers_left
-
-        stopifnot(sum(data[,slice_indices[length(slice_indices)]]) == sum(right_side) + sum(left_side))
-
-        d[[i]]$data <- cbind(d[[i]]$data, left_side)
-        left_side <- c()
-      }
-    }
-  }
-
-  if (length(change_points) != 0)
-  {
-    slice_indices <- (change_points[length(change_points)]):ncol(data)
-    d[[length(d) + 1]] <- list()
-    d[[length(d)]]$data <- toVerticalMatrix(data[,slice_indices])
-    d[[length(d)]]$slice_indices <- slice_indices
-
-    if (split_data_at_change_point)
-    {
-      d[[length(d)]]$data <- cbind(right_side, toVerticalMatrix(d[[length(d)]]$data)[,-1])
-      right_side <- c()
-    }
+    # all counts should be present
+    assertthat::assert_that(all(rowSums(data) == rowSums(do.call(cbind,chunkSums))),
+                            msg = "Timepoints lost in chunking")
   }
 
 
-  for (i in 1:length(d))
-  {
-    current_d <- d[[i]]
-    current_d.sum <- IgnoreVectorOrMatrix(current_d$data, FUN=function(x) {apply(x,1, sum)})
-    fitted_for_time_slice <- fit_mixture_of_multinomials_EM(current_d.sum, alex.t)
+  chunkFits <- lapply(chunkSums, composing_multinomials = alex.t, FUN = fitMixturesEM)
+  chunkFits <- mapply(chunkFits, times = c(changepoints, dim(data)[2]) - c(0, changepoints),
+                      nSig = dim(alex.t)[2], FUN = repChunk)
 
-    fitted_values[,current_d$slice_indices] <- matrix(rep(fitted_for_time_slice, length(current_d$slice_indices)), nrow=nrow(fitted_values))
-  }
-  colnames(fitted_values) <- colnames(data)
+  fitted_values <- do.call(cbind, chunkFits)
+  dimnames(fitted_values) <- list(colnames(alex.t), colnames(data))
+
   return(fitted_values)
 }
 
 
 
-sig_mixture_ll <- function(multinomial_vector, composing_multinomials, mixtures, ...) {
+
+mixtureLL <- function(multinomial_vector, composing_multinomials, mixtures, ...) {
   # replaces log_likelihood_mixture_multinomials
-  mutation_binary_table <-  make_binary_table(multinomial_vector)
+  mutation_binary_table <-  makeBinaryTable(multinomial_vector)
 
   # mutation_probabilities_under_multinomial[i,n] corresponds to class/signature i and sample/mutation n
   mutation_probabilities_under_multinomial <- matrix(0, nrow=ncol(composing_multinomials), ncol=ncol(mutation_binary_table))
@@ -303,7 +242,7 @@ sig_mixture_ll <- function(multinomial_vector, composing_multinomials, mixtures,
 }
 
 # beta likelihood maximization
-beta_ll <- function(qis, ...){
+betaLL <- function(qis, ...){
 
   #qis are the VAFs for the subproblem
 
@@ -322,27 +261,37 @@ beta_ll <- function(qis, ...){
 
 }
 
-sum_beta_mixture_ll <- function(qis, multinomial_vector,
+sumBetaMixtureLL <- function(qis, multinomial_vector,
                                 composing_multinomials, mixtures, ...){
 
-  return( sum(sig_mixture_ll(multinomial_vector, composing_multinomials, mixtures),
-              beta_ll(qis)) )
+  score <- sum(
+               mixtureLL(multinomial_vector, composing_multinomials, mixtures),
+               betaLL(qis)
+              )
+
+  return(score)
 
 }
 
 parseScoreMethod <- function(scoreMethod){
   # return the penalty and score function to use when computing partitions
 
-  assertthat::assert_that(scoreMethod %in% c("TrackSig", "TrackSigFreq"), msg = "scoreMethod should be one of \"TrackSig\", \"TrackSigFreq\".
-                                                                                 Please see documentation for more information on selecting a scoreMethod)")
-  if(scoreMethod == "TrackSig"){
-    return(list(penalty = expression((n_sigs - 1) * log(n_bins * binSize)),
-                score_fxn = sig_mixture_ll))
+  assertthat::assert_that(scoreMethod %in% c("SigFreq", "Signature", "Frequency"),
+  msg = "scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod)")
+
+  if(scoreMethod == "SigFreq"){
+    return(list(penalty = expression(-log(0.1) + (n_sigs + 1) * log(n_bins * binSize)),
+                score_fxn = sumBetaMixtureLL))
   }
 
-  if(scoreMethod == "TrackSigFreq"){
-    return(list(penalty = expression(-log(0.1) + (n_sigs + 1) * log(n_bins * binSize)),
-                score_fxn = sum_beta_mixture_ll))
+  if(scoreMethod == "Signature"){
+    return(list(penalty = expression((n_sigs - 1) * log(n_bins * binSize)),
+                score_fxn = mixtureLL))
+  }
+
+  if(scoreMethod == "Frequency"){
+    return(list(penalty = expression((n_sigs + 2) * log(n_bins * binSize)),
+                score_fxn = betaLL))
   }
 
 }
@@ -367,21 +316,20 @@ getActualMinSegLen <- function(desiredMinSegLen, binSize){
 
 # Find optimal changepoint and mixtures using PELT method.
 # if desiredMinSegLen is NULL, the value will be selected by default based off binSize to try to give good performance
-find_changepoints_pelt <- function(countsPerBin, alex.t, vcaf, scoreMethod = "TrackSigFreq", binSize = 100, desiredMinSegLen = NULL)
+getChangepointsPELT <- function(countsPerBin, sigDef, vcaf, scoreMethod = "TrackSigFreq", binSize = 100, desiredMinSegLen = NULL)
 {
 
   minSegLen <- getActualMinSegLen(desiredMinSegLen, binSize)
+  score_matrix <- scorePartitionsPELT(countsPerBin, sigDef, vcaf, scoreMethod, binSize, minSegLen)
 
-  score_matrix <- score_partitions_pelt(countsPerBin, alex.t, vcaf, scoreMethod, binSize, minSegLen)
-  changepoints <- recover_changepoints(score_matrix)
-
-  mixtures <- fit_mixture_of_multinomials_in_time_slices(countsPerBin, changepoints, alex.t)
+  changepoints <- recoverChangepoints(score_matrix)
+  mixtures <- fitMixturesInTimeline(countsPerBin, changepoints, sigDef)
 
   return(list(changepoints = changepoints, mixtures = mixtures))
 }
 
 # Calculate penalized BIC score for all partitions using PELT method.
-score_partitions_pelt <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSize, minSegLen)
+scorePartitionsPELT <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSize, minSegLen)
 {
   n_bins <- dim(countsPerBin)[2]
   n_sigs <- dim(alex.t)[2]
@@ -444,7 +392,7 @@ score_partitions_pelt <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSi
 
       r_seg_counts <- rowSums(countsPerBin[, sp_slice[1] : sp_slice[2], drop = FALSE])
 
-      r_seg_mix <- fit_mixture_of_multinomials_EM(r_seg_counts, alex.t)
+      r_seg_mix <- fitMixturesEM(r_seg_counts, alex.t)
 
 
       r_seg_score <- 2 * score_fxn(multinomial_vector = r_seg_counts, phis = r_seg_phis, quad_phis = r_seg_quadratic_phis,
@@ -476,7 +424,7 @@ score_partitions_pelt <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSi
 }
 
 # Recover optimal changepoints by from subproblem matrix
-recover_changepoints <- function(sp_score_matrix)
+recoverChangepoints <- function(sp_score_matrix)
 {
   changepoints <- c()
 

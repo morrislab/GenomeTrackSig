@@ -21,7 +21,7 @@ where the first of each pair is used as the reference to build the context.
 }
 \examples{
 context <- TrackSig:::generateContext(c("CG", "TA"))
-dim(context)
+dim(context) == c(96, 3)
 head(context)
 
 }

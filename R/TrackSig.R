@@ -3,7 +3,7 @@
 # Author: Cait Harrigan
 
 
-detectActiveSignatures <- function(){
+detectActiveSignatures <- function(sample, referenceSignatures){
 
   # return list of active signatures in sample, whether by matching per-cancer-type to provided data,
   # or fitting all counts by EM. If not using this function, must provide active signatures per sample
@@ -20,10 +20,11 @@ detectActiveSignatures <- function(){
 #' @param vcfFile path to variant calling format (vcf) file
 #' @param cnaFile path to copy number abberation (cna) file
 #' @param purityFile path to sample purity file
+#' @param sampleID name to call sample. If none provided, name will be automatically drawn from the provided vcf file name.
 #' @param saveIntermediate boolean whether to save intermediate results (mutation types)
 #'
 #'
-#' activeInSample is list used to subset refrenceSignatures
+#' activeInSample is list used to subset referenceSignatures
 #'
 #' @export
 
@@ -32,19 +33,33 @@ TrackSig <- function(vcfFile,
                      purity = NULL,
                      activeInSample = c("SBS1", "SBS5"),
                      sampleID = NULL,
-                     refrenceSignatures = alex,
-                     scoreMethod = "TrackSigFreq",
+                     referenceSignatures = alex,
+                     scoreMethod = "SigFreq",
                      binSize = 100,
                      desiredMinSegLen = NULL,
                      refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19) {
 
   # input checking
+
+  assertthat::assert_that(grepl(".vcf$", vcfFile) | grepl(".txt$", vcfFile), msg = "Unsupported VCF file extension. Expected file type .vcf or .txt")
+
+  assertthat::assert_that(scoreMethod %in% c("SigFreq", "Signature", "Frequency"),
+  msg = "scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod)")
+
   # TODO: activeSignatures %in% rownames(referenceSignatures) must be TRUE
   # TODO: length(activeInSample) >1 should be true, else no mixture to fit
 
-  # TODO: implement optional arg sampleID -> allow sampleID from file name override
+  # take sampleID from file name if not provided
   if (is.null(sampleID)){
-    sampleID <- strsplit( unlist(strsplit(vcfFile, "/"))[ length( strsplit(vcfFile, "/")[[1]] ) ] , ".vcf")[[1]]
+
+    if (grepl(".txt$", vcfFile)){
+      sampleID <- strsplit( unlist(strsplit(vcfFile, "/"))[ length( strsplit(vcfFile, "/")[[1]] ) ] , ".txt")[[1]]
+    }
+
+    if (grepl(".vcf$", vcfFile)){
+      sampleID <- strsplit( unlist(strsplit(vcfFile, "/"))[ length( strsplit(vcfFile, "/")[[1]] ) ] , ".vcf")[[1]]
+    }else{stop("Failed setting sampleID. Please check input vcf file.")}
+
   }
 
   # TODO: other parameters non-default options
@@ -52,18 +67,18 @@ TrackSig <- function(vcfFile,
   vcaf <- data[[1]]
   countsPerBin <- data[[2]]
 
-  assertthat::assert_that(all(rownames(countsPerBin) == rownames(refrenceSignatures)), msg = "Mutation type counts failed.")
+  assertthat::assert_that(all(rownames(countsPerBin) == rownames(referenceSignatures)), msg = "Mutation type counts failed.")
 
-  # subset refrenceSignatures with activeInSample
-  refrenceSignatures <- refrenceSignatures[activeInSample]
+  # subset referenceSignatures with activeInSample
+  referenceSignatures <- referenceSignatures[activeInSample]
 
-  if ( any(rowSums(countsPerBin)[rowSums(refrenceSignatures) == 0] != 0) ) {
+  if ( any(rowSums(countsPerBin)[rowSums(referenceSignatures) == 0] != 0) ) {
     print(sprintf("Error in sample %s: Some mutation types have probability 0 under the model, but their count is non-zero. This count vector is impossible under the model.", sampleID))
   }
 
   # compute results
   # TODO: other parameters non-default options
-  trajectory <- find_changepoints_pelt(countsPerBin, refrenceSignatures, vcaf, scoreMethod, binSize, desiredMinSegLen)
+  trajectory <- getChangepointsPELT(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, desiredMinSegLen)
   changepoints <- trajectory[[1]]
   mixtures <- trajectory[[2]]
 
@@ -83,6 +98,22 @@ TrackSig <- function(vcfFile,
 
   return (NULL)
 }
+
+# list unpacker util: used internally in package TrackSig
+# source: https://stat.ethz.ch/pipermail/r-help/2004-June/053343.html
+
+list <- structure(NA,class="result")
+"[<-.result" <- function(x,...,value) {
+  args <- as.list(match.call())
+  args <- args[-c(1:2,length(args))]
+  length(value) <- length(args)
+  for(i in seq(along=args)) {
+    a <- args[[i]]
+    if(!missing(a)) eval.parent(substitute(a <- v,list(a=a,v=value[[i]])))
+  }
+  x
+}
+
 
 
 # [END]

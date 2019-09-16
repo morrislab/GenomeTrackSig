@@ -7,8 +7,8 @@ Create all plotting output that compute_signatures_for_all_examples does.}
 \usage{
 TrackSig(vcfFile, cnaFile = NULL, purity = NULL,
   activeInSample = c("SBS1", "SBS5"), sampleID = NULL,
-  refrenceSignatures = alex, scoreMethod = "TrackSigFreq",
-  binSize = 100, desiredMinSegLen = NULL,
+  referenceSignatures = alex, scoreMethod = "SigFreq", binSize = 100,
+  desiredMinSegLen = NULL,
   refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
 }
 \arguments{
@@ -16,12 +16,14 @@ TrackSig(vcfFile, cnaFile = NULL, purity = NULL,
 
 \item{cnaFile}{path to copy number abberation (cna) file}
 
+\item{sampleID}{name to call sample. If none provided, name will be automatically drawn from the provided vcf file name.}
+
 \item{purityFile}{path to sample purity file}
 
 \item{saveIntermediate}{boolean whether to save intermediate results (mutation types)
 
 
-activeInSample is list used to subset refrenceSignatures}
+activeInSample is list used to subset referenceSignatures}
 }
 \description{
 \code{TrackSig} Take an input vcf file and annotation and generate the counts data.
