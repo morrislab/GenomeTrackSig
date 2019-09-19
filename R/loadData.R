@@ -39,7 +39,12 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
   vcaf <- getVcaf(vcf, purity, cnaRanges, refGenome)
   vcaf <- getTrinuc(vcaf, refGenome)
 
-  return( getBinCounts(vcaf, binSize, context) )
+  list[vcaf, countsPerBin] <- getBinCounts(vcaf, binSize, context)
+
+  # clean up unecessary vcaf features
+  vcaf <- vcaf[,c("phi", "qi", "bin")]
+
+  return( list(vcaf = vcaf, countsPerBin = countsPerBin) )
 
 
 }
@@ -217,15 +222,21 @@ getVcaf <- function(vcf, purity, cna, refGenome){
   vcaf <- vcafConstruction(vcf, refGenome)
 
   # populate vcaf with phi calculations
-  vcaf$purity <- purity
-  vcaf$phat1 <- rbeta(dim(vcaf)[1], vcaf$vi + 1, vcaf$ri + 1)
-  vcaf$phat2 <- rbeta(dim(vcaf)[1], vcaf$vi + 1, vcaf$ri + 1)
-  vcaf$phi <- (2 + vcaf$purity * (vcaf$cn - 2)) * vcaf$phat1   #phi = ccf * purity
-  vcaf$phi2 <- (2 + vcaf$purity * (vcaf$cn - 2)) * vcaf$phat2
+  #vcaf$purity <- purity
+  phat <- rbeta(dim(vcaf)[1], vcaf$vi + 1, vcaf$ri + 1)
+  #vcaf$phat2 <- rbeta(dim(vcaf)[1], vcaf$vi + 1, vcaf$ri + 1)
+  vcaf$phi <- (2 + purity * (vcaf$cn - 2)) * phat   #phi = ccf * purity
+  #vcaf$phi2 <- (2 + vcaf$purity * (vcaf$cn - 2)) * vcaf$phat2
 
-  # TODO: depricate phi
+  # re-sample phat to make qi's, and cut at qi = 1
+  # TODO: will the chop cause problems in the distribution when there is high CNA?
+  vcaf$qi <- rbeta(dim(vcaf)[1], vcaf$vi + 1, vcaf$ri + 1)
+  vcaf$qi <- unlist(lapply(vcaf$qi, 1, FUN = min))
+
   # sort on phi
   vcaf <- vcaf[order(vcaf$phi, decreasing = T), ]
+
+
 
   return(vcaf)
 }
@@ -245,7 +256,7 @@ vcafConstruction <- function(vcf, refGenome){
   # some VCF formatting checks, filter for SNP's
   # no read quality filtering performed.
 
-  print("Sampling VAF...")
+  print("Parsing VCF...")
 
   # input checking
   assertthat::assert_that(class(refGenome) == "BSgenome")
@@ -404,19 +415,21 @@ getBinCounts <- function(vcaf, binSize, context){
 
   # only filling as many complete bins as we can
   # up to the last (binSize - 1) mutations of smallest phi may be excluded.
-  vcaf$binAssignment <- c(rep(1:nBins, each = binSize), rep(NA, nMut - nBins * binSize))
+  vcaf$bin <- c(rep(1:nBins, each = binSize), rep(NA, nMut - nBins * binSize))
 
   # aggregate on bins
   binCounts <- data.frame(row.names = 1:nBins)
 
   # counts for each bin
-  binCounts <- cbind (binCounts, aggregate(paste(vcaf$ref, vcaf$alt, vcaf$mutType, sep = "_"), by = list(vcaf$binAssignment), FUN = function(x){return(as.array(table(x)))})$x )
+  binCounts <- cbind (binCounts, aggregate(paste(vcaf$ref, vcaf$alt, vcaf$mutType, sep = "_"), by = list(vcaf$bin), FUN = function(x){return(as.array(table(x)))})$x )
 
   # check that all mutation types have a count
   missingTypes <- setdiff(paste(context$V1, context$V2, context$V3, sep = "_"), names(binCounts))
   for (col in missingTypes){
     binCounts[col] <- 0
   }
+
+
 
   return ( list(vcaf = vcaf, countsPerBin = t(binCounts)) )
 

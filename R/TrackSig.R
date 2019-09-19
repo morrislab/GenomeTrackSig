@@ -31,7 +31,7 @@ detectActiveSignatures <- function(sample, referenceSignatures){
 TrackSig <- function(vcfFile,
                      cnaFile = NULL,
                      purity = NULL,
-                     activeInSample = c("SBS1", "SBS5"),
+                     activeInSample = c("SBS1", "SBS5", "SBS9"), #TODO: default NULL
                      sampleID = NULL,
                      referenceSignatures = alex,
                      scoreMethod = "SigFreq",
@@ -64,9 +64,7 @@ TrackSig <- function(vcfFile,
   }
 
   # TODO: other parameters non-default options
-  data <- vcfToCounts(vcfFile, cnaFile, purity)
-  vcaf <- data[[1]]
-  countsPerBin <- data[[2]]
+  list[vcaf, countsPerBin] <- vcfToCounts(vcfFile, cnaFile, purity)
 
   assertthat::assert_that(all(rownames(countsPerBin) == rownames(referenceSignatures)), msg = "Mutation type counts failed.")
 
@@ -87,7 +85,7 @@ TrackSig <- function(vcfFile,
   # side effect: plot
   tryCatch({
             plot_name <- paste0(sampleID, " Signature Trajectory")
-            binned_phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = sum)$x / binSize
+            binned_phis <- aggregate(vcaf$phi, by = list(vcaf$bin), FUN = sum)$x / binSize
             mark_cp <- !is.null(changepoints)
             print(plot_signatures_real_scale(mixtures * 100, plot_name=plot_name, phis = binned_phis, mark_change_points=mark_cp,
                                        change_points=changepoints, transition_points = NULL, save = F)[[1]])
