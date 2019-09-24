@@ -58,8 +58,12 @@ plotTrajectory <- function(mixtures, phis = NULL, changepoints=NULL, linearX = T
           + geom_vline(xintercept = phis, alpha = 0.3)
           + ggplot2::aes(x = Bin, y = meanPhi, group = Signatures, color = Signatures)
           + scale_x_reverse(breaks = phis, labels = ticLab)
-
          )
+
+    # slice changepoints (reverse axis means max to min)
+    cpPos <- cbind(phis[changepoints], phis[changepoints + 1])
+
+
 
   }else{ # ggplot formatting specific for linear scale
 
@@ -72,6 +76,9 @@ plotTrajectory <- function(mixtures, phis = NULL, changepoints=NULL, linearX = T
           + ggplot2::aes(x = Bin, y = meanPhi, group = Signatures, color = Signatures)
           + scale_x_reverse(breaks = length(phis):1, labels = ticLab)
     )
+
+    # slice changepoints (reverse axis means max to min)
+    cpPos <- cbind((length(phis):1)[changepoints], (length(phis):1)[changepoints + 1])
 
   }
 
@@ -92,14 +99,15 @@ plotTrajectory <- function(mixtures, phis = NULL, changepoints=NULL, linearX = T
            #+ list(...)
   )
 
-  g
 
-  #if (length(changepoints) > 0) {
-  #  for (i in 1:length(changepoints)) {
-  #    g <- g +  ggplot2::annotate("rect", xmax=changepoints[i]-1,
-  #        xmin=changepoints[i], ymin=-Inf, ymax=Inf, alpha=0.3)
-  #  }
-  #}
+  if (!is.null(changepoints)) {
+
+    for (i in 1:dim(cpPos)[1]) {
+      g <- g + ggplot2::annotate("rect", xmax=cpPos[i,1], xmin=cpPos[i,2],
+                                 ymin=-Inf, ymax=Inf, alpha=0.3, fill = "black")
+
+    }
+  }
 
   return(g)
 }
