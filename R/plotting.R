@@ -15,43 +15,36 @@ truncate_to_range <- function(mixtures, range_) {
   return(list(x2,to_leave))
 }
 
+# TODO: phiHist plot - can be added on top of trajectory plot or examined alone
+# TODO: phiHist plot should be able to stack or excluse >1 ccf if x range is truncated.
 
 plot_signatures <- function (mixtures, phis = NULL,
                              changepoints=NULL,
                              ytitle = "Signature exposure (%)",
                              xtitle = "Avg number of mutant alleles per cancer cell",
+                             sig_colors = NULL, ...) {
 
-                             sig_colors = NULL) {
+  # mixtures and phis are binned the same way
+  assertthat::assert_that(length(phis) == dim(mixtures)[2])
 
-  # order phis if not passed in order
-  phis <- phis[order(phis)]
-
-  # Weight matrix is edited with appropriate row and column names
-  signatures <- rownames(mixtures)
-  df <- data.frame(signatures,mixtures)
-  col_names <- c("Signatures", phis)
-
-
-  colnames(df) <- col_names
+  # phis should be decreasing
+  assertthat::assert_that(all(order(phis) == 1:length(phis)))
 
   # Plotting the change of mutational signature weights during evolution specified as the order of phi
-  # The signature with the maximum change is printed in the plot with the annotate function on ggplot (can be removed if unnecessary)
-
-  df.m <- reshape2::melt(df, id.vars = "Signatures")
-  maxx <- apply(mixtures, 2, which.max)
-  maxy <- apply(mixtures ,2,max)
+  colnames(mixtures) <- phis
+  trajectory <- reshape2::melt(df, id.vars = "Signatures")
 
 
-  alpha <- 1
+  # TODO: have truncate x range as option
+  # TODO: adjust text element size, and alpha for repear lines
 
-
-  g <- ggplot2::ggplot(data = df.m, ggplot2::aes(x = variable, y = value , group = Signatures, color = Signatures)) +
-    ggplot2::geom_line(alpha=alpha, size=size) +
-    ggplot2::geom_point(alpha=alpha, size=size) +
-    ggplot2::theme_bw() + ggplot2::theme(text = ggplot2::element_text(size = 20))
-    ggplot2::theme(axis.title = ggplot2::element_text(size = 20)) +
-    ggplot2::theme(axis.text = ggplot2::element_text(size = 15))
-    #scale_color_manual(values=COLORS2[-c(4,9)])
+  g <- ( ggplot2::ggplot(data = trajectory)
+         + geom_line()
+         + geom_point()
+         + theme_bw()
+         + aes_(x = ~variable, y = ~value, group = ~Signatures, color = ~Signatures)
+         + list(...)
+       )
 
   if (!is.null(sig_colors)) {
     g <- g + scale_colour_manual(values=sig_colors)
