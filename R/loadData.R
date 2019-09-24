@@ -33,16 +33,13 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
   vcf <- parseVcfFile(vcfFile)
 
   # get cna reconstruction
-  cnaRanges <- parseCnaFile(cnaFile)
+  cna <- parseCnaFile(cnaFile)
 
   # vcaf has vcf and vaf data concatenated
-  vcaf <- getVcaf(vcf, purity, cnaRanges, refGenome)
+  vcaf <- getVcaf(vcf, purity, cna, refGenome)
   vcaf <- getTrinuc(vcaf, refGenome)
 
   list[vcaf, countsPerBin] <- getBinCounts(vcaf, binSize, context)
-
-  # clean up unecessary vcaf features
-  vcaf <- vcaf[,c("phi", "qi", "bin")]
 
   return( list(vcaf = vcaf, countsPerBin = countsPerBin) )
 
@@ -221,12 +218,9 @@ getVcaf <- function(vcf, purity, cna, refGenome){
   # prelim formatting check
   vcaf <- vcafConstruction(vcf, refGenome)
 
-  # populate vcaf with phi calculations
-  #vcaf$purity <- purity
+  # calculate phi
   phat <- rbeta(dim(vcaf)[1], vcaf$vi + 1, vcaf$ri + 1)
-  #vcaf$phat2 <- rbeta(dim(vcaf)[1], vcaf$vi + 1, vcaf$ri + 1)
   vcaf$phi <- (2 + purity * (vcaf$cn - 2)) * phat   #phi = ccf * purity
-  #vcaf$phi2 <- (2 + vcaf$purity * (vcaf$cn - 2)) * vcaf$phat2
 
   # re-sample phat to make qi's, and cut at qi = 1
   # TODO: will the chop cause problems in the distribution when there is high CNA?
@@ -236,7 +230,8 @@ getVcaf <- function(vcf, purity, cna, refGenome){
   # sort on phi
   vcaf <- vcaf[order(vcaf$phi, decreasing = T), ]
 
-
+  # clean up unecessary vcaf features
+  vcaf <- vcaf[,c("phi", "qi", "bin")]
 
   return(vcaf)
 }
@@ -356,11 +351,12 @@ getTrinuc <- function(vcaf, refGenome){
 
   # context matches ref?
   # perl script ignored this and grabbed trinuc context regardless.
-  # Here will drop these rows and throw warning
+  # Here will do the same, but throw warning
   mismatchedRef <- which(!(vcaf$ref == substr(vcaf$mutType, 2, 2)))
 
   if (length(mismatchedRef) > 0){
 
+    # drop rows with mismatch
     #warning( sprintf("%s mutations dropped for vcf refrence allele not matching the selected reference genome" , length(mismatchedRef) ) )
     #vcaf <- vcaf[-mismatchedRef,]
     #context <- context[-mismatchedRef]
@@ -428,8 +424,6 @@ getBinCounts <- function(vcaf, binSize, context){
   for (col in missingTypes){
     binCounts[col] <- 0
   }
-
-
 
   return ( list(vcaf = vcaf, countsPerBin = t(binCounts)) )
 
