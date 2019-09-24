@@ -411,6 +411,7 @@ getBinCounts <- function(vcaf, binSize, context){
 
   # only filling as many complete bins as we can
   # up to the last (binSize - 1) mutations of smallest phi may be excluded.
+  # TODO: depricate this bin restriction
   vcaf$bin <- c(rep(1:nBins, each = binSize), rep(NA, nMut - nBins * binSize))
 
   # aggregate on bins

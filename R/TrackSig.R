@@ -77,9 +77,7 @@ TrackSig <- function(vcfFile,
 
   # compute results
   # TODO: other parameters non-default options
-  trajectory <- getChangepointsPELT(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, desiredMinSegLen)
-  changepoints <- trajectory[[1]]
-  mixtures <- trajectory[[2]]
+  list[changepoints, mixtures] <- getChangepointsPELT(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, desiredMinSegLen)
 
 
   # side effect: plot
