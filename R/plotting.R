@@ -16,33 +16,21 @@ truncate_to_range <- function(mixtures, range_) {
 }
 
 
-plot_signatures <- function (dd, plot_name, phis = NULL, fitted_data = NULL, mark_max_signature=F, mark_change_points=F,
-                             change_points=NULL, error_bars = NULL, save=T,
-                             assigns_phylo_nodes = NULL, scale = 1, ytitle = "Signature exposure (%)",
+plot_signatures <- function (mixtures, phis = NULL,
+                             changepoints=NULL,
+                             ytitle = "Signature exposure (%)",
                              xtitle = "Avg number of mutant alleles per cancer cell",
-                             transition_points = NULL,
-                             remove_sigs_below = 0,
+
                              sig_colors = NULL) {
-  if (!is.null(error_bars) & sum(dim(dd) == dim(error_bars)) != 2) {
-    stop("Dimentions of error bar matrix should be the same as dimentions of mixture matrix")
-  }
 
-  sigs_to_remove <- apply(dd, 1, mean) < remove_sigs_below
-  dd <- dd[!sigs_to_remove, ]
-
-  # order phis if not
+  # order phis if not passed in order
   phis <- phis[order(phis)]
 
   # Weight matrix is edited with appropriate row and column names
-  signatures <- rownames(dd)
-  df <- data.frame(signatures,dd)
-  col_names <- c("Signatures")
-  n_timepoints = ncol(dd)
+  signatures <- rownames(mixtures)
+  df <- data.frame(signatures,mixtures)
+  col_names <- c("Signatures", phis)
 
-  decrement <- as.integer(150/ncol(dd))
-  for (n in 1:ncol(dd)) {
-    col_names <- append(col_names, 150 - decrement*(n-1))
-  }
 
   colnames(df) <- col_names
 
@@ -50,42 +38,17 @@ plot_signatures <- function (dd, plot_name, phis = NULL, fitted_data = NULL, mar
   # The signature with the maximum change is printed in the plot with the annotate function on ggplot (can be removed if unnecessary)
 
   df.m <- reshape2::melt(df, id.vars = "Signatures")
-  maxx <- apply(dd, 2, which.max)
-  maxy <- apply(dd ,2,max)
+  maxx <- apply(mixtures, 2, which.max)
+  maxy <- apply(mixtures ,2,max)
 
-  if (!is.null(assigns_phylo_nodes))
-  {
-    names(assigns_phylo_nodes) <- col_names[-1]
-
-    tree_clusters = factor(assigns_phylo_nodes[sapply(df.m$variable, toString)])
-
-    if ("Branch" %in% levels(tree_clusters) &
-      "Trunk" %in% levels(tree_clusters))
-    {
-      tree_clusters <- factor(tree_clusters,
-                  levels=c("Trunk", "Branch"), order=T)
-    }
-
-    df.m$tree_clusters <- tree_clusters
-  }
 
   alpha <- 1
-  # if(!is.null(fitted_data))
-  # {
-  #   alpha <- 0.3
-  # }
 
-  size = 1
-  if (!is.null(fitted_data)) {
-    if (is.vector(fitted_data)) {
-      size = 1.3
-    }
-  }
 
   g <- ggplot2::ggplot(data = df.m, ggplot2::aes(x = variable, y = value , group = Signatures, color = Signatures)) +
-    ggplot2::geom_line(alpha=alpha, size=size) + ggplot2::xlab(xtitle) + ggplot2::ylab(ytitle) +
+    ggplot2::geom_line(alpha=alpha, size=size) +
     ggplot2::geom_point(alpha=alpha, size=size) +
-    ggplot2::theme_bw() + ggplot2::theme(text = ggplot2::element_text(size = 20)) +
+    ggplot2::theme_bw() + ggplot2::theme(text = ggplot2::element_text(size = 20))
     ggplot2::theme(axis.title = ggplot2::element_text(size = 20)) +
     ggplot2::theme(axis.text = ggplot2::element_text(size = 15))
     #scale_color_manual(values=COLORS2[-c(4,9)])
@@ -113,84 +76,15 @@ plot_signatures <- function (dd, plot_name, phis = NULL, fitted_data = NULL, mar
     g <- g + ggplot2::scale_x_discrete(breaks = breaks, labels=labels)
   }
 
-  if (mark_max_signature)
-  {
-    g <- g + ggplot2::annotate("text", x=col_names[-1], y=maxy*1.05, label=rownames(dd)[maxx])
-  }
 
-  if (!is.null(fitted_data))
-  {
-    if (!is.vector(fitted_data))
-    {
-        fitted_d <- fitted_data[[i]][!sigs_to_remove,]
-
-        fitted_data.m <- data.frame(Signatures = rownames(fitted_d),fitted_d)
-        colnames(fitted_data.m) <- colnames(df)
-        fitted_data.m <- reshape2::melt(fitted_data.m, id.vars = "Signatures")
-        g <- g + ggplot2::geom_line(data=fitted_data.m, size=0.5, ggplot2::aes(x=variable, y=value, group = Signatures, color = Signatures),  alpha=alpha)
-    } else {
-      for (i in 1:length(fitted_data))
-      {
-        alpha = 0.3
-
-        fitted_d <- fitted_data[[i]][!sigs_to_remove,]
-
-        fitted_data.m <- data.frame(Signatures = rownames(fitted_d),fitted_d)
-        colnames(fitted_data.m) <- colnames(df)
-        fitted_data.m <- reshape2::melt(fitted_data.m, id.vars = "Signatures")
-        g <- g + ggplot2::geom_line(data=fitted_data.m, size=0.5, ggplot2::aes(x=variable, y=value, group = Signatures, color = Signatures),  alpha=alpha)
-      }
+  if (length(changepoints) > 0) {
+    for (i in 1:length(changepoints)) {
+      g <- g +  ggplot2::annotate("rect", xmax=changepoints[i]-1,
+          xmin=changepoints[i], ymin=-Inf, ymax=Inf, alpha=0.3)
     }
   }
 
-  if (mark_change_points)
-  {
-    if (is.null(change_points))
-      stop("Please provide change points to mark in the plot")
 
-    #g <- g + geom_vline(xintercept = change_points, size = 1, show.legend = T)
-
-    if (length(change_points) > 0) {
-      for (i in 1:length(change_points)) {
-        g <- g +  ggplot2::annotate("rect", xmax=change_points[i]-1,
-            xmin=change_points[i], ymin=-Inf, ymax=Inf, alpha=0.3)
-      }
-    }
-
-  }
-
-  if (!is.null(error_bars)) {
-    error.min <- dd - error_bars
-    error.max <- dd + error_bars
-
-    error.min.m <- data.frame(signatures,error.min)
-    colnames(error.min.m) <- colnames(df)
-    error.min.m <- reshape2::melt(cbind(Signatures=df[,1],error.min.m), id.vars = "Signatures")
-
-    error.max.m <- data.frame(signatures,error.max)
-    colnames(error.max.m) <- colnames(df)
-    error.max.m <- reshape2::melt(cbind(Signatures=df[,1],error.max.m), id.vars = "Signatures")
-
-    g <- g + geom_errorbar(ggplot2::aes(ymin=error.min.m$value, ymax=error.max.m$value), width=.2)
-  }
-
-  if (!is.null(assigns_phylo_nodes))
-  {
-    g <- g + facet_grid(. ~ tree_clusters, scales = "free_x", space="free_x")
-  }
-
-  if (!is.null(transition_points)) {
-    g <- g + geom_vline(xintercept = transition_points, colour="red", size=1.5)
-  }
-
-  # add the below annotate function to print the signature with the maximum change
-  # ggplot2::annotate("text", x=which.max(dd[maxx,]), y=max(dd[maxx,])+0.01, label=paste("S",maxx,sep=""))
-  # theme(legend.position = "none")
-
-  if (save) {
-    # was: width = 12*scale
-    suppressWarnings(ggplot2::ggsave(filename = plot_name, width = 12*scale, height=5))
-  }
 
   return(list(plot = g, data = df))
 }
