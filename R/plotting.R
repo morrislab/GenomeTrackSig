@@ -1,19 +1,6 @@
 # AUTHORS: Yulia Rubanova and Nil Sahin
 # Modified for package trackSig by Cait Harrigan
 
-truncate_to_range <- function(mixtures, range_) {
-  warning("Called a depricated function.")
-  min = range_[1]
-  max = range_[2]
-
-  x <- mixtures
-  col_names <- as.numeric(colnames(x))
-  to_leave <- which(col_names <= max+0.01 & col_names >= min-0.01)
-
-  x2 <- x[,to_leave, drop=F]
-  colnames(x2) <- col_names[to_leave]
-  return(list(x2,to_leave))
-}
 
 # TODO: phiHist plot - can be added on top of trajectory plot or examined alone
 # TODO: phiHist plot should be able to stack or excluse >1 ccf if x range is truncated.
