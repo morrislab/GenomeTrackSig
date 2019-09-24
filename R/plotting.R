@@ -4,7 +4,22 @@
 
 # TODO: phiHist plot - can be added on top of trajectory plot or examined alone
 # TODO: phiHist plot should be able to stack or excluse >1 ccf if x range is truncated.
+phiHist <- function(){
+  NULL
+}
 
+#' \code{plotTrajectory}
+#'
+#'
+#' @param mixtures mixtures of mixtures output by TrackSig
+#' @param phis list of mean phis corresponding to bins in mixtures matrix
+#' @param changepoints list of changepoints to mark on the trajectory plot
+#' @param linearX logical whether to plot with a linearly spaced x-axis grid, or with ccf values
+#' @param anmac logical whether to plot x-axis restricted to ccf space, or use estimated average number of mutant alleles per cell (anmac)
+#' @return ggplot object
+#'
+#' @name plotTrajectory
+#' @export
 plotTrajectory <- function(mixtures, phis = NULL, changepoints=NULL, linearX = T, anmac = T, ...){
 
   # mixtures and phis are binned the same way

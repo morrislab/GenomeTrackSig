@@ -29,9 +29,9 @@ detectActiveSignatures <- function(sample, referenceSignatures){
 #' @export
 
 TrackSig <- function(vcfFile,
+                     activeInSample,
                      cnaFile = NULL,
                      purity = NULL,
-                     activeInSample = c("SBS1", "SBS5", "SBS9"), #TODO: default NULL
                      sampleID = NULL,
                      referenceSignatures = alex,
                      scoreMethod = "SigFreq",
@@ -81,11 +81,13 @@ TrackSig <- function(vcfFile,
 
   # side effect: plot
   tryCatch({
-            plot_name <- paste0(sampleID, " Signature Trajectory")
+
             binned_phis <- aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
-            mark_cp <- !is.null(changepoints)
-            print(plot_signatures_real_scale(mixtures * 100, plot_name=plot_name, phis = binned_phis, mark_change_points=mark_cp,
-                                       change_points=changepoints, transition_points = NULL, save = F)[[1]])
+
+            print( plotTrajectory(mixtures * 100, phis = binned_phis, changepoints, linearX = T, anmac = T)
+                  + ggtitle(paste0(sampleID, " Signature Trajectory"))
+                 )
+
            },
            warning = function(w){w},
            error = function(e){print("Error: failed to plot signature trajectory")}

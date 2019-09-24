@@ -41,6 +41,9 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
 
   list[vcaf, countsPerBin] <- getBinCounts(vcaf, binSize, context)
 
+  # clean up unecessary vcaf features
+  vcaf <- vcaf[,c("phi", "qi", "bin")]
+
   return( list(vcaf = vcaf, countsPerBin = countsPerBin) )
 
 
@@ -229,9 +232,6 @@ getVcaf <- function(vcf, purity, cna, refGenome){
 
   # sort on phi
   vcaf <- vcaf[order(vcaf$phi, decreasing = T), ]
-
-  # clean up unecessary vcaf features
-  vcaf <- vcaf[,c("phi", "qi", "bin")]
 
   return(vcaf)
 }
