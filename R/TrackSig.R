@@ -64,7 +64,7 @@ TrackSig <- function(vcfFile,
   }
 
   # TODO: other parameters non-default options
-  list[vcaf, countsPerBin] <- vcfToCounts(vcfFile, cnaFile, purity)
+  list[vcaf, countsPerBin] <- vcfToCounts(vcfFile, cnaFile, purity, binSize, context = generateContext(c("CG", "TA")), refGenome)
 
   assertthat::assert_that(all(rownames(countsPerBin) == rownames(referenceSignatures)), msg = "Mutation type counts failed.")
 
@@ -76,7 +76,6 @@ TrackSig <- function(vcfFile,
   }
 
   # compute results
-  # TODO: other parameters non-default options
   list[changepoints, mixtures] <- getChangepointsPELT(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, desiredMinSegLen)
 
 
