@@ -5,7 +5,7 @@
 # TODO: phiHist plot - can be added on top of trajectory plot or examined alone
 # TODO: phiHist plot should be able to stack or excluse >1 ccf if x range is truncated.
 
-plotTrajectory <- function(mixtures, phis = NULL, changepoints=NULL, linearScale = T, ...){
+plotTrajectory <- function(mixtures, phis = NULL, changepoints=NULL, linearX = T, anmac = T, ...){
 
   # mixtures and phis are binned the same way
   assertthat::assert_that(length(phis) == dim(mixtures)[2])
@@ -13,14 +13,33 @@ plotTrajectory <- function(mixtures, phis = NULL, changepoints=NULL, linearScale
   # phis should be decreasing
   assertthat::assert_that(all(order(phis, decreasing = T) == 1:length(phis)))
 
+  if(!anmac){ # take x-axis as ccf scale
+
+    # ccf is min(1, anmac)
+    # truncate x-axis at phi = 1
+    truncateSel <- which(phis <= 1)
+    phis <- phis[truncateSel]
+    mixtures <- mixtures[,truncateSel]
+
+    # change x-axis lable
+    xAx <- "Cancer cell fraction"
+
+    # adjust changepoint indexing
+    if (!is.null(changepoints)){
+      changepoints <- which(truncateSel %in% changepoints)
+    }
+
+  }else{ xAx <- "Average number of mutant alleles per cell" }
+
   # Plotting the change of mutational signature weights during evolution specified as the order of phi
+  colnames(mixtures) <- dim(mixtures)[2]:1
   trajectory <- reshape2::melt(mixtures)
   colnames(trajectory) <- c("Signatures", "Bin", "meanPhi")
   trajectory$Bin <- as.numeric(trajectory$Bin)
   trajectory$meanPhi <- as.numeric(trajectory$meanPhi)
 
-  # ggplot formatting speficif for real scale
-  if(!linearScale){
+  if(!linearX){ # ggplot formatting specific for real scale
+
     # "real" scale shows ccf densities
 
     # place labels in a way that depends on bin density
@@ -31,21 +50,22 @@ plotTrajectory <- function(mixtures, phis = NULL, changepoints=NULL, linearScale
     ticLab <- rep("", length(phis))
     ticLab[ticSel] <- round(phis, 2)[ticSel]
 
+    # increasing phi by bin
     trajectory$Bin <- phis[trajectory$Bin]
+    trajectory$Bin <- trajectory$Bin[length(trajectory$Bin) : 1]
 
     g <- (  ggplot2::ggplot(data = trajectory)
           + geom_vline(xintercept = phis, alpha = 0.3)
           + ggplot2::aes(x = Bin, y = meanPhi, group = Signatures, color = Signatures)
           + scale_x_reverse(breaks = phis, labels = ticLab)
+
          )
 
-  }else{
+  }else{ # ggplot formatting specific for linear scale
 
     ticSel <- seq(1, length(phis), length.out = min(length(phis), 25))
     ticLab <- rep("", length(phis))
     ticLab[ticSel] <- round(phis, 2)[ticSel]
-
-    trajectory$Bin <- trajectory$Bin[length(trajectory$Bin) : 1]
 
     g <- (  ggplot2::ggplot(data = trajectory)
           + geom_vline(xintercept = 0:(length(phis) + 1), alpha = 0.3)
@@ -65,8 +85,7 @@ plotTrajectory <- function(mixtures, phis = NULL, changepoints=NULL, linearScale
            + ggplot2::theme_bw()
            + ggplot2::theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
            + ggplot2::ylab("Signature Exposure (%)")
-           + ggplot2::xlab("Cancer Cell Fraction")
-
+           + ggplot2::xlab(xAx)
 
            #+ geom_vline(xintercept = 0:length(phis), alpha=0.3)
            # allow additional input to ggplot
@@ -75,43 +94,15 @@ plotTrajectory <- function(mixtures, phis = NULL, changepoints=NULL, linearScale
 
   g
 
-  if (length(changepoints) > 0) {
-    for (i in 1:length(changepoints)) {
-      g <- g +  ggplot2::annotate("rect", xmax=changepoints[i]-1,
-          xmin=changepoints[i], ymin=-Inf, ymax=Inf, alpha=0.3)
-    }
-  }
+  #if (length(changepoints) > 0) {
+  #  for (i in 1:length(changepoints)) {
+  #    g <- g +  ggplot2::annotate("rect", xmax=changepoints[i]-1,
+  #        xmin=changepoints[i], ymin=-Inf, ymax=Inf, alpha=0.3)
+  #  }
+  #}
 
-
-
-  return(list(plot = g, data = df))
+  return(g)
 }
-
-
-
-
-
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
