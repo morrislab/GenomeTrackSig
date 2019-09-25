@@ -29,9 +29,9 @@ detectActiveSignatures <- function(sample, referenceSignatures){
 #' @export
 
 TrackSig <- function(vcfFile,
+                     activeInSample,
                      cnaFile = NULL,
                      purity = NULL,
-                     activeInSample = c("SBS1", "SBS5"),
                      sampleID = NULL,
                      referenceSignatures = alex,
                      scoreMethod = "SigFreq",
@@ -48,6 +48,7 @@ TrackSig <- function(vcfFile,
 
   # TODO: activeSignatures %in% rownames(referenceSignatures) must be TRUE
   # TODO: length(activeInSample) >1 should be true, else no mixture to fit
+  # TODO: binSize has to make sense; positive, not larger than nMut, maybe throw warning if it's some ratio too large for low-resolution.
 
   # take sampleID from file name if not provided
   if (is.null(sampleID)){
@@ -63,9 +64,7 @@ TrackSig <- function(vcfFile,
   }
 
   # TODO: other parameters non-default options
-  data <- vcfToCounts(vcfFile, cnaFile, purity)
-  vcaf <- data[[1]]
-  countsPerBin <- data[[2]]
+  list[vcaf, countsPerBin] <- vcfToCounts(vcfFile, cnaFile, purity, binSize, context = generateContext(c("CG", "TA")), refGenome)
 
   assertthat::assert_that(all(rownames(countsPerBin) == rownames(referenceSignatures)), msg = "Mutation type counts failed.")
 
@@ -77,26 +76,25 @@ TrackSig <- function(vcfFile,
   }
 
   # compute results
-  # TODO: other parameters non-default options
-  trajectory <- getChangepointsPELT(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, desiredMinSegLen)
-  changepoints <- trajectory[[1]]
-  mixtures <- trajectory[[2]]
+  list[changepoints, mixtures] <- getChangepointsPELT(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, desiredMinSegLen)
 
 
   # side effect: plot
   tryCatch({
-            plot_name <- paste0(sampleID, " Signature Trajectory")
-            binned_phis <- aggregate(vcaf$phi, by = list(vcaf$binAssignment), FUN = sum)$x / binSize
-            mark_cp <- !is.null(changepoints)
-            print(plot_signatures_real_scale(mixtures * 100, plot_name=plot_name, phis = binned_phis, mark_change_points=mark_cp,
-                                       change_points=changepoints, transition_points = NULL, save = F)[[1]])
+
+            binned_phis <- aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
+
+            print( plotTrajectory(mixtures * 100, phis = binned_phis, changepoints, linearX = T, anmac = T)
+                  + ggtitle(paste0(sampleID, " Signature Trajectory"))
+                 )
+
            },
            warning = function(w){w},
            error = function(e){print("Error: failed to plot signature trajectory")}
           )
 
 
-  return (NULL)
+  return (changepoints)
 }
 
 # list unpacker util: used internally in package TrackSig

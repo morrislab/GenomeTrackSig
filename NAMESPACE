@@ -2,4 +2,5 @@
 
 export(TrackSig)
 export(generateContext)
+export(plotTrajectory)
 export(vcfToCounts)
