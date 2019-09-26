@@ -1,3 +1,4 @@
+##fileformat=VCFv4.1
 ##INFO=<ID=t_alt_count,Number=1,Type=Integer,Description="Tumour alt count from mutect read filter if available">
 ##INFO=<ID=t_ref_count,Number=1,Type=Integer,Description="Tumour reference count from mutect read filter if available">
 #CHROM	POS		REF	ALT		FILTER	INFO
