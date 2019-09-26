@@ -70,9 +70,9 @@ plotTrajectory <- function(mixtures, phis = NULL, changepoints=NULL, linearX = T
     trajectory$Bin <- trajectory$Bin[length(trajectory$Bin) : 1]
 
     g <- (  ggplot2::ggplot(data = trajectory)
-          + geom_vline(xintercept = phis, alpha = 0.3)
+          + ggplot2::geom_vline(xintercept = phis, alpha = 0.3)
           + ggplot2::aes(x = Bin, y = meanPhi, group = Signatures, color = Signatures)
-          + scale_x_reverse(breaks = phis, labels = ticLab)
+          + ggplot2::scale_x_reverse(breaks = phis, labels = ticLab)
          )
 
     # slice changepoints (reverse axis means max to min)
@@ -87,9 +87,9 @@ plotTrajectory <- function(mixtures, phis = NULL, changepoints=NULL, linearX = T
     ticLab[ticSel] <- round(phis, 2)[ticSel]
 
     g <- (  ggplot2::ggplot(data = trajectory)
-          + geom_vline(xintercept = 0:(length(phis) + 1), alpha = 0.3)
+          + ggplot2::geom_vline(xintercept = 0:(length(phis) + 1), alpha = 0.3)
           + ggplot2::aes(x = Bin, y = meanPhi, group = Signatures, color = Signatures)
-          + scale_x_reverse(breaks = length(phis):1, labels = ticLab)
+          + ggplot2::scale_x_reverse(breaks = length(phis):1, labels = ticLab)
     )
 
     # slice changepoints (reverse axis means max to min)
@@ -109,8 +109,8 @@ plotTrajectory <- function(mixtures, phis = NULL, changepoints=NULL, linearX = T
            + ggplot2::ylab("Signature Exposure (%)")
            + ggplot2::xlab(xAx)
 
-           #+ geom_vline(xintercept = 0:length(phis), alpha=0.3)
-           # allow additional input to ggplot
+
+           # TODO: allow additional input to ggplot
            #+ list(...)
   )
 
