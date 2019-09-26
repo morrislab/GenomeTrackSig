@@ -26,8 +26,8 @@ Using the example data provided in `extdata/`, the following code will plot the 
 ```
 library(TrackSig)
 
-vcfFile = system.file(package = "TrackSig", "extdata/example.vcf")
-cnaFile = system.file(package = "TrackSig", "extdata/example_cna.txt")
+vcfFile = system.file(package = "TrackSig", "extdata/Example.vcf")
+cnaFile = system.file(package = "TrackSig", "extdata/Example_cna.txt")
 purity = 1
 activeInSample = c("SBS1", "SBS5", "SBS3", "SBS9")
 
