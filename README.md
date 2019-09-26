@@ -17,7 +17,8 @@ This package imports the following other R packages:
 - BSgenome.Hsapiens.UCSC.hg19 >= 1.4.0
 - GenomicRanges >= 1.26.4
 - Biostrings >= 2.42.1
-- SummarizedExperiment >= 1.4.0
+- SummarizedExperiment >= 1.4.
+- VariantAnnotation >= 1.20.3
 
 # Load the package in R
 `devtools::install_github("harrig12/BCB430")`
