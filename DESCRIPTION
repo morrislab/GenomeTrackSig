@@ -16,7 +16,6 @@ Encoding: UTF-8
 LazyData: true
 Imports:
     reshape2,
-    ggplot2,
     NMF,
     assertthat,
     BSgenome.Hsapiens.UCSC.hg19,
@@ -24,6 +23,8 @@ Imports:
     Biostrings,
     SummarizedExperiment,
     VariantAnnotation
+Depends:
+  ggplot2
 LinkingTo: 
 Suggests:
     testthat,
