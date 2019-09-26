@@ -10,14 +10,15 @@ Coming soon
 R >= 3.3.3
 
 This package imports the following other R packages:
-- reshape2 >= 1.4.3
-- ggplot2 >= 3.2.0
-- NMF >= 0.21.0
-- assertthat >= 0.2.1
-- BSgenome.Hsapiens.UCSC.hg19 >= 1.4.0
-- GenomicRanges >= 1.26.4
-- Biostrings >= 2.42.1
-- SummarizedExperiment >= 1.4.0
+- reshape2 >= 1.4.3 (CRAN)
+- ggplot2 >= 3.2.0 (CRAN)
+- NMF >= 0.21.0 (CRAN)
+- assertthat >= 0.2.1 (CRAN)
+- BSgenome.Hsapiens.UCSC.hg19 >= 1.4.0 (Bioconductor)
+- GenomicRanges >= 1.26.4 (Bioconductor)
+- Biostrings >= 2.42.1 (Bioconductor)
+- SummarizedExperiment >= 1.4.0 (Bioconductor)
+- VariantAnnotation >= 1.20.3 (Bioconductor)
 
 # Load the package in R
 `devtools::install_github("harrig12/BCB430")`
