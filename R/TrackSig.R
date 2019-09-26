@@ -78,15 +78,18 @@ TrackSig <- function(vcfFile,
   # compute results
   list[changepoints, mixtures] <- getChangepointsPELT(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, desiredMinSegLen)
 
+  plot <- NULL
 
   # side effect: plot
   tryCatch({
 
             binned_phis <- aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
 
-            print( plotTrajectory(mixtures * 100, phis = binned_phis, changepoints, linearX = T, anmac = T)
-                  + ggtitle(paste0(sampleID, " Signature Trajectory"))
-                 )
+            plot <- ( plotTrajectory(mixtures * 100, phis = binned_phis, changepoints, linearX = T, anmac = T)
+                      + ggtitle(paste0(sampleID, " Signature Trajectory"))
+                    )
+
+            print(plot)
 
            },
            warning = function(w){w},
@@ -94,7 +97,7 @@ TrackSig <- function(vcfFile,
           )
 
 
-  return (changepoints)
+  return (list(mixtures = mixtures, changepoints = changepoints, plot = plot))
 }
 
 # list unpacker util: used internally in package TrackSig

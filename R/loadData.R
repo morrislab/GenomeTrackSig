@@ -146,8 +146,12 @@ parseVcfFile <- function(vcfFile, cutoff = 10000, refGenome = BSgenome.Hsapiens.
 
 parseCnaFile <- function(cnaFile){
 
-  cnaGR <- read.table(cnaFile, header = T)
-  cnaGR <- GenomicRanges::GRanges(cnaGR$chromosome, IRanges::IRanges(cnaGR$start, cnaGR$end), cn = cnaGR$total_cn)
+  #TODO: handle case where cnaFile is NULL
+
+  if(!is.null(cnaFile)){
+    cnaGR <- read.table(cnaFile, header = T)
+    cnaGR <- GenomicRanges::GRanges(cnaGR$chromosome, IRanges::IRanges(cnaGR$start, cnaGR$end), cn = cnaGR$total_cn)
+  }
 
   return(cnaGR)
 }
