@@ -18,12 +18,12 @@ This package imports the following other R packages:
 - SummarizedExperiment
 
 # Load the package in R
-devtools::install_github("harrig12/BCB430")
+`devtools::install_github("harrig12/BCB430")`
 
 # Demo
 Using the example data provided in `extdata/`, the following code will plot the signature trajectory, and return the fitted mixture of signatures for each bin, the bins where changepoints were detected, and the ggplot object.
 
-```
+```r
 library(TrackSig)
 
 vcfFile = system.file(package = "TrackSig", "extdata/Example.vcf")
