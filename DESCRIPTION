@@ -2,7 +2,7 @@ Package: TrackSig
 Type: Package
 Title: TrackSig - cancer evolutionary trajectory estimation
 Version: 0.1.0
-Author: Cait Harrigan, implemented form script based TrackSig by Yulia Rubanova
+Author: Cait Harrigan, implemented with reference to TrackSig by Yulia Rubanova
 Maintainer: Cait Harrigan <cait.harrigan@utoronto.ca>
 Description: TrackSig, to estimate the evolutionary trajectories of signatures
              of somatic mutational processes. TrackSig uses cancer cell fraction (CCF) 
@@ -22,7 +22,8 @@ Imports:
     BSgenome.Hsapiens.UCSC.hg19,
     GenomicRanges,
     Biostrings,
-    SummarizedExperiment
+    SummarizedExperiment,
+    VariantAnnotation
 LinkingTo: 
 Suggests:
     testthat,
