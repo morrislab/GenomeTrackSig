@@ -7,15 +7,17 @@ To cite, please see https://www.biorxiv.org/content/10.1101/260471v3
 Coming soon
 
 # Dependencies 
+R >= 3.3.3
+
 This package imports the following other R packages:
-- reshape2
-- ggplot2
-- NMF
-- assertthat
-- BSgenome.Hsapiens.UCSC.hg19
-- GenomicRanges
-- Biostrings
-- SummarizedExperiment
+- reshape2 >= 1.4.3
+- ggplot2 >= 3.2.0
+- NMF >= 0.21.0
+- assertthat >= 0.2.1
+- BSgenome.Hsapiens.UCSC.hg19 >= 1.4.0
+- GenomicRanges >= 1.26.4
+- Biostrings >= 2.42.1
+- SummarizedExperiment >= 1.4.0
 
 # Load the package in R
 `devtools::install_github("harrig12/BCB430")`
