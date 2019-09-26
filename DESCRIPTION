@@ -14,9 +14,6 @@ Description: TrackSig, to estimate the evolutionary trajectories of signatures
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true
-SystemRequirements:
-    Perl >= v5.18.2
-    Python >= Python 2.7.9
 Imports:
     reshape2,
     ggplot2,
