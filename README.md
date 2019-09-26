@@ -39,3 +39,4 @@ TrackSig(vcfFile, activeInSample, cnaFile, purity)
 
 ```
 
+![img: example plotting output](inst/extdata/ExamplePlot.png?raw=true "Example of signature trajectory plotted with TrackSig R package")
