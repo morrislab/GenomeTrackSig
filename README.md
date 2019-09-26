@@ -6,7 +6,7 @@ To cite, please see https://www.biorxiv.org/content/10.1101/260471v3
 # Vignette 
 Coming soon
 
-# Dependancies 
+# Dependencies 
 This package imports the following other R packages:
 - reshape2
 - ggplot2
