@@ -28,6 +28,7 @@ Using the example data provided in `extdata/`, the following code will plot the 
 
 ```r
 library(TrackSig)
+library(ggplot2)
 
 vcfFile = system.file(package = "TrackSig", "extdata/Example.vcf")
 cnaFile = system.file(package = "TrackSig", "extdata/Example_cna.txt")
@@ -43,3 +44,7 @@ TrackSig(vcfFile, activeInSample, cnaFile, purity)
 ```
 
 ![img: example plotting output](inst/extdata/ExamplePlot.png?raw=true "Example of signature trajectory plotted with TrackSig R package")
+
+# Note
+
+Some users may have plotting issues with `TrackSig` if `ggplot2` is not explicitly loaded with `library(ggplot2)`. We are experiencing a bug that has been [previously described](https://github.com/tidyverse/ggplot2/issues/663) for `ggplot2`.
