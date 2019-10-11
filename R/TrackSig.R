@@ -97,7 +97,7 @@ TrackSig <- function(vcfFile,
           )
 
 
-  return (list(mixtures = mixtures, changepoints = changepoints, plot = plot))
+  return (list(mixtures = mixtures, changepoints = changepoints, plot = plot, vcaf = vcaf))
 }
 
 # list unpacker util: used internally in package TrackSig
