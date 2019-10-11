@@ -229,13 +229,14 @@ mixtureLL <- function(multinomial_vector, composing_multinomials, mixtures, ...)
   # replaces log_likelihood_mixture_multinomials
   mutation_binary_table <-  makeBinaryTable(multinomial_vector)
 
-  # mutation_probabilities_under_multinomial[i,n] corresponds to class/signature i and sample/mutation n
-  mutation_probabilities_under_multinomial <- matrix(0, nrow=ncol(composing_multinomials), ncol=ncol(mutation_binary_table))
+  # mutation_probabilities_under_signature_mixture[i,n] corresponds to class/signature i and sample/mutation n
+  mutation_probabilities_under_signature_mixture <- matrix(0, nrow=ncol(composing_multinomials), ncol=ncol(mutation_binary_table))
+
   for (sig in 1:ncol(composing_multinomials)) {
-    mutation_probabilities_under_multinomial[sig,] <- apply(composing_multinomials[,sig]^mutation_binary_table,2,prod)
+    mutation_probabilities_under_signature_mixture[sig,] <- apply(composing_multinomials[,sig]^mutation_binary_table,2,prod)
   }
 
-  mutation_probabilities_under_mixture <-  log(t(mutation_probabilities_under_multinomial) %*% as.matrix(mixtures))
+  mutation_probabilities_under_mixture <-  log(t(mutation_probabilities_under_signature_mixture) %*% as.matrix(mixtures))
   stopifnot(length(mutation_probabilities_under_mixture) == sum(multinomial_vector))
 
   return(sum(mutation_probabilities_under_mixture))
