@@ -3,7 +3,7 @@
 # Author: Cait Harrigan
 
 
-detectActiveSignatures <- function(sample, referenceSignatures){
+detectActiveSignatures <- function(sample, referenceSignatures = alex_merged){
 
   # return list of active signatures in sample, whether by matching per-cancer-type to provided data,
   # or fitting all counts by EM. If not using this function, must provide active signatures per sample
@@ -33,7 +33,7 @@ TrackSig <- function(vcfFile,
                      cnaFile = NULL,
                      purity = NULL,
                      sampleID = NULL,
-                     referenceSignatures = alex,
+                     referenceSignatures = alex_merged,
                      scoreMethod = "SigFreq",
                      binSize = 100,
                      desiredMinSegLen = NULL,
@@ -42,11 +42,11 @@ TrackSig <- function(vcfFile,
   # input checking
 
   assertthat::assert_that(grepl(".vcf$", vcfFile) | grepl(".txt$", vcfFile), msg = "Unsupported VCF file extension. Expected file type .vcf or .txt")
+  assertthat::assert_that(all(activeInSample %in% colnames(referenceSignatures)))
 
-  assertthat::assert_that(scoreMethod %in% c("SigFreq", "Signature", "Frequency"),
-  msg = "scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod)")
+  #assertthat::assert_that(scoreMethod %in% c("SigFreq", "Signature", "Frequency"),
+  #msg = "scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod)")
 
-  # TODO: activeSignatures %in% rownames(referenceSignatures) must be TRUE
   # TODO: length(activeInSample) >1 should be true, else no mixture to fit
   # TODO: binSize has to make sense; positive, not larger than nMut, maybe throw warning if it's some ratio too large for low-resolution.
 
@@ -66,7 +66,8 @@ TrackSig <- function(vcfFile,
   # TODO: other parameters non-default options
   list[vcaf, countsPerBin] <- vcfToCounts(vcfFile, cnaFile, purity, binSize, context = generateContext(c("CG", "TA")), refGenome)
 
-  assertthat::assert_that(all(rownames(countsPerBin) == rownames(referenceSignatures)), msg = "Mutation type counts failed.")
+  assertthat::assert_that(all(rownames(countsPerBin) %in% rownames(referenceSignatures)), msg = "Mutation type counts failed.")
+  countsPerBin <- countsPerBin[rownames(referenceSignatures),]
 
   # subset referenceSignatures with activeInSample
   referenceSignatures <- referenceSignatures[activeInSample]
@@ -81,24 +82,26 @@ TrackSig <- function(vcfFile,
   plot <- NULL
 
   # side effect: plot
-  tryCatch({
 
-            binned_phis <- aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
+ #tryCatch({
 
-            plot <- ( plotTrajectory(mixtures * 100, phis = binned_phis, changepoints, linearX = T, anmac = T)
-                      + ggtitle(paste0(sampleID, " Signature Trajectory"))
-                    )
+ #          binned_phis <- aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
 
-            print(plot)
+ #          plot <- ( plotTrajectory(mixtures * 100, phis = binned_phis, changepoints, linearX = T, anmac = T)
+ #                    + ggtitle(paste0(sampleID, " Signature Trajectory"))
+ #                  )
 
-           },
-           warning = function(w){w},
-           error = function(e){print("Error: failed to plot signature trajectory")}
-          )
+ #          print(plot)
+
+ #         },
+ #         warning = function(w){w},
+ #         error = function(e){print("Error: failed to plot signature trajectory")}
+ #        )
 
 
   return (list(mixtures = mixtures, changepoints = changepoints, plot = plot, vcaf = vcaf))
-}
+  }
+
 
 # list unpacker util: used internally in package TrackSig
 # source: https://stat.ethz.ch/pipermail/r-help/2004-June/053343.html
