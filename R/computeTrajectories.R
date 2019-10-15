@@ -223,7 +223,14 @@ fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_chan
 }
 
 
+multinomialLL <- function(multinomial_vector, sp_len, ...){
+  # multinomial likelihood of mutation type distribution in the signature-free setting.
 
+  n <- sp_len * 100
+  ll <- lgamma(96) - lgamma(n + 96) + sum(lgamma(multinomial_vector))
+
+  return(ll)
+}
 
 mixtureLL <- function(multinomial_vector, composing_multinomials, mixtures, ...) {
   # replaces log_likelihood_mixture_multinomials
@@ -277,8 +284,8 @@ sumBetaMixtureLL <- function(qis, multinomial_vector,
 parseScoreMethod <- function(scoreMethod){
   # return the penalty and score function to use when computing partitions
 
-  assertthat::assert_that(scoreMethod %in% c("SigFreq", "Signature", "Frequency"),
-  msg = "scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod)")
+  #assertthat::assert_that(scoreMethod %in% c("SigFreq", "Signature", "Frequency"),
+  #msg = "scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod)")
 
   if(scoreMethod == "SigFreq"){
     return(list(penalty = expression(-log(0.1) + (n_sigs + 1) * log(n_bins * binSize)),
@@ -293,6 +300,10 @@ parseScoreMethod <- function(scoreMethod){
   if(scoreMethod == "Frequency"){
     return(list(penalty = expression((n_sigs + 2) * log(n_bins * binSize)),
                 score_fxn = betaLL))
+  }
+
+  if(scoreMethod == "Sigless"){
+    return(list(penalty = expression(0), score_fxn = multinomialLL))
   }
 
 }
@@ -367,7 +378,7 @@ scorePartitionsPELT <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSize
 
 
       r_seg_score <- 2 * score_fxn(multinomial_vector = r_seg_counts, composing_multinomials = alex.t,
-                                   mixtures = r_seg_mix, bin_size = bin_size, qis = r_seg_qis)
+                                   mixtures = r_seg_mix, bin_size = bin_size, qis = r_seg_qis, sp_len = sp_len)
       l_seg_score <- ifelse(last_cp == 0, penalty, max_sp_scores[last_cp])
 
       sp_scores[sp_len, last_cp + 1] <- l_seg_score + r_seg_score - penalty
