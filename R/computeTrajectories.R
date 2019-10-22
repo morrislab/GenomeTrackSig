@@ -223,12 +223,39 @@ fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_chan
 }
 
 
-multinomialLL <- function(multinomial_vector, sp_len, ...){
+
+
+multinomialLL <- function(multinomial_vector, ...){
   # multinomial likelihood of mutation type distribution in the signature-free setting.
+  counts = multinomial_vector
 
-  n <- sp_len * 100
-  ll <- lgamma(96) - lgamma(n + 96) + sum(lgamma(multinomial_vector))
+  n <- sum(counts)
+  k <- 96
+  a <- rep(1, k)
+  p_mle <- (counts + 1) / (n + k)
 
+  # wiki
+  #ll <- ( (lgamma(k) - lgamma(n + k))
+  #        + sum(lgamma(counts + 1) - lgamma(1))
+  #      )
+
+  # stack overflow
+  #ll <- ( lgamma(n+1) + lgamma(sum(a)) + sum(lgamma(counts + 1))
+  #        - sum(lgamma(counts + 1)) - sum(lgamma(a)) - lgamma(sum(a + counts))
+  #      )
+
+  # categorical
+  #ll <- ( lgamma(k)
+  #        + sum(lgamma(counts + 1)) - lgamma(n + k)
+  #)
+
+  # uniformative prior with mle estimates
+  ll <- ( lgamma(n+1) - sum(lgamma(counts + 1)) + sum( log( (p_mle) ^ (counts) ) ) )
+
+  # in terms of beta
+  #ll <- ( log(n) + lbeta(k, n) - sum( log(counts[counts != 0]) + lbeta(a[counts != 0], counts[counts != 0]) ) )
+
+  #print(ll)
   return(ll)
 }
 
@@ -303,7 +330,8 @@ parseScoreMethod <- function(scoreMethod){
   }
 
   if(scoreMethod == "Sigless"){
-    return(list(penalty = expression(0), score_fxn = multinomialLL))
+    return(list(penalty = expression(30),
+                score_fxn = multinomialLL))
   }
 
 }
@@ -333,6 +361,8 @@ getChangepointsPELT <- function(countsPerBin, sigDef, vcaf, scoreMethod = "Track
 
   minSegLen <- getActualMinSegLen(desiredMinSegLen, binSize)
   score_matrix <- scorePartitionsPELT(countsPerBin, sigDef, vcaf, scoreMethod, binSize, minSegLen)
+
+  print(score_matrix[1:15, 1:15])
 
   changepoints <- recoverChangepoints(score_matrix)
   mixtures <- fitMixturesInTimeline(countsPerBin, changepoints, sigDef)
