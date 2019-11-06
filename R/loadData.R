@@ -410,16 +410,14 @@ getBinCounts <- function(vcaf, binSize, context){
   assertthat::assert_that(dim(unique(vcaf[c("ref","alt","mutType")]))[1] <= dim(context)[1], msg = sprintf("too many mutation types (%s) for context (%s)",
                                                                                                            dim(unique(vcaf[c("ref","alt","mutType")]))[1],  dim(context)[1]) )
 
-  #nBins <- (nMut / binSize) + (nMut %/% binSize > 0)
-  nBins <- floor( (nMut / binSize) )
+  # populate all possible bins, up to one possible remaining partial bin
+  nFullBins <- floor( (nMut / binSize) )
+  sizePartialBin <- round(((nMut / binSize) %% 1) * binSize)
 
-  # only filling as many complete bins as we can
-  # up to the last (binSize - 1) mutations of smallest phi may be excluded.
-  # TODO: depricate this bin restriction
-  vcaf$bin <- c(rep(1:nBins, each = binSize), rep(NA, nMut - nBins * binSize))
+  vcaf$bin <- c(rep(1:nFullBins, each = binSize), rep( (nFullBins + 1) , times = sizePartialBin))
 
   # aggregate on bins
-  binCounts <- data.frame(row.names = 1:nBins)
+  binCounts <- data.frame( row.names = 1:(nFullBins + (sizePartialBin != 0)) )
 
   # counts for each bin
   binCounts <- cbind (binCounts, aggregate(paste(vcaf$ref, vcaf$alt, vcaf$mutType, sep = "_"), by = list(vcaf$bin), FUN = function(x){return(as.array(table(x)))})$x )
@@ -430,8 +428,13 @@ getBinCounts <- function(vcaf, binSize, context){
     binCounts[col] <- 0
   }
 
+  # order by reference definition
+  binCounts <- binCounts[,paste(context$V1, context$V2, context$V3, sep = "_")]
+
   return ( list(vcaf = vcaf, countsPerBin = t(binCounts)) )
 
 }
+
+
 
 # [END]
