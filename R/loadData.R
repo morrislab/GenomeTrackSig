@@ -436,5 +436,36 @@ getBinCounts <- function(vcaf, binSize, context){
 }
 
 
+#' \code{getBinCounts} Get the mutation type counts data for a vcaf dataframe
+#'
+#' @rdname loadData
+#' @name csvToCounts
+
+csvToCounts <- function(file, ...){
+  # prepare spacial csv for spaceTrack
+
+  # read in data
+  spaceData <- read.csv(file, ...)
+
+  # assign bins and get counts
+
+  # TODO: geet context from supplied referenceSignatures
+  context <- generateContext(c("CG", "TA"))
+
+  # TODO: too bespoke
+  colnames(spaceData)[colnames(spaceData) == "Reference_Allele"] <- "ref"
+  colnames(spaceData)[colnames(spaceData) == "Tumor_Seq_Allele2"] <- "alt"
+  spaceData$mutType <- NULL
+
+  # vcaf is a data.frame, and only named accessor funcitons and dim()[1] are considered.
+  # can simply skip vcafConstruction() and the rest should follow. Can simply set phi to the
+  # chromosome position and ordering on that will be fine.
+
+
+  # normalize bin counts by trinucleotide background
+
+  #
+
+}
 
 # [END]

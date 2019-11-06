@@ -11,6 +11,16 @@ detectActiveSignatures <- function(sample, referenceSignatures){
   NULL
 }
 
+spaceTrack <- function(spacialFile){
+
+  # construct TrackSig formatted input
+
+  # run each chromosome sequentially
+
+  # plot?
+
+}
+
 #' \code{TrackSig} Take an input vcf file and annotation and generate the counts data.
 #' Create all plotting output that compute_signatures_for_all_examples does.
 #'

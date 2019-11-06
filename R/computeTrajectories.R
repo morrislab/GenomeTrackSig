@@ -227,10 +227,10 @@ fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_chan
 
 
 
-
-mixtureLL <- function(multinomial_vector, composing_multinomials, mixtures, ...) {
+mixtureLL <- function(counts, composing_multinomials, mixtures, ...) {
   # replaces log_likelihood_mixture_multinomials
-  mutation_binary_table <-  makeBinaryTable(multinomial_vector)
+  multinomial_vector <- counts
+  mutation_binary_table <- makeBinaryTable(multinomial_vector)
 
   # mutation_probabilities_under_signature_mixture[i,n] corresponds to class/signature i and sample/mutation n
   mutation_probabilities_under_signature_mixture <- matrix(0, nrow=ncol(composing_multinomials), ncol=ncol(mutation_binary_table))
