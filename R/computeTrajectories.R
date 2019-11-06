@@ -65,8 +65,11 @@ makeBinaryTable <- function(multinomial_vector)
 
 
 # fit mixture of multinomials to the vector
-fitMixturesEM <- function(multinomial_vector, composing_multinomials, prior=NULL)
+fitMixturesEM <- function(counts, composing_multinomials, prior=NULL)
 {
+
+  multinomial_vector <- counts
+
   # Number of mutations to fit
   nMut = sum(multinomial_vector)
 
@@ -262,11 +265,12 @@ betaLL <- function(qis, ...){
 
 }
 
-sumBetaMixtureLL <- function(qis, multinomial_vector,
+sumBetaMixtureLL <- function(qis, counts,
                                 composing_multinomials, mixtures, ...){
 
+
   score <- sum(
-               mixtureLL(multinomial_vector, composing_multinomials, mixtures),
+               mixtureLL(counts, composing_multinomials, mixtures),
                betaLL(qis)
               )
 
@@ -274,26 +278,34 @@ sumBetaMixtureLL <- function(qis, multinomial_vector,
 
 }
 
+
 parseScoreMethod <- function(scoreMethod){
   # return the penalty and score function to use when computing partitions
 
-  assertthat::assert_that(scoreMethod %in% c("SigFreq", "Signature", "Frequency"),
-  msg = "scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod)")
+  #assertthat::assert_that(scoreMethod %in% c("SigFreq", "Signature", "Frequency"),
+  #msg = "scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod)")
 
   if(scoreMethod == "SigFreq"){
-    return(list(penalty = expression(-log(0.1) + (n_sigs + 1) * log(n_bins * binSize)),
+    return(list(penalty = expression(-log(0.1) + (n_sigs + 1) * log(n_mut)),
                 score_fxn = sumBetaMixtureLL))
   }
 
   if(scoreMethod == "Signature"){
-    return(list(penalty = expression((n_sigs - 1) * log(n_bins * binSize)),
+    return(list(penalty = expression((n_sigs - 1) * log(n_mut)),
                 score_fxn = mixtureLL))
   }
 
   if(scoreMethod == "Frequency"){
-    return(list(penalty = expression((n_sigs + 2) * log(n_bins * binSize)),
+    return(list(penalty = expression((n_sigs + 2) * log(n_mut)),
                 score_fxn = betaLL))
   }
+
+  if(scoreMethod == "Sigless"){
+    return(list(penalty = expression(30),
+                score_fxn = multinomialLL))
+  }
+
+  stop("scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod)")
 
 }
 
@@ -317,23 +329,26 @@ getActualMinSegLen <- function(desiredMinSegLen, binSize){
 
 # Find optimal changepoint and mixtures using PELT method.
 # if desiredMinSegLen is NULL, the value will be selected by default based off binSize to try to give good performance
-getChangepointsPELT <- function(countsPerBin, sigDef, vcaf, scoreMethod = "TrackSigFreq", binSize = 100, desiredMinSegLen = NULL)
+getChangepointsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize = 100, desiredMinSegLen = NULL)
 {
 
   minSegLen <- getActualMinSegLen(desiredMinSegLen, binSize)
-  score_matrix <- scorePartitionsPELT(countsPerBin, sigDef, vcaf, scoreMethod, binSize, minSegLen)
+  score_matrix <- scorePartitionsPELT(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, minSegLen)
+
+  print(score_matrix[1:15, 1:15])
 
   changepoints <- recoverChangepoints(score_matrix)
-  mixtures <- fitMixturesInTimeline(countsPerBin, changepoints, sigDef)
+  mixtures <- fitMixturesInTimeline(countsPerBin, changepoints, referenceSignatures)
 
   return(list(changepoints = changepoints, mixtures = mixtures))
 }
 
 # Calculate penalized BIC score for all partitions using PELT method.
-scorePartitionsPELT <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSize, minSegLen)
+scorePartitionsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, minSegLen)
 {
   n_bins <- dim(countsPerBin)[2]
-  n_sigs <- dim(alex.t)[2]
+  n_sigs <- dim(referenceSignatures)[2]
+  n_mut <- dim(vcaf)[1]
 
   list[penalty, score_fxn] <- parseScoreMethod(scoreMethod)
   penalty <- eval(penalty)
@@ -363,11 +378,11 @@ scorePartitionsPELT <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSize
       sp_slice <- c((last_cp + 1), sp_len)
       r_seg_qis <- vcaf$qi[vcaf$bin %in% (sp_slice[1] : sp_slice[2])]
       r_seg_counts <- rowSums(countsPerBin[, sp_slice[1] : sp_slice[2], drop = FALSE])
-      r_seg_mix <- fitMixturesEM(r_seg_counts, alex.t)
+      r_seg_mix <- fitMixturesEM(r_seg_counts, referenceSignatures)
 
 
-      r_seg_score <- 2 * score_fxn(multinomial_vector = r_seg_counts, composing_multinomials = alex.t,
-                                   mixtures = r_seg_mix, bin_size = bin_size, qis = r_seg_qis)
+      r_seg_score <- 2 * score_fxn(counts = r_seg_counts, composing_multinomials = referenceSignatures,
+                                   mixtures = r_seg_mix, bin_size = bin_size, qis = r_seg_qis, sp_len = sp_len)
       l_seg_score <- ifelse(last_cp == 0, penalty, max_sp_scores[last_cp])
 
       sp_scores[sp_len, last_cp + 1] <- l_seg_score + r_seg_score - penalty
