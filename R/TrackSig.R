@@ -46,9 +46,11 @@ TrackSig <- function(vcfFile,
   assertthat::assert_that(scoreMethod %in% c("SigFreq", "Signature", "Frequency"),
   msg = "scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod)")
 
-  # TODO: activeSignatures %in% rownames(referenceSignatures) must be TRUE
+  # TODO: activeSignatures %in% colnames(referenceSignatures) must be TRUE
+  # TODO: binSize must be a natureal number >0
   # TODO: length(activeInSample) >1 should be true, else no mixture to fit
   # TODO: binSize has to make sense; positive, not larger than nMut, maybe throw warning if it's some ratio too large for low-resolution.
+  # TODO: generateContext and mut types in referenceSignatures should make sense together.
 
   # take sampleID from file name if not provided
   if (is.null(sampleID)){
@@ -63,10 +65,14 @@ TrackSig <- function(vcfFile,
 
   }
 
-  # TODO: other parameters non-default options
-  list[vcaf, countsPerBin] <- vcfToCounts(vcfFile, cnaFile, purity, binSize, context = generateContext(c("CG", "TA")), refGenome)
+  # TODO: geet context from supplied referenceSignatures
+  context <- generateContext(c("CG", "TA"))
 
-  assertthat::assert_that(all(rownames(countsPerBin) == rownames(referenceSignatures)), msg = "Mutation type counts failed.")
+  # TODO: other parameters non-default options
+  list[vcaf, countsPerBin] <- vcfToCounts(vcfFile, cnaFile, purity, binSize, context, refGenome)
+
+  assertthat::assert_that(all(rownames(countsPerBin) %in% rownames(referenceSignatures)), msg = "Mutation type counts failed.")
+  countsPerBin <- countsPerBin[rownames(referenceSignatures),]
 
   # subset referenceSignatures with activeInSample
   referenceSignatures <- referenceSignatures[activeInSample]
