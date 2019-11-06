@@ -83,20 +83,20 @@ TrackSig <- function(vcfFile,
 
   # side effect: plot
 
- #tryCatch({
+  tryCatch({
 
- #          binned_phis <- aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
+      binned_phis <- aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
 
- #          plot <- ( plotTrajectory(mixtures * 100, phis = binned_phis, changepoints, linearX = T, anmac = T)
- #                    + ggtitle(paste0(sampleID, " Signature Trajectory"))
- #                  )
+      plot <- ( plotTrajectory(mixtures * 100, phis = binned_phis, changepoints, linearX = T, anmac = T)
+                + ggtitle(paste0(sampleID, " Signature Trajectory"))
+              )
 
- #          print(plot)
+      print(plot)
 
- #         },
- #         warning = function(w){w},
- #         error = function(e){print("Error: failed to plot signature trajectory")}
- #        )
+      },
+      warning = function(w){w},
+      error = function(e){print("Error: failed to plot signature trajectory")}
+    )
 
 
   return (list(mixtures = mixtures, changepoints = changepoints, plot = plot, vcaf = vcaf))

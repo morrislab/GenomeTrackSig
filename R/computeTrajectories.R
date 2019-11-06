@@ -65,8 +65,11 @@ makeBinaryTable <- function(multinomial_vector)
 
 
 # fit mixture of multinomials to the vector
-fitMixturesEM <- function(multinomial_vector, composing_multinomials, prior=NULL)
+fitMixturesEM <- function(counts, composing_multinomials, prior=NULL)
 {
+
+  multinomial_vector <- rowSums(counts)
+
   # Number of mutations to fit
   nMut = sum(multinomial_vector)
 
@@ -225,18 +228,24 @@ fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_chan
 
 
 
-multinomialLL <- function(multinomial_vector, ...){
+multinomialLL <- function(counts, ...){
   # multinomial likelihood of mutation type distribution in the signature-free setting.
-  counts = multinomial_vector
 
+  list[loglik, ite, gamma, pi, theta] <- dirmult(counts)
+
+  counts <- rowSums(counts)
+  k <- length(counts)
   n <- sum(counts)
-  k <- 96
-  a <- rep(1, k)
-  p_mle <- (counts + 1) / (n + k)
+
+  alpha <- pi * theta
+
+  #alpha <- rep(1, k)
+
+  #p_mle <- (counts + 1) / (n + k)
 
   # wiki
-  #ll <- ( (lgamma(k) - lgamma(n + k))
-  #        + sum(lgamma(counts + 1) - lgamma(1))
+  #ll <- ( (lgamma(n + 1) + lgamma(sum(alpha)) - lgamma(n + sum(alpha)))
+  #        + sum(lgamma(counts + alpha) - lgamma(counts + 1) - lgamma(alpha))
   #      )
 
   # stack overflow
@@ -250,7 +259,7 @@ multinomialLL <- function(multinomial_vector, ...){
   #)
 
   # uniformative prior with mle estimates
-  ll <- ( lgamma(n+1) - sum(lgamma(counts + 1)) + sum( log( (p_mle) ^ (counts) ) ) )
+  ll <- ( lgamma(n+1) + lgamma(sum(alpha)) - lgamma(n + sum(alpha)) + sum( lgamma(counts + alpha) - lgamma(counts + 1) - lgamma(alpha) ) )
 
   # in terms of beta
   #ll <- ( log(n) + lbeta(k, n) - sum( log(counts[counts != 0]) + lbeta(a[counts != 0], counts[counts != 0]) ) )
@@ -259,9 +268,10 @@ multinomialLL <- function(multinomial_vector, ...){
   return(ll)
 }
 
-mixtureLL <- function(multinomial_vector, composing_multinomials, mixtures, ...) {
+mixtureLL <- function(counts, composing_multinomials, mixtures, ...) {
   # replaces log_likelihood_mixture_multinomials
-  mutation_binary_table <-  makeBinaryTable(multinomial_vector)
+  multinomial_vector <- rowSums(counts)
+  mutation_binary_table <- makeBinaryTable(multinomial_vector)
 
   # mutation_probabilities_under_signature_mixture[i,n] corresponds to class/signature i and sample/mutation n
   mutation_probabilities_under_signature_mixture <- matrix(0, nrow=ncol(composing_multinomials), ncol=ncol(mutation_binary_table))
@@ -296,17 +306,19 @@ betaLL <- function(qis, ...){
 
 }
 
-sumBetaMixtureLL <- function(qis, multinomial_vector,
+sumBetaMixtureLL <- function(qis, counts,
                                 composing_multinomials, mixtures, ...){
 
+
   score <- sum(
-               mixtureLL(multinomial_vector, composing_multinomials, mixtures),
+               mixtureLL(counts, composing_multinomials, mixtures),
                betaLL(qis)
               )
 
   return(score)
 
 }
+
 
 parseScoreMethod <- function(scoreMethod){
   # return the penalty and score function to use when computing partitions
@@ -356,25 +368,25 @@ getActualMinSegLen <- function(desiredMinSegLen, binSize){
 
 # Find optimal changepoint and mixtures using PELT method.
 # if desiredMinSegLen is NULL, the value will be selected by default based off binSize to try to give good performance
-getChangepointsPELT <- function(countsPerBin, sigDef, vcaf, scoreMethod = "TrackSigFreq", binSize = 100, desiredMinSegLen = NULL)
+getChangepointsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMethod = "TrackSigFreq", binSize = 100, desiredMinSegLen = NULL)
 {
 
   minSegLen <- getActualMinSegLen(desiredMinSegLen, binSize)
-  score_matrix <- scorePartitionsPELT(countsPerBin, sigDef, vcaf, scoreMethod, binSize, minSegLen)
+  score_matrix <- scorePartitionsPELT(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, minSegLen)
 
   print(score_matrix[1:15, 1:15])
 
   changepoints <- recoverChangepoints(score_matrix)
-  mixtures <- fitMixturesInTimeline(countsPerBin, changepoints, sigDef)
+  mixtures <- fitMixturesInTimeline(countsPerBin, changepoints, referenceSignatures)
 
   return(list(changepoints = changepoints, mixtures = mixtures))
 }
 
 # Calculate penalized BIC score for all partitions using PELT method.
-scorePartitionsPELT <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSize, minSegLen)
+scorePartitionsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, minSegLen)
 {
   n_bins <- dim(countsPerBin)[2]
-  n_sigs <- dim(alex.t)[2]
+  n_sigs <- dim(referenceSignatures)[2]
 
   list[penalty, score_fxn] <- parseScoreMethod(scoreMethod)
   penalty <- eval(penalty)
@@ -404,10 +416,10 @@ scorePartitionsPELT <- function(countsPerBin, alex.t, vcaf, scoreMethod, binSize
       sp_slice <- c((last_cp + 1), sp_len)
       r_seg_qis <- vcaf$qi[vcaf$bin %in% (sp_slice[1] : sp_slice[2])]
       r_seg_counts <- rowSums(countsPerBin[, sp_slice[1] : sp_slice[2], drop = FALSE])
-      r_seg_mix <- fitMixturesEM(r_seg_counts, alex.t)
+      r_seg_mix <- fitMixturesEM(r_seg_counts, referenceSignatures)
 
 
-      r_seg_score <- 2 * score_fxn(multinomial_vector = r_seg_counts, composing_multinomials = alex.t,
+      r_seg_score <- 2 * score_fxn(counts = r_seg_counts, composing_multinomials = referenceSignatures,
                                    mixtures = r_seg_mix, bin_size = bin_size, qis = r_seg_qis, sp_len = sp_len)
       l_seg_score <- ifelse(last_cp == 0, penalty, max_sp_scores[last_cp])
 
