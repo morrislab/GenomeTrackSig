@@ -3,7 +3,8 @@
 
 
 # TODO: phiHist plot - can be added on top of trajectory plot or examined alone
-# TODO: phiHist plot should be able to stack or excluse >1 ccf if x range is truncated.
+# TODO: phiHist plot should be able to stack or exclude >1 ccf if x range is truncated.
+# TODO: vcaf needs to be accessible -> export vcafToCounts()
 addPhiHist <- function(sigPlot, vcaf){
   # create phi histogram ggplot and add it on top of cpPlot
 
@@ -52,25 +53,46 @@ addPhiHist <- function(sigPlot, vcaf){
   return(plotHat)
 }
 
-#' \code{plotTrajectory}
+#' Plot the exolutionary trajectory of a tumour.
 #'
+#' For each bin in a set of signature mixtures, the mixture is plotted accross
+#' pseudo-time. Provided changepoints will be highlighted.
 #'
-#' @param mixtures mixtures of mixtures output by TrackSig
-#' @param phis list of mean phis corresponding to bins in mixtures matrix
+#' @param mixtures mixture of signatures over bins, as output by TrackSig. Note:
+#'   The column names of this object are used to draw the x-axis. They should
+#'   correspond to binned phis.
 #' @param changepoints list of changepoints to mark on the trajectory plot
-#' @param linearX logical whether to plot with a linearly spaced x-axis grid, or with ccf values
-#' @param anmac logical whether to plot x-axis restricted to ccf space, or use estimated average number of mutant alleles per cell (anmac)
+#' @param linearX logical whether to plot with a linearly spaced x-axis grid, or
+#'   with ccf values
+#' @param anmac logical whether to plot x-axis restricted to ccf space, or use
+#'   estimated average number of mutant alleles per cell (anmac)
+#' @param results a list containing named elements "mixtures" and "changepoints"
+#'   if provided, will override the mixtures and changepoints parameters. This
+#'   parameter is only included for ease of use in combination with
+#'   \code{TrackSig()} and has no other special function.
 #' @return ggplot object
 #'
 #' @name plotTrajectory
 #' @export
-plotTrajectory <- function(mixtures, phis = NULL, changepoints=NULL, linearX = T, anmac = T, ...){
+
+plotTrajectory <- function(mixtures, changepoints = NULL,
+                           linearX = T, anmac = T, results = NULL){
+
+  if(!is.null(results)){
+    mixtures <- results[["mixtures"]]
+    changepoints <- results[["changepoints"]]
+  }
+
+  # set the phis to colnames(mixtures) - note used when anmac = T
+  phis <- as.numeric(colnames(mixtures))
 
   # mixtures and phis are binned the same way
-  assertthat::assert_that(length(phis) == dim(mixtures)[2])
+  assertthat::assert_that(length(phis) == dim(mixtures)[2],
+                          msg = "The mixtures object is mal-specified. Column names should correspond to binned phis.")
 
-  # phis should be decreasing
-  assertthat::assert_that(all(order(phis, decreasing = T) == 1:length(phis)))
+  # phis should be decreasings
+  assertthat::assert_that(all(order(phis, decreasing = T) == 1:length(phis)),
+                          msg = "The mixtures object is mal-specified. Binned phis (column names) should be in decreasing order.")
 
   if(!anmac){ # take x-axis as ccf scale
 
@@ -151,10 +173,6 @@ plotTrajectory <- function(mixtures, phis = NULL, changepoints=NULL, linearX = T
            + ggplot2::theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
            + ggplot2::ylab("Signature Exposure (%)")
            + ggplot2::xlab(xAx)
-
-
-           # TODO: allow additional input to ggplot
-           #+ list(...)
   )
 
 

@@ -436,47 +436,4 @@ getBinCounts <- function(vcaf, binSize, context){
 }
 
 
-#' \code{getBinCounts} Get the mutation type counts data for a vcaf dataframe
-#'
-#' @rdname loadData
-#' @name csvToCounts
-
-csvToCounts <- function(file, refGenome, binSize, cna = NULL, ...){
-  # prepare spacial csv for spaceTrack
-
-  # read in data
-  spaceData <- read.csv(file, ...)
-
-  # TODO: option for cna annotation?
-  # TODO: get context from supplied referenceSignatures
-  context <- generateContext(c("CG", "TA"))
-
-  # TODO: too bespoke
-  colnames(spaceData)[colnames(spaceData) == "Reference_Allele"] <- "ref"
-  colnames(spaceData)[colnames(spaceData) == "Tumor_Seq_Allele2"] <- "alt"
-  colnames(spaceData)[colnames(spaceData) == "Start_position"] <- "pos"
-  colnames(spaceData)[colnames(spaceData) == "Chromosome"] <- "chr"
-
-  # vcaf is a data.frame, and only named accessor funcitons and dim()[1] are considered.
-  # can simply skip vcafConstruction() and the rest should follow. Can simply set phi to the
-  # chromosome position and ordering on that will be fine.
-  # TODO: possibly accept strand info (so far looks like all +)
-
-  spaceData <- getTrinuc(spaceData, refGenome)
-
-  # split on chromosome
-  vcafs <- list()
-  for (chrm in unique(spaceData$chr)){
-    binSize <- min(binSize, sum(spaceData$chr == chrm))
-    vcafs[[as.character(chrm)]] <- getBinCounts(spaceData[spaceData$chr == chrm,], binSize, context)
-  }
-
-  # assign bins and get counts
-
-  # normalize bin counts by trinucleotide background
-
-  #
-
-}
-
 # [END]

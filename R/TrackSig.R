@@ -11,15 +11,6 @@ detectActiveSignatures <- function(sample, referenceSignatures){
   NULL
 }
 
-spaceTrack <- function(spacialFile){
-
-  # construct TrackSig formatted input
-
-  # run each chromosome sequentially
-
-  # plot?
-
-}
 
 #' \code{TrackSig} Take an input vcf file and annotation and generate the counts data.
 #' Create all plotting output that compute_signatures_for_all_examples does.
@@ -94,26 +85,29 @@ TrackSig <- function(vcfFile,
   # compute results
   list[changepoints, mixtures] <- getChangepointsPELT(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, desiredMinSegLen)
 
-  plot <- NULL
+  # mixtures should also contain binned phi
+  binned_phis <- aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
+  colnames(mixtures) <- binned_phis
 
   # side effect: plot
-  tryCatch({
+  #plot <- NULL
+  #tryCatch({
 
-            binned_phis <- aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
+  #          binned_phis <- aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
 
-            plot <- ( plotTrajectory(mixtures * 100, phis = binned_phis, changepoints, linearX = T, anmac = T)
-                      + ggtitle(paste0(sampleID, " Signature Trajectory"))
-                    )
+  #          plot <- ( plotTrajectory(mixtures * 100, phis = binned_phis, changepoints, linearX = T, anmac = T)
+  #                    + ggtitle(paste0(sampleID, " Signature Trajectory"))
+  #                  )
 
-            print(plot)
+  #          print(plot)
 
-           },
-           warning = function(w){w},
-           error = function(e){print("Error: failed to plot signature trajectory")}
-          )
+  #         },
+  #         warning = function(w){w},
+  #         error = function(e){print("Error: failed to plot signature trajectory")}
+  #        )
 
 
-  return (list(mixtures = mixtures, changepoints = changepoints, plot = plot, vcaf = vcaf))
+  return (list(mixtures = mixtures, changepoints = changepoints))
 }
 
 # list unpacker util: used internally in package TrackSig
