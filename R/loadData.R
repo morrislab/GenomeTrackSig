@@ -406,7 +406,7 @@ getBinCounts <- function(vcaf, binSize, context){
   print("Making counts...")
 
   nMut <- dim(vcaf)[1]
-  assertthat::assert_that(nMut > binSize, msg = "number of mutations may not be less than specified bin size")
+  assertthat::assert_that(nMut >= binSize, msg = "number of mutations may not be less than specified bin size")
   assertthat::assert_that(dim(unique(vcaf[c("ref","alt","mutType")]))[1] <= dim(context)[1], msg = sprintf("too many mutation types (%s) for context (%s)",
                                                                                                            dim(unique(vcaf[c("ref","alt","mutType")]))[1],  dim(context)[1]) )
 
@@ -441,26 +441,37 @@ getBinCounts <- function(vcaf, binSize, context){
 #' @rdname loadData
 #' @name csvToCounts
 
-csvToCounts <- function(file, ...){
+csvToCounts <- function(file, refGenome, binSize, cna = NULL, ...){
   # prepare spacial csv for spaceTrack
 
   # read in data
   spaceData <- read.csv(file, ...)
 
-  # assign bins and get counts
-
-  # TODO: geet context from supplied referenceSignatures
+  # TODO: option for cna annotation?
+  # TODO: get context from supplied referenceSignatures
   context <- generateContext(c("CG", "TA"))
 
   # TODO: too bespoke
   colnames(spaceData)[colnames(spaceData) == "Reference_Allele"] <- "ref"
   colnames(spaceData)[colnames(spaceData) == "Tumor_Seq_Allele2"] <- "alt"
-  spaceData$mutType <- NULL
+  colnames(spaceData)[colnames(spaceData) == "Start_position"] <- "pos"
+  colnames(spaceData)[colnames(spaceData) == "Chromosome"] <- "chr"
 
   # vcaf is a data.frame, and only named accessor funcitons and dim()[1] are considered.
   # can simply skip vcafConstruction() and the rest should follow. Can simply set phi to the
   # chromosome position and ordering on that will be fine.
+  # TODO: possibly accept strand info (so far looks like all +)
 
+  spaceData <- getTrinuc(spaceData, refGenome)
+
+  # split on chromosome
+  vcafs <- list()
+  for (chrm in unique(spaceData$chr)){
+    binSize <- min(binSize, sum(spaceData$chr == chrm))
+    vcafs[[as.character(chrm)]] <- getBinCounts(spaceData[spaceData$chr == chrm,], binSize, context)
+  }
+
+  # assign bins and get counts
 
   # normalize bin counts by trinucleotide background
 
