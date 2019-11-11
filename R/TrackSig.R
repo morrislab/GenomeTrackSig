@@ -2,13 +2,19 @@
 # Defines main functions for user to interact with package TrackSig.
 # Author: Cait Harrigan
 
-
-detectActiveSignatures <- function(sample, referenceSignatures){
+#' get binCounts from vcfToCounts
+#'
+#' @export
+detectActiveSignatures <- function(binCounts, referenceSignatures = alex_merged, threshold = 0.05, prior = NULL){
 
   # return list of active signatures in sample, whether by matching per-cancer-type to provided data,
   # or fitting all counts by EM. If not using this function, must provide active signatures per sample
 
-  NULL
+  counts <-  rowSums(binCounts)
+  mixtures <- fitMixturesEM(counts, referenceSignatures, prior=prior)
+  mixtures <- mixtures[mixtures >= threshold]
+
+  return(names(mixtures))
 }
 
 
@@ -34,7 +40,7 @@ TrackSig <- function(vcfFile,
                      cnaFile = NULL,
                      purity = NULL,
                      sampleID = NULL,
-                     referenceSignatures = alex,
+                     referenceSignatures = alex_merged,
                      scoreMethod = "SigFreq",
                      binSize = 100,
                      desiredMinSegLen = NULL,
@@ -70,9 +76,14 @@ TrackSig <- function(vcfFile,
   context <- generateContext(c("CG", "TA"))
 
   # TODO: other parameters non-default options
-  list[vcaf, countsPerBin] <- vcfToCounts(vcfFile, cnaFile, purity, binSize, context, refGenome)
+  list[vcaf, countsPerBin] <- vcfToCounts(vcfFile = vcfFile, cnaFile = cnaFile,
+                                          purity = purity, binSize = binSize,
+                                          context = context, refGenome = refGenome)
 
-  assertthat::assert_that(all(rownames(countsPerBin) %in% rownames(referenceSignatures)), msg = "Mutation type counts failed.")
+  assertthat::assert_that(all(rownames(countsPerBin) %in%
+                                rownames(referenceSignatures)),
+                          msg = "Mutation type counts failed.")
+
   countsPerBin <- countsPerBin[rownames(referenceSignatures),]
 
   # subset referenceSignatures with activeInSample
@@ -83,7 +94,12 @@ TrackSig <- function(vcfFile,
   }
 
   # compute results
-  list[changepoints, mixtures] <- getChangepointsPELT(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, desiredMinSegLen)
+  list[mixtures, changepoints] <- getChangepointsPELT(vcaf = vcaf,
+                                                      countsPerBin = countsPerBin,
+                                                      referenceSignatures = referenceSignatures,
+                                                      scoreMethod = scoreMethod,
+                                                      binSize = binSize,
+                                                      desiredMinSegLen = desiredMinSegLen)
 
   # mixtures should also contain binned phi
   binned_phis <- aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x

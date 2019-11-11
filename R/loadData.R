@@ -16,7 +16,7 @@
 #'
 #' @export
 vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
-                        context = generateContext(c("CG", "TA")),
+                        context = generateContext(c("CG", "TA")), verbose = F,
                         refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19) {
 
 
@@ -36,13 +36,13 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
   cna <- parseCnaFile(cnaFile)
 
   # vcaf has vcf and vaf data concatenated
-  vcaf <- getVcaf(vcf, purity, cna, refGenome)
-  vcaf <- getTrinuc(vcaf, refGenome)
+  vcaf <- getVcaf(vcf, purity, cna, refGenome, verbose)
+  vcaf <- getTrinuc(vcaf, refGenome, verbose)
 
-  list[vcaf, countsPerBin] <- getBinCounts(vcaf, binSize, context)
+  list[vcaf, countsPerBin] <- getBinCounts(vcaf, binSize, context, verbose)
 
   # clean up unecessary vcaf features
-  vcaf <- vcaf[,c("phi", "qi", "bin")]
+  vcaf <- vcaf[,c("chr", "pos", "cn", "mutType", "alt", "phi", "qi", "bin")]
 
   return( list(vcaf = vcaf, countsPerBin = countsPerBin) )
 
@@ -216,14 +216,14 @@ annotateCn <- function(vcf, cnaGR = NULL){
 #' @param refGenome reference BSgenome to use
 #' @return A vcaf dataframe that has vcf and vaf data concatenated
 
-getVcaf <- function(vcf, purity, cna, refGenome){
+getVcaf <- function(vcf, purity, cna, refGenome, verbose = F){
   #replaces make_corrected_vaf.py
 
   # annotate the vcf with copy number
   vcf <- annotateCn(vcf, cna)
 
   # prelim formatting check
-  vcaf <- vcafConstruction(vcf, refGenome)
+  vcaf <- vcafConstruction(vcf, refGenome, verbose = verbose)
 
   # calculate phi
   phat <- rbeta(dim(vcaf)[1], vcaf$vi + 1, vcaf$ri + 1)
@@ -251,11 +251,11 @@ getVcaf <- function(vcf, purity, cna, refGenome){
 #' @param refGenome reference BSgenome to use
 #' @return A vcaf dataframe that has vcf and vaf data concatenated
 
-vcafConstruction <- function(vcf, refGenome){
+vcafConstruction <- function(vcf, refGenome, verbose = F){
   # some VCF formatting checks, filter for SNP's
   # no read quality filtering performed.
 
-  print("Parsing VCF...")
+  if(verbose){ print("Parsing VCF...") }
 
   # input checking
   assertthat::assert_that(class(refGenome) == "BSgenome")
@@ -336,10 +336,10 @@ vcafConstruction <- function(vcf, refGenome){
 #' @param refGenome reference BSgenome to use
 #' @param intermediateFile file where to save intermediate results if saveIntermediate is True
 #' @return An updated vcaf data frame with trinucleotide context added for each mutation
-getTrinuc <- function(vcaf, refGenome){
+getTrinuc <- function(vcaf, refGenome, verbose = F){
   # replaces getMutationTypes.pl
 
-  print("Making mutation types...")
+  if(verbose){ print("Making mutation types...") }
 
   # input checking
   assertthat::assert_that(class(refGenome) == "BSgenome")
@@ -365,7 +365,7 @@ getTrinuc <- function(vcaf, refGenome){
     #vcaf <- vcaf[-mismatchedRef,]
     #context <- context[-mismatchedRef]
 
-    warning( sprintf("%s (of %s) mutations have vcf refrence allele mismatch with the selected reference genome" , length(mismatchedRef), dim(vcaf)[1] ) )
+    warning( sprintf("%s (of %s) mutations have vcf refrence allele mismatch with the selected reference genome\n" , length(mismatchedRef), dim(vcaf)[1] ) )
     substr(vcaf$mutType, 2, 2) <- vcaf$ref
   }
 
@@ -373,7 +373,7 @@ getTrinuc <- function(vcaf, refGenome){
   rmSet <- !sapply(triNuc, FUN = BSgenome::hasOnlyBaseLetters)
   if (sum(rmSet) > 0){
 
-    warning( sprintf("%s (of %s) mutations dropped for uncertain identity in reference genome" , sum(rmSet), dim(vcaf)[1]) )
+    warning( sprintf("%s (of %s) mutations dropped for uncertain identity in reference genome\n" , sum(rmSet), dim(vcaf)[1]) )
     vcaf <- vcaf[rmSet,]
   }
 
@@ -400,10 +400,10 @@ getTrinuc <- function(vcaf, refGenome){
 #' @param binSize number of mutations per bin
 #' @param context trinucleotide combinations possible
 #' @return A data frame of summary statistics and mutation type counts for each bin.
-getBinCounts <- function(vcaf, binSize, context){
+getBinCounts <- function(vcaf, binSize, context, verbose = F){
   # replaces make_hundreds.py script
 
-  print("Making counts...")
+  if(verbose){ print("Making counts...") }
 
   nMut <- dim(vcaf)[1]
   assertthat::assert_that(nMut >= binSize, msg = "number of mutations may not be less than specified bin size")

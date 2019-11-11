@@ -23,7 +23,8 @@ Imports:
     GenomicRanges,
     Biostrings,
     SummarizedExperiment,
-    VariantAnnotation
+    VariantAnnotation,
+    progress
 LinkingTo: 
 Suggests:
     testthat,

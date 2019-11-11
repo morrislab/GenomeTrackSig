@@ -6,7 +6,7 @@
 Create all plotting output that compute_signatures_for_all_examples does.}
 \usage{
 TrackSig(vcfFile, activeInSample, cnaFile = NULL, purity = NULL,
-  sampleID = NULL, referenceSignatures = alex,
+  sampleID = NULL, referenceSignatures = alex_merged,
   scoreMethod = "SigFreq", binSize = 100, desiredMinSegLen = NULL,
   refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
 }

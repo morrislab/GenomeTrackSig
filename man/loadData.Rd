@@ -15,7 +15,7 @@
 \title{\code{vcfToCounts} Take an input vcf file and annotation and generate the counts data}
 \usage{
 vcfToCounts(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
-  context = generateContext(c("CG", "TA")),
+  context = generateContext(c("CG", "TA")), verbose = F,
   refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
 
 vcfToCounts_simulation(vcfFile, mutTypesFile, cnaFile = NULL,
@@ -32,13 +32,13 @@ parsePurityFile(purityFile)
 
 annotateCn(vcf, cnaGR = NULL)
 
-getVcaf(vcf, purity, cna, refGenome)
+getVcaf(vcf, purity, cna, refGenome, verbose = F)
 
-vcafConstruction(vcf, refGenome)
+vcafConstruction(vcf, refGenome, verbose = F)
 
-getTrinuc(vcaf, refGenome)
+getTrinuc(vcaf, refGenome, verbose = F)
 
-getBinCounts(vcaf, binSize, context)
+getBinCounts(vcaf, binSize, context, verbose = F)
 }
 \arguments{
 \item{vcfFile}{path to variant calling format (VCF) file}

@@ -14,7 +14,6 @@
 #' head(context)
 #'
 #' @name generateContext
-#' @export
 
 generateContext <- function(alphabet){
 
@@ -329,18 +328,20 @@ getActualMinSegLen <- function(desiredMinSegLen, binSize){
 
 # Find optimal changepoint and mixtures using PELT method.
 # if desiredMinSegLen is NULL, the value will be selected by default based off binSize to try to give good performance
-getChangepointsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize = 100, desiredMinSegLen = NULL)
+#' #' @name getChangepointsPELT
+#' @export
+getChangepointsPELT <- function(vcaf, countsPerBin, referenceSignatures, scoreMethod, binSize = 100, desiredMinSegLen = NULL)
 {
 
   minSegLen <- getActualMinSegLen(desiredMinSegLen, binSize)
   score_matrix <- scorePartitionsPELT(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, minSegLen)
 
-  print(score_matrix[1:15, 1:15])
+  #print(score_matrix[1:15, 1:15])
 
   changepoints <- recoverChangepoints(score_matrix)
   mixtures <- fitMixturesInTimeline(countsPerBin, changepoints, referenceSignatures)
 
-  return(list(changepoints = changepoints, mixtures = mixtures))
+  return(list(mixtures = mixtures, changepoints = changepoints))
 }
 
 # Calculate penalized BIC score for all partitions using PELT method.
@@ -360,11 +361,15 @@ scorePartitionsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMe
   max_sp_scores <- numeric(n_bins)
   prune_set <- c()
 
+  # Replace print msg with progress bar
+  pb <- progress_bar$new(format = "Scoring subpartitions: [:bar] :percent",
+                         total = n_bins, clear = FALSE, width = 60)
+
   # Score all subproblems of length sp_len using last_cp as last changepoint
   for (sp_len in 1:n_bins)
   {
     valid_cps <- setdiff(0:(sp_len - 1), prune_set)
-    print(paste0("Scoring subpartitions of length: ", sp_len, "/", n_bins))
+    pb$tick()
 
     for (last_cp in valid_cps){
 
