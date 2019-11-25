@@ -8,18 +8,14 @@ sim_dir=$3
 simulation_name=$4
 bin_size=$5
 
-mkdir -p $outdir/mut_types/
-mkdir -p $outdir/mut_order/
-mkdir -p $outdir/counts/
-mkdir -p $outdir/bootstrap/
+mkdir -p "$outdir"/mut_types/
+mkdir -p "$outdir"/mut_order/
+mkdir -p "$outdir"/counts/
+mkdir -p "$outdir"/bootstrap/
 
 if [[ -z $outdir ]]; then
 	echo "Please provide an output directory ... exiting"
 	exit
-fi
-
-if [ ! -d "$outdir" ]; then
-  mkdir -p $outdir
 fi
 
 if [[ -z $simulation_name ]]; then
@@ -32,26 +28,27 @@ fi
 python "$package_path/python/make_corrected_vaf.py" --vcf $sim_dir/"$simulation_name".vcf --cnv $sim_dir/"$simulation_name"_cna.txt --output $sim_dir/"$simulation_name"_vaf.txt
 
 # take out tri header
-tail -n +2 $sim_dir/"$simulation_name"_tri.txt > tmp
+tail -n +2 $sim_dir/"$simulation_name"_tri.txt > "$simulation_name"_tmp
 
 # take out tri chr (interferes with sort) and sort
-sed 's/^...//' tmp | sort -n > tmp_tri
+sed 's/^...//' "$simulation_name"_tmp | sort -n > "$simulation_name"_tmp_tri
 
 # sort and extract phis
-sort -n $sim_dir/"$simulation_name"_vaf.txt > tmp_vaf
+sort -n $sim_dir/"$simulation_name"_vaf.txt > "$simulation_name"_tmp_vaf
 
 # put together mutation_types file
-sort -k 3 -r <(paste <(cut -f1,2 tmp_tri) <(cut -d= -f2 tmp_vaf) <(cut -f3,4,5 tmp_tri)) | cat > "$simulation_name".mut_types.txt
+sort -k 3 -r <(paste <(cut -f1,2 "$simulation_name"_tmp_tri) <(cut -d= -f2 "$simulation_name"_tmp_vaf) <(cut -f3,4,5 "$simulation_name"_tmp_tri)) | cat > "$simulation_name".mut_types.txt
 
 # restore chr prefix
-sed -e 's/^/chr/' -i "$simulation_name".mut_types.txt
+sed -e 's/^/chr/' -i.bkp "$simulation_name".mut_types.txt
 #ex -sc '%s/^/chr/wq' "$simulation_name".mut_types.txt
 
 # relocate to outdir
 mv "$simulation_name".mut_types.txt $outdir/mut_types/
 
 # clean up
-rm tmp*
+rm "$simulation_name"_tmp*
+rm "$simulation_name"*.bkp
 
 # make counts
 "$package_path/scripts/sim_make_counts.sh" $package_path $sim_dir/"$simulation_name".vcf $sim_dir/"$simulation_name"_vaf.txt $bin_size $outdir

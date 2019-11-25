@@ -130,8 +130,12 @@ NULL
   # bin size for timepoints
   , bin_size = 100
 
-  , pelt_penalty = NULL
-  , pelt_score_fxn = NULL
+  # likelihoods
+  , pelt_penalty = expression((n_sigs - 1) * log(n_bins))
+  , pelt_score_fxn = TrackSig:::log_likelihood_mixture_multinomials
+
+  # save space on simulation output
+  , simulation_pdf = TRUE
 
 )
 
