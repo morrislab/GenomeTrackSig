@@ -13,8 +13,8 @@ addPhiHist <- function(sigPlot, vcaf){
                           msg = "can't add phi histogram to linearly scaled axis")
 
 
-  sigs <- unique(sigPlot$data$Signatures)
-  inBin <- aggregate(vcaf, by = list(vcaf$bin), FUN = length)$bin
+  sigs <- base::unique(sigPlot$data$Signatures)
+  inBin <- stats::aggregate(vcaf, by = list(vcaf$bin), FUN = length)$bin
 
 
   sigPlot$data$bin <- rep((dim(sigPlot$data)[1]/length(sigs)):1, each = length(sigs))
@@ -59,32 +59,28 @@ addPhiHist <- function(sigPlot, vcaf){
 #' pseudo-time. Provided changepoints will be highlighted.
 #'
 #'
-#' @param results a list containing named elements "mixtures" and "changepoints"
-#'   if mixtures and/or changepoints are independently provided as parameters,
-#'   they will override the results parameter. This parameter is included for
-#'   ease of use in combination with \code{TrackSig()} and has no other special
-#'   function.
-#' @param mixtures mixture of signatures over bins, as output by TrackSig. Note:
-#'   The column names of this object are used to draw the x-axis. They should
-#'   correspond to binned phis.
-#' @param changepoints list of changepoints to mark on the trajectory plot
+#' @param trajectory a list containing named elements "mixtures", "changepoints",
+#'   and "binData". See @seealso \link{TrackSig}.
 #' @param linearX logical whether to plot with a linearly spaced x-axis grid, or
 #'   with binned phi values
 #' @param anmac logical whether to plot x-axis restricted to ccf space, or use
 #'   estimated average number of mutant alleles per cell (anmac)
+#' @param phiHist logical whether to include marginal histogram of phis on top
+#'   of trajectory plot. Can only be used with linearX = FALSE.
 
 #' @return ggplot object
 #'
 #' @name plotTrajectory
 #' @export
 
-plotTrajectory <- function(results = NULL, mixtures = NULL, changepoints = NULL,
-                           linearX = T, anmac = T){
+plotTrajectory <- function(trajectory, linearX = F, anmac = T, phiHist = T){
 
-  if(!is.null(results)){
-    mixtures <- results[["mixtures"]]
-    changepoints <- results[["changepoints"]]
+  if(!is.null(trajectory)){
+    mixtures <- trajectory[["mixtures"]]
+    changepoints <- trajectory[["changepoints"]]
+    binData <- trajectory[["binData"]]
   }
+
 
   assertthat::assert_that(!is.null(mixtures), msg = "Could not find mixtures for timeline, please supply through results or mixtures paramter.")
 
@@ -119,10 +115,10 @@ plotTrajectory <- function(results = NULL, mixtures = NULL, changepoints = NULL,
 
   # Plotting the change of mutational signature weights during evolution specified as the order of phi
   colnames(mixtures) <- dim(mixtures)[2]:1
-  trajectory <- reshape2::melt(mixtures)
-  colnames(trajectory) <- c("Signatures", "xBin", "exposure")
-  trajectory$xBin <- as.numeric(trajectory$xBin)
-  trajectory$exposure <- as.numeric(trajectory$exposure)
+  timeline <- reshape2::melt(mixtures)
+  colnames(timeline) <- c("Signatures", "xBin", "exposure")
+  timeline$xBin <- as.numeric(timeline$xBin)
+  timeline$exposure <- as.numeric(timeline$exposure)
 
   if(!linearX){ # ggplot formatting specific for real scale
 
@@ -137,10 +133,10 @@ plotTrajectory <- function(results = NULL, mixtures = NULL, changepoints = NULL,
     ticLab[ticSel] <- round(phis, 2)[ticSel]
 
     # increasing phi by bin
-    trajectory$xBin <- phis[trajectory$xBin]
-    trajectory$xBin <- trajectory$xBin[length(trajectory$xBin) : 1]
+    timeline$xBin <- phis[timeline$xBin]
+    timeline$xBin <- timeline$xBin[length(timeline$xBin) : 1]
 
-    g <- (  ggplot2::ggplot(data = trajectory)
+    g <- (  ggplot2::ggplot(data = timeline)
           + ggplot2::geom_vline(xintercept = phis, alpha = 0.3)
           + ggplot2::aes(x = xBin, y = exposure, group = Signatures, color = Signatures)
           + ggplot2::scale_x_reverse(breaks = phis, labels = ticLab)
@@ -149,6 +145,13 @@ plotTrajectory <- function(results = NULL, mixtures = NULL, changepoints = NULL,
     # slice changepoints (reverse axis means max to min)
     cpPos <- cbind(phis[changepoints], phis[changepoints + 1])
 
+    # add phi hat plot
+    if(phiHist == T){
+
+      g <- addPhiHist(g, binData)
+
+    }
+
 
   }else{ # ggplot formatting specific for linear scale
 
@@ -156,7 +159,7 @@ plotTrajectory <- function(results = NULL, mixtures = NULL, changepoints = NULL,
     ticLab <- rep("", length(phis))
     ticLab[ticSel] <- round(phis, 2)[ticSel]
 
-    g <- (  ggplot2::ggplot(data = trajectory)
+    g <- (  ggplot2::ggplot(data = timeline)
           + ggplot2::geom_vline(xintercept = 0:(length(phis) + 1), alpha = 0.3)
           + ggplot2::aes(x = xBin, y = exposure, group = Signatures, color = Signatures)
           + ggplot2::scale_x_reverse(breaks = length(phis):1, labels = ticLab)

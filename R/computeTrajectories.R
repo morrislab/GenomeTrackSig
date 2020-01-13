@@ -341,6 +341,10 @@ getChangepointsPELT <- function(vcaf, countsPerBin, referenceSignatures, scoreMe
   changepoints <- recoverChangepoints(score_matrix)
   mixtures <- fitMixturesInTimeline(countsPerBin, changepoints, referenceSignatures)
 
+  # mixtures should also contain binned phi
+  binned_phis <- stats::aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
+  colnames(mixtures) <- binned_phis
+
   return(list(mixtures = mixtures, changepoints = changepoints))
 }
 
@@ -362,7 +366,7 @@ scorePartitionsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMe
   prune_set <- c()
 
   # Replace print msg with progress bar
-  pb <- progress_bar$new(format = "Scoring subpartitions: [:bar] :percent",
+  pb <- progress::progress_bar$new(format = "Scoring subpartitions: [:bar] :percent",
                          total = n_bins, clear = FALSE, width = 60)
 
   # Score all subproblems of length sp_len using last_cp as last changepoint

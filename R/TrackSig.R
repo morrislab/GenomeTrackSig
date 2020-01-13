@@ -3,6 +3,10 @@
 # Author: Cait Harrigan
 
 #' get binCounts from vcfToCounts
+#' @param binCounts TODO
+#' @param referenceSignatures TODO
+#' @param threshold TODO
+#' @param prior TODO
 #'
 #' @export
 detectActiveSignatures <- function(binCounts, referenceSignatures = alex_merged, threshold = 0.05, prior = NULL){
@@ -25,13 +29,16 @@ detectActiveSignatures <- function(binCounts, referenceSignatures = alex_merged,
 #' @name TrackSig
 #'
 #' @param vcfFile path to variant calling format (vcf) file
+#' @param activeInSample list of signatures that are active. All listed signatures
+#' must be present in the referenceSIgnatures dataframe.
 #' @param cnaFile path to copy number abberation (cna) file
-#' @param purityFile path to sample purity file
 #' @param sampleID name to call sample. If none provided, name will be automatically drawn from the provided vcf file name.
-#' @param saveIntermediate boolean whether to save intermediate results (mutation types)
-#'
-#'
-#' activeInSample is list used to subset referenceSignatures
+#' @param referenceSignatures TODO
+#' @param purity TODO
+#' @param scoreMethod TODO
+#' @param binSize TODO
+#' @param desiredMinSegLen TODO
+#' @param refGenome TODO
 #'
 #' @export
 
@@ -101,10 +108,6 @@ TrackSig <- function(vcfFile,
                                                       binSize = binSize,
                                                       desiredMinSegLen = desiredMinSegLen)
 
-  # mixtures should also contain binned phi
-  binned_phis <- aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
-  colnames(mixtures) <- binned_phis
-
   # side effect: plot
   #plot <- NULL
   #tryCatch({
@@ -123,7 +126,7 @@ TrackSig <- function(vcfFile,
   #        )
 
 
-  return (list(mixtures = mixtures, changepoints = changepoints))
+  return (list(mixtures = mixtures, changepoints = changepoints, binData = vcaf))
 }
 
 # list unpacker util: used internally in package TrackSig
@@ -140,6 +143,12 @@ list <- structure(NA,class="result")
   }
   x
 }
+
+TSresult <- structure(list(), class = "TS.trajectory",
+                      mixtures = NULL, changepoints = NULL,
+                      binData = NULL, binSize = 100
+                      )
+
 
 
 
