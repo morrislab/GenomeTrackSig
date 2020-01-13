@@ -13,16 +13,26 @@ TrackSig(vcfFile, activeInSample, cnaFile = NULL, purity = NULL,
 \arguments{
 \item{vcfFile}{path to variant calling format (vcf) file}
 
+\item{activeInSample}{list of signatures that are active. All listed signatures
+must be present in the referenceSIgnatures dataframe.}
+
 \item{cnaFile}{path to copy number abberation (cna) file}
+
+\item{purity}{TODO}
 
 \item{sampleID}{name to call sample. If none provided, name will be automatically drawn from the provided vcf file name.}
 
+\item{referenceSignatures}{TODO}
+
+\item{scoreMethod}{TODO}
+
+\item{binSize}{TODO}
+
+\item{desiredMinSegLen}{TODO}
+
+\item{refGenome}{TODO}
+
 \item{purityFile}{path to sample purity file}
-
-\item{saveIntermediate}{boolean whether to save intermediate results (mutation types)
-
-
-activeInSample is list used to subset referenceSignatures}
 }
 \description{
 \code{TrackSig} Take an input vcf file and annotation and generate the counts data.

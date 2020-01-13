@@ -4,27 +4,20 @@
 \alias{plotTrajectory}
 \title{Plot the exolutionary trajectory of a tumour.}
 \usage{
-plotTrajectory(results = NULL, mixtures = NULL, changepoints = NULL,
-  linearX = T, anmac = T)
+plotTrajectory(trajectory, linearX = F, anmac = T, phiHist = T)
 }
 \arguments{
-\item{results}{a list containing named elements "mixtures" and "changepoints"
-if mixtures and/or changepoints are independently provided as parameters,
-they will override the results parameter. This parameter is included for
-ease of use in combination with \code{TrackSig()} and has no other special
-function.}
-
-\item{mixtures}{mixture of signatures over bins, as output by TrackSig. Note:
-The column names of this object are used to draw the x-axis. They should
-correspond to binned phis.}
-
-\item{changepoints}{list of changepoints to mark on the trajectory plot}
+\item{trajectory}{a list containing named elements "mixtures", "changepoints",
+and "binData". See @seealso \link{TrackSig}.}
 
 \item{linearX}{logical whether to plot with a linearly spaced x-axis grid, or
 with binned phi values}
 
 \item{anmac}{logical whether to plot x-axis restricted to ccf space, or use
 estimated average number of mutant alleles per cell (anmac)}
+
+\item{phiHist}{logical whether to include marginal histogram of phis on top
+of trajectory plot. Can only be used with linearX = FALSE.}
 }
 \value{
 ggplot object

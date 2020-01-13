@@ -7,6 +7,15 @@
 detectActiveSignatures(binCounts, referenceSignatures = alex_merged,
   threshold = 0.05, prior = NULL)
 }
+\arguments{
+\item{binCounts}{TODO}
+
+\item{referenceSignatures}{TODO}
+
+\item{threshold}{TODO}
+
+\item{prior}{TODO}
+}
 \description{
 get binCounts from vcfToCounts
 }
