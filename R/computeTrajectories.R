@@ -67,8 +67,7 @@ makeBinaryTable <- function(multinomial_vector)
 # fit mixture of multinomials to the vector
 fitMixturesEM <- function(counts, composing_multinomials, prior=NULL)
 {
-
-  multinomial_vector <- rowSums(counts)
+  multinomial_vector <- rowSums(as.matrix(counts))
 
   # Number of mutations to fit
   nMut = sum(multinomial_vector)
@@ -226,21 +225,53 @@ fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_chan
 }
 
 
+estDir <- function(counts, bin_size, epsilon = 1e-04, nit=500){
+  # estimate the dirichlet piror parameter that produced the counts
 
+  N <- dim(counts)[2] * bin_size
+  counts <- rowSums(as.matrix(counts))
+  p <- counts / N
+
+  stopifnot(all(p >= 0))
+
+  # random initialization
+  alphas <- runif(N)
+
+  s <- sum(alphas)
+  m <- alphas / s
+  lgpHat <- rowSums(log(as.matrix(counts))) /
+
+  # iteratively estimate m, then s
+  conv <- F
+  while(!conv){
+
+    last <- c(m, s)
+
+    # update m
+
+
+    # update s
+
+    # check convergence
+    this <- c(m, s)
+    nit <- nit - 1
+    conv <- ( any(abs(last - this) <= epsilon) | (nit == 0) )
+  }
+
+}
 
 multinomialLL <- function(counts, ...){
   # multinomial likelihood of mutation type distribution in the signature-free setting.
 
-  list[loglik, ite, gamma, pi, theta] <- dirmult(counts)
+  list[loglik, ite, gamma, pi, theta] <- dirmult::dirmult(counts)
 
-  counts <- rowSums(counts)
+  counts <- rowSums(as.matrix(counts))
   k <- length(counts)
   n <- sum(counts)
 
   alpha <- pi * theta
 
   #alpha <- rep(1, k)
-
   #p_mle <- (counts + 1) / (n + k)
 
   # wiki
@@ -259,10 +290,13 @@ multinomialLL <- function(counts, ...){
   #)
 
   # uniformative prior with mle estimates
-  ll <- ( lgamma(n+1) + lgamma(sum(alpha)) - lgamma(n + sum(alpha)) + sum( lgamma(counts + alpha) - lgamma(counts + 1) - lgamma(alpha) ) )
+  # ll <- ( lgamma(n+1) + lgamma(sum(alpha)) - lgamma(n + sum(alpha)) + sum( lgamma(counts + alpha) - lgamma(counts + 1) - lgamma(alpha) ) )
 
   # in terms of beta
   #ll <- ( log(n) + lbeta(k, n) - sum( log(counts[counts != 0]) + lbeta(a[counts != 0], counts[counts != 0]) ) )
+
+  # categorical2
+  ll <- lgamma(sum(alpha)) + sum(lgamma(counts + alpha)) - lgamma(n + sum(alpha)) - sum(lgamma(alpha))
 
   #print(ll)
   return(ll)
@@ -271,6 +305,7 @@ multinomialLL <- function(counts, ...){
 mixtureLL <- function(counts, composing_multinomials, mixtures, ...) {
   # replaces log_likelihood_mixture_multinomials
   multinomial_vector <- rowSums(counts)
+  #multinomial_vector <- counts
   mutation_binary_table <- makeBinaryTable(multinomial_vector)
 
   # mutation_probabilities_under_signature_mixture[i,n] corresponds to class/signature i and sample/mutation n
@@ -415,7 +450,7 @@ scorePartitionsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMe
       # score segment
       sp_slice <- c((last_cp + 1), sp_len)
       r_seg_qis <- vcaf$qi[vcaf$bin %in% (sp_slice[1] : sp_slice[2])]
-      r_seg_counts <- rowSums(countsPerBin[, sp_slice[1] : sp_slice[2], drop = FALSE])
+      r_seg_counts <- (countsPerBin[, sp_slice[1] : sp_slice[2]])
       r_seg_mix <- fitMixturesEM(r_seg_counts, referenceSignatures)
 
 
