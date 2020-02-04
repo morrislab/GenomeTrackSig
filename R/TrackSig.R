@@ -144,12 +144,20 @@ list <- structure(NA,class="result")
   x
 }
 
-TSresult <- structure(list(), class = "TS.trajectory",
-                      mixtures = NULL, changepoints = NULL,
-                      binData = NULL, binSize = 100
-                      )
 
+# constructor function for tracksig results. Returned by TrackSig when class=T
+TS.trajectory <- function(sampleID = NULL, scoreMethod = NULL,
+                          mixtures = NULL, changepoints = NULL,
+                          binData = NULL, binSize = NULL){
 
+  return(structure(list(), class = "TS.trajectory",
+                      sampleID = sampleID, scoreMethod = scoreMethod,
+                      mixtures = mixtures, changepoints = changepoints,
+                      binData = binData, binSize = binSize
+                    )
+        )
+}
 
+is.TS.trajectory <- function(x) inherits(x, "TS.trajectory")
 
 # [END]
