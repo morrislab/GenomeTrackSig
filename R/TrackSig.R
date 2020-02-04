@@ -17,6 +17,7 @@ detectActiveSignatures <- function(binCounts, referenceSignatures = alex_merged,
   counts <-  rowSums(binCounts)
   mixtures <- fitMixturesEM(counts, referenceSignatures, prior=prior)
   mixtures <- mixtures[mixtures >= threshold]
+  mixtures <- sort(mixtures, decreasing = T)
 
   return(names(mixtures))
 }
@@ -144,7 +145,7 @@ list <- structure(NA,class="result")
   x
 }
 
-
+# TODO: see http://adv-r.had.co.nz/S3.html for best practices
 # constructor function for tracksig results. Returned by TrackSig when class=T
 TS.trajectory <- function(sampleID = NULL, scoreMethod = NULL,
                           mixtures = NULL, changepoints = NULL,
