@@ -1,31 +1,89 @@
 # AUTHORS: Yulia Rubanova and Nil Sahin
 # Modified for package trackSig by Cait Harrigan
 
+#' This function from CRAN package MESS. Round vector of number to percentages
+#'
+#' Rounds a vector of numeric values to percentages ensuring that they add up to 100%
+#'
+#' Returns a vector of numeric values.
+#'
+#' @param x A numeric vector with non-negative values.
+#' @param decimals An integer giving the number of decimals that are used
+#' @param ties A string that is either 'random' (the default) or 'last'. Determines how to break ties. Random is random, last prefers to break ties at the last position
+#' @return Returns a numeric vector of the same length as x
+#' @author Claus Ekstrom \email{claus@@rprimer.dk}
+#' @keywords manip
+#' @examples
+#'
+#' f <- c(1,2,1,3,2,1,2,3,1)
+#' round_percent(f)
+#'
+round_percent <- function(x, decimals=0L, ties=c("random", "last")) {
+
+  ties <- match.arg(ties)
+
+  ## Do a few sanity checks
+  if (!is.numeric(x)) { stop("only works on numeric vectors") }
+  if (min(x)<0) { stop("only works on non-negative vectors") }
+  if (decimals<0) { stop("number of decimals should be a non-negative integer") }
+  decimals <- as.integer(decimals)
+
+  multiplier <- 10^(2+decimals)
+
+  x <- x/sum(x)*multiplier  # Standardize result
+  res <- floor(x)           # Find integer bits
+  rsum <- sum(res)          # Find out how much we are missing
+  if(rsum<multiplier) {
+    ## Distribute points based on remainders and a random tie breaker
+    tiebreaker <- switch(ties,
+                         random = sample(length(x)),
+                         last = seq(length(x))
+    )
+    o <- order(x%%1, tiebreaker, decreasing=TRUE)
+    res[o[1:(multiplier-rsum)]] <- res[o[1:(multiplier-rsum)]]+1
+  }
+  res/(10^decimals)
+}
+
 
 # TODO: phiHist plot - can be added on top of trajectory plot or examined alone
 # TODO: phiHist plot should be able to stack or exclude >1 ccf if x range is truncated.
-# TODO: vcaf needs to be accessible -> export vcafToCounts()
-addPhiHist <- function(sigPlot, vcaf){
+addPhiHist <- function(trajectory, trajPlot){
+
   # create phi histogram ggplot and add it on top of cpPlot
 
+  vcaf <- trajectory$binData
 
-  assertthat::assert_that((sigPlot$plot_env$linearX == FALSE),
-                          msg = "can't add phi histogram to linearly scaled axis")
+  # input checking
+  assertthat::assert_that((trajPlot$plot_env$linearX == FALSE),
+                          msg = "Can't add phi histogram to linearly scaled axis")
 
 
-  sigs <- base::unique(sigPlot$data$Signatures)
+  sigs <- base::unique(trajPlot$data$Signatures)
   inBin <- stats::aggregate(vcaf, by = list(vcaf$bin), FUN = length)$bin
 
+  trajPlot$data$bin <- rep((dim(trajPlot$data)[1]/length(sigs)):1, each = length(sigs))
 
-  sigPlot$data$bin <- rep((dim(sigPlot$data)[1]/length(sigs)):1, each = length(sigs))
-  vcaf$sigAssignment <- NA
+  # truncate vcaf if necessary (anmac = F may recude bins)
+  vcaf <- vcaf[vcaf$bin <= max(trajPlot$data$bin),]
+
+  vcaf$sigAssignment <- factor(NA, levels = sigs)
+
+  #barData <- sigPlot$data
+  #barData <- rep((dim(barData)[1]/length(sigs)):1, each = length(sigs))
 
   for (bin in vcaf$bin){
 
-    # toy get signatures for each mutation
-    sigFreq <- rep(sigs, times = round(sigPlot$data$exposure[sigPlot$data$bin == bin]/100 * inBin[bin], 0))
+    # get signatures for each mutation
 
-    # sample order
+    freq = trajPlot$data$exposure[trajPlot$data$bin == bin] * inBin[bin]
+    if(any(freq < 1)){
+      warning("Signatures with activity level less than 1% will not be displayed in the phi histogram")
+    }
+
+    sigFreq <- rep(sigs, times = round_percent(freq))
+
+    # sample order for pretty histograms
     sigFreq <- sample(sigFreq)
 
     # set signature assignment
@@ -34,9 +92,9 @@ addPhiHist <- function(sigPlot, vcaf){
   }
 
   # plot stacked phi histogram
-  phiHist <- ( ggplot(vcaf, aes(x = phi, fill = sigAssignment))
-               + geom_histogram(binwidth = 0.02, position = "stack")
-               + scale_fill_hue(limits=levels(vcaf$sigAssignment))
+  phiHist <- ( ggplot2::ggplot(vcaf, ggplot2::aes(x = phi, fill = sigAssignment))
+               + ggplot2::geom_histogram(binwidth = 0.02, position = "stack")
+               + ggplot2::scale_fill_hue(limits=levels(vcaf$sigAssignment))
                + ggplot2::xlab("")
                + ggplot2::ylab("")
                + ggplot2::theme_bw()
@@ -48,12 +106,12 @@ addPhiHist <- function(sigPlot, vcaf){
 
 
   # insert the histogram
-  plotHat <- cowplot::insert_xaxis_grob(sigPlot, phiHist, position = "top", height = grid::unit(0.15, "null"))
+  plotHat <- cowplot::insert_xaxis_grob(trajPlot, phiHist, position = "top", height = grid::unit(0.15, "null"))
 
   return(plotHat)
 }
 
-#' Plot the exolutionary trajectory of a tumour.
+#' Plot the exolutionary trajectory of a tumour
 #'
 #' For each bin in a set of signature mixtures, the mixture is plotted accross
 #' pseudo-time. Provided changepoints will be highlighted.
@@ -65,15 +123,13 @@ addPhiHist <- function(sigPlot, vcaf){
 #'   with binned phi values
 #' @param anmac logical whether to plot x-axis restricted to ccf space, or use
 #'   estimated average number of mutant alleles per cell (anmac)
-#' @param phiHist logical whether to include marginal histogram of phis on top
-#'   of trajectory plot. Can only be used with linearX = FALSE.
 
 #' @return ggplot object
 #'
 #' @name plotTrajectory
 #' @export
 
-plotTrajectory <- function(trajectory, linearX = F, anmac = T, phiHist = T){
+plotTrajectory <- function(trajectory, linearX = F, anmac = T){
 
   if(!is.null(trajectory)){
     mixtures <- trajectory[["mixtures"]]
@@ -81,10 +137,10 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = T, phiHist = T){
     binData <- trajectory[["binData"]]
   }
 
-
+  # input checking
   assertthat::assert_that(!is.null(mixtures), msg = "Could not find mixtures for timeline, please supply through results or mixtures paramter.")
 
-  # set the phis to colnames(mixtures) - note used when anmac = T
+  # set the phis to colnames(mixtures) - note: used when anmac = T
   phis <- as.numeric(colnames(mixtures))
 
   # mixtures and phis are binned the same way
@@ -120,9 +176,10 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = T, phiHist = T){
   timeline$xBin <- as.numeric(timeline$xBin)
   timeline$exposure <- as.numeric(timeline$exposure)
 
-  if(!linearX){ # ggplot formatting specific for real scale
 
-    # "real" scale shows ccf densities
+  if(!linearX){ # ggplot formatting specific for non-linear scale
+
+    # non-linear scale shows ccf densities
 
     # place labels in a way that depends on bin density
     # take 8 times the smallest spacing (%)
@@ -138,20 +195,12 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = T, phiHist = T){
 
     g <- (  ggplot2::ggplot(data = timeline)
           + ggplot2::geom_vline(xintercept = phis, alpha = 0.3)
-          + ggplot2::aes(x = xBin, y = exposure, group = Signatures, color = Signatures)
+          + ggplot2::aes(x = xBin, y = exposure * 100, group = Signatures, color = Signatures)
           + ggplot2::scale_x_reverse(breaks = phis, labels = ticLab)
          )
 
     # slice changepoints (reverse axis means max to min)
     cpPos <- cbind(phis[changepoints], phis[changepoints + 1])
-
-    # add phi hat plot
-    if(phiHist == T){
-
-      g <- addPhiHist(g, binData)
-
-    }
-
 
   }else{ # ggplot formatting specific for linear scale
 
@@ -161,7 +210,7 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = T, phiHist = T){
 
     g <- (  ggplot2::ggplot(data = timeline)
           + ggplot2::geom_vline(xintercept = 0:(length(phis) + 1), alpha = 0.3)
-          + ggplot2::aes(x = xBin, y = exposure, group = Signatures, color = Signatures)
+          + ggplot2::aes(x = xBin, y = exposure * 100, group = Signatures, color = Signatures)
           + ggplot2::scale_x_reverse(breaks = length(phis):1, labels = ticLab)
     )
 
@@ -178,12 +227,13 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = T, phiHist = T){
            + ggplot2::geom_point()
            + ggplot2::geom_line()
            + ggplot2::theme_bw()
-           + ggplot2::theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
+           + ggplot2::theme(panel.grid.major.x = ggplot2::element_blank(),
+                            panel.grid.minor.x = ggplot2::element_blank())
            + ggplot2::ylab("Signature Exposure (%)")
            + ggplot2::xlab(xAx)
   )
 
-
+  # add changepoints
   if (!is.null(changepoints)) {
 
     for (i in 1:dim(cpPos)[1]) {
@@ -192,8 +242,6 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = T, phiHist = T){
 
     }
   }
-
-
 
   return(g)
 }
