@@ -4,17 +4,19 @@
 \alias{detectActiveSignatures}
 \title{get binCounts from vcfToCounts}
 \usage{
-detectActiveSignatures(binCounts, referenceSignatures = alex_merged,
-  threshold = 0.05, prior = NULL)
+detectActiveSignatures(vcfFile, cnaFile = NULL, purity = 1,
+  referenceSignatures = alex_merged, threshold = 0.05, prior = NULL,
+  context = generateContext(c("CG", "TA")),
+  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
 }
 \arguments{
-\item{binCounts}{TODO}
-
 \item{referenceSignatures}{TODO}
 
 \item{threshold}{TODO}
 
 \item{prior}{TODO}
+
+\item{binCounts}{TODO}
 }
 \description{
 get binCounts from vcfToCounts

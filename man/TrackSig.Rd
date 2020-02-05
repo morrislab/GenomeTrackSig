@@ -31,8 +31,6 @@ must be present in the referenceSIgnatures dataframe.}
 \item{desiredMinSegLen}{TODO}
 
 \item{refGenome}{TODO}
-
-\item{purityFile}{path to sample purity file}
 }
 \description{
 \code{TrackSig} Take an input vcf file and annotation and generate the counts data.

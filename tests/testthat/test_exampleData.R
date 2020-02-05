@@ -28,8 +28,8 @@ traj <- TrackSig(sampleID = "example",
                  desiredMinSegLen = NULL,
                  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
 
-plotTrajectory(traj)
-addPhiHist(traj, plotTrajectory(traj))
+#plotTrajectory(traj)
+#addPhiHist(traj, plotTrajectory(traj, linearX = T, anmac =F))
 #
 ## ==== TEST ==============================================================
 #

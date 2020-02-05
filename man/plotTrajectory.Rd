@@ -2,9 +2,9 @@
 % Please edit documentation in R/plotting.R
 \name{plotTrajectory}
 \alias{plotTrajectory}
-\title{Plot the exolutionary trajectory of a tumour.}
+\title{Plot the exolutionary trajectory of a tumour}
 \usage{
-plotTrajectory(trajectory, linearX = F, anmac = T, phiHist = T)
+plotTrajectory(trajectory, linearX = F, anmac = T, show = T)
 }
 \arguments{
 \item{trajectory}{a list containing named elements "mixtures", "changepoints",
@@ -16,8 +16,7 @@ with binned phi values}
 \item{anmac}{logical whether to plot x-axis restricted to ccf space, or use
 estimated average number of mutant alleles per cell (anmac)}
 
-\item{phiHist}{logical whether to include marginal histogram of phis on top
-of trajectory plot. Can only be used with linearX = FALSE.}
+\item{show}{logical whether to print the plot}
 }
 \value{
 ggplot object
