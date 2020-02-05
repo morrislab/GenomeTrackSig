@@ -1,7 +1,8 @@
 # AUTHORS: Yulia Rubanova and Nil Sahin
 # Modified for package trackSig by Cait Harrigan
 
-#' This function from CRAN package MESS. Round vector of number to percentages
+#' Round vector of number to percentages. This function is from CRAN package MESS,
+#' replicated in full here to avoid unecessary dependancy for single internal funciton.
 #'
 #' Rounds a vector of numeric values to percentages ensuring that they add up to 100%
 #'
@@ -43,23 +44,24 @@ round_percent <- function(x, decimals=0L, ties=c("random", "last")) {
 
 #' Display a histogram of mutation phi and signature exposure for a signature trajectory
 #'
-#'
 #' @param trajectory a list containing named elements "mixtures", "changepoints",
 #'   and "binData". See @seealso \link{TrackSig}.
 #' @param trajPlot a ggplot object generated using plotTrajectory @seealso [plotTrajectory()]
-
+#' @param truncateStrategy strategy to handle a truncated axis (for example, for a trajectory plotted with anmac = F). \cr
+#' One of "exclude", in which mutations lying off the axis are not displayed, or "stack, in which mutaitons lying off the axis are added to the first histogram bin. \cr
+#' It is advised to use "exclude", unless there are very few clonal mutations.
 #' @return tableGrob
 #'
 #' @name addPhiHist
 #' @export
 
-# TODO: phiHist plot - can be added on top of trajectory plot or examined alone
-# TODO: phiHist plot should be able to stack or exclude >1 ccf if x range is truncated.
-addPhiHist <- function(trajectory, trajPlot){
 
+addPhiHist <- function(trajectory, trajPlot, truncateStrategy = c("exclude", "stack")){
+  # TODO: phiHist plot should be able to stack or exclude >1 ccf if x range is truncated.
   # create phi histogram ggplot and add it on top of cpPlot
 
   vcaf <- trajectory$binData
+  truncateStrategy <- match.arg(truncateStrategy)
 
   # input checking
   assertthat::assert_that((trajPlot$plot_env$linearX == FALSE),
@@ -72,22 +74,31 @@ addPhiHist <- function(trajectory, trajPlot){
   trajPlot$data$bin <- rep((dim(trajPlot$data)[1]/length(sigs)):1, each = length(sigs))
 
   # truncate vcaf if necessary (anmac = F may recude bins)
-  vcaf <- vcaf[vcaf$bin <= max(trajPlot$data$bin),]
+  lowerLim = max(vcaf$bin) - max(trajPlot$data$bin)
+  if(truncateStrategy == "exclude"){
+
+    vcaf <- vcaf[vcaf$bin > lowerLim,]
+    vcaf$bin <- vcaf$bin - lowerLim
+
+  } else if (truncateStrategy == "stack"){
+
+    vcaf$bin <- vcaf$bin - lowerLim
+    vcaf$phi[vcaf$bin <= 0] <- vcaf$phi[vcaf$bin == 1][[1]]
+    vcaf$bin[vcaf$bin <= 0] <- 1
+
+  }
 
   vcaf$sigAssignment <- factor(NA, levels = sigs)
 
-  #barData <- sigPlot$data
-  #barData <- rep((dim(barData)[1]/length(sigs)):1, each = length(sigs))
+  # display check
+  if(any(trajPlot$data$exposure * inBin[trajPlot$data$bin] < 1)){
+    warning("Signatures with activity level less than 1% will not be displayed in the phi histogram")
+  }
 
   for (bin in vcaf$bin){
 
     # get signatures for each mutation
-
     freq = trajPlot$data$exposure[trajPlot$data$bin == bin] * inBin[bin]
-    if(any(freq < 1)){
-      warning("Signatures with activity level less than 1% will not be displayed in the phi histogram")
-    }
-
     sigFreq <- rep(sigs, times = round_percent(freq))
 
     # sample order for pretty histograms
@@ -116,6 +127,7 @@ addPhiHist <- function(trajectory, trajPlot){
   plotHat <- cowplot::insert_xaxis_grob(trajPlot, phiHist, position = "top", height = grid::unit(0.15, "null"))
 
   grid::grid.draw(plotHat)
+
   return(plotHat)
 }
 
@@ -131,13 +143,13 @@ addPhiHist <- function(trajectory, trajPlot){
 #'   with binned phi values
 #' @param anmac logical whether to plot x-axis restricted to ccf space, or use
 #'   estimated average number of mutant alleles per cell (anmac)
-
+#' @param show logical whether to print the plot
 #' @return ggplot object
 #'
 #' @name plotTrajectory
 #' @export
 
-plotTrajectory <- function(trajectory, linearX = F, anmac = T){
+plotTrajectory <- function(trajectory, linearX = F, anmac = T, show = T){
 
   if(!is.null(trajectory)){
     mixtures <- trajectory[["mixtures"]]
@@ -251,7 +263,8 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = T){
     }
   }
 
-  print(g)
+  if (show){print(g)}
+
   return(g)
 }
 
