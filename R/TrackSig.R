@@ -9,10 +9,18 @@
 #' @param prior TODO
 #'
 #' @export
-detectActiveSignatures <- function(binCounts, referenceSignatures = alex_merged, threshold = 0.05, prior = NULL){
+detectActiveSignatures <- function(vcfFile, cnaFile = NULL, purity = 1,
+                                   referenceSignatures = alex_merged,
+                                   threshold = 0.05, prior = NULL,
+                                   context = generateContext(c("CG", "TA")),
+                                   refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19){
 
   # return list of active signatures in sample, whether by matching per-cancer-type to provided data,
   # or fitting all counts by EM. If not using this function, must provide active signatures per sample
+
+  binCounts <- vcfToCounts(vcfFile = vcfFile, cnaFile = cnaFile,
+                           purity = purity, binSize = 100,
+                           context = context, refGenome = refGenome)[[2]]
 
   counts <-  rowSums(binCounts)
   mixtures <- fitMixturesEM(counts, referenceSignatures, prior=prior)
