@@ -24,6 +24,7 @@ Imports:
     Biostrings,
     SummarizedExperiment,
     VariantAnnotation,
+    grid,
     progress
 LinkingTo: 
 Suggests:
