@@ -12,11 +12,6 @@
 #' @param ties A string that is either 'random' (the default) or 'last'. Determines how to break ties. Random is random, last prefers to break ties at the last position
 #' @return Returns a numeric vector of the same length as x
 #' @author Claus Ekstrom \email{claus@@rprimer.dk}
-#' @keywords manip
-#' @examples
-#'
-#' f <- c(1,2,1,3,2,1,2,3,1)
-#' round_percent(f)
 #'
 round_percent <- function(x, decimals=0L, ties=c("random", "last")) {
 
@@ -45,6 +40,18 @@ round_percent <- function(x, decimals=0L, ties=c("random", "last")) {
   res/(10^decimals)
 }
 
+
+#' Display a histogram of mutation phi and signature exposure for a signature trajectory
+#'
+#'
+#' @param trajectory a list containing named elements "mixtures", "changepoints",
+#'   and "binData". See @seealso \link{TrackSig}.
+#' @param trajPlot a ggplot object generated using plotTrajectory @seealso [plotTrajectory()]
+
+#' @return tableGrob
+#'
+#' @name addPhiHist
+#' @export
 
 # TODO: phiHist plot - can be added on top of trajectory plot or examined alone
 # TODO: phiHist plot should be able to stack or exclude >1 ccf if x range is truncated.
@@ -108,6 +115,7 @@ addPhiHist <- function(trajectory, trajPlot){
   # insert the histogram
   plotHat <- cowplot::insert_xaxis_grob(trajPlot, phiHist, position = "top", height = grid::unit(0.15, "null"))
 
+  grid::grid.draw(plotHat)
   return(plotHat)
 }
 
@@ -243,6 +251,7 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = T){
     }
   }
 
+  print(g)
   return(g)
 }
 
