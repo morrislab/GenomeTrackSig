@@ -5,18 +5,23 @@
 \title{get binCounts from vcfToCounts}
 \usage{
 detectActiveSignatures(vcfFile, cnaFile = NULL, purity = 1,
-  referenceSignatures = alex_merged, threshold = 0.05, prior = NULL,
-  context = generateContext(c("CG", "TA")),
+  threshold = 0.05, prior = NULL, referenceSignatures = alex_merged,
   refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
 }
 \arguments{
-\item{referenceSignatures}{TODO}
+\item{vcfFile}{path to variant calling format (vcf) file}
 
-\item{threshold}{TODO}
+\item{cnaFile}{path to copy number abberation (cna) file. If not provided, all copy numbers default to 2.}
 
-\item{prior}{TODO}
+\item{purity}{number between 0 and 1 of the percentage of cells in the sample that are cancerous}
 
-\item{binCounts}{TODO}
+\item{threshold}{minimum activity level that signature must have to be detected}
+
+\item{prior}{prior on the likelihood of observing a given signature (must match signatures present in referenceSignatures)}
+
+\item{referenceSignatures}{dataframe containing definitions of mutational signatures.}
+
+\item{refGenome}{BSgenome to use as reference}
 }
 \description{
 get binCounts from vcfToCounts

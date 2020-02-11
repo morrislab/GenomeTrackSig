@@ -13,24 +13,23 @@ TrackSig(vcfFile, activeInSample, cnaFile = NULL, purity = NULL,
 \arguments{
 \item{vcfFile}{path to variant calling format (vcf) file}
 
-\item{activeInSample}{list of signatures that are active. All listed signatures
-must be present in the referenceSIgnatures dataframe.}
+\item{activeInSample}{list of signatures names to fit the exposures of. All listed signatures must be present in the referenceSignatures dataframe.}
 
-\item{cnaFile}{path to copy number abberation (cna) file}
+\item{cnaFile}{path to copy number abberation (cna) file. If not provided, all copy numbers default to 2.}
 
-\item{purity}{TODO}
+\item{purity}{number between 0 and 1 of the percentage of cells in the sample that are cancerous}
 
 \item{sampleID}{name to call sample. If none provided, name will be automatically drawn from the provided vcf file name.}
 
-\item{referenceSignatures}{TODO}
+\item{referenceSignatures}{dataframe containing definitions of mutational signatures.}
 
-\item{scoreMethod}{TODO}
+\item{scoreMethod}{string to indicate what scoring method to apply when finding changepoints. Options are "Signature", "SigFreq" and "Frequency"}
 
-\item{binSize}{TODO}
+\item{binSize}{number of mutations per bin (default 100)}
 
-\item{desiredMinSegLen}{TODO}
+\item{desiredMinSegLen}{minimum number of mutations to include in a PELT segment (the desiredMinSegLen will be overridden if there are too few for accurate scoring)}
 
-\item{refGenome}{TODO}
+\item{refGenome}{BSgenome to use as reference}
 }
 \description{
 \code{TrackSig} Take an input vcf file and annotation and generate the counts data.

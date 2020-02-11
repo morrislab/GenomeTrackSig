@@ -4,7 +4,7 @@
 \alias{plotTrajectory}
 \title{Plot the exolutionary trajectory of a tumour}
 \usage{
-plotTrajectory(trajectory, linearX = F, anmac = T, show = T)
+plotTrajectory(trajectory, linearX = F, anmac = F, show = T)
 }
 \arguments{
 \item{trajectory}{a list containing named elements "mixtures", "changepoints",
