@@ -1,7 +1,7 @@
 Package: TrackSig
 Type: Package
 Title: TrackSig - cancer evolutionary trajectory estimation
-Version: 0.1.0
+Version: 0.2.0
 Author: Cait Harrigan, implemented with reference to TrackSig by Yulia Rubanova
 Maintainer: Cait Harrigan <cait.harrigan@utoronto.ca>
 Description: TrackSig, to estimate the evolutionary trajectories of signatures
