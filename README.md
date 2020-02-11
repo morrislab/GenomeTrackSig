@@ -19,7 +19,9 @@ This package imports the following other R packages:
 + GenomicRanges >= 1.26.4 (Bioconductor)
 + Biostrings >= 2.42.1 (Bioconductor)
 + SummarizedExperiment >= 1.4.0 (Bioconductor)
-- VariantAnnotation >= 1.20.3 (Bioconductor)
++ VariantAnnotation >= 1.20.3 (Bioconductor)
++ grid >= 3.3.3 (CRAN)
++ progress >= 1.2.2 (CRAN)
 
 # Load the package in R
 `devtools::install_github("harrig12/TrackSigFreq-dev")`
