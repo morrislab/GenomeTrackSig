@@ -149,7 +149,7 @@ addPhiHist <- function(trajectory, trajPlot, truncateStrategy = c("exclude", "st
 #' @name plotTrajectory
 #' @export
 
-plotTrajectory <- function(trajectory, linearX = F, anmac = T, show = T){
+plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
 
   if(!is.null(trajectory)){
     mixtures <- trajectory[["mixtures"]]

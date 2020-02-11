@@ -3,20 +3,25 @@
 # Author: Cait Harrigan
 
 #' get binCounts from vcfToCounts
-#' @param binCounts TODO
-#' @param referenceSignatures TODO
-#' @param threshold TODO
-#' @param prior TODO
+#'
+#' @param vcfFile path to variant calling format (vcf) file
+#' @param cnaFile path to copy number abberation (cna) file. If not provided, all copy numbers default to 2.
+#' @param purity number between 0 and 1 of the percentage of cells in the sample that are cancerous
+#' @param threshold minimum activity level that signature must have to be detected
+#' @param prior prior on the likelihood of observing a given signature (must match signatures present in referenceSignatures)
+#' @param referenceSignatures dataframe containing definitions of mutational signatures.
+#' @param refGenome BSgenome to use as reference
 #'
 #' @export
 detectActiveSignatures <- function(vcfFile, cnaFile = NULL, purity = 1,
-                                   referenceSignatures = alex_merged,
                                    threshold = 0.05, prior = NULL,
-                                   context = generateContext(c("CG", "TA")),
+                                   referenceSignatures = alex_merged,
                                    refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19){
 
   # return list of active signatures in sample, whether by matching per-cancer-type to provided data,
   # or fitting all counts by EM. If not using this function, must provide active signatures per sample
+
+  context = generateContext(c("CG", "TA"))
 
   binCounts <- vcfToCounts(vcfFile = vcfFile, cnaFile = cnaFile,
                            purity = purity, binSize = 100,
@@ -38,16 +43,15 @@ detectActiveSignatures <- function(vcfFile, cnaFile = NULL, purity = 1,
 #' @name TrackSig
 #'
 #' @param vcfFile path to variant calling format (vcf) file
-#' @param activeInSample list of signatures that are active. All listed signatures
-#' must be present in the referenceSIgnatures dataframe.
-#' @param cnaFile path to copy number abberation (cna) file
+#' @param activeInSample list of signatures names to fit the exposures of. All listed signatures must be present in the referenceSignatures dataframe.
+#' @param cnaFile path to copy number abberation (cna) file. If not provided, all copy numbers default to 2.
 #' @param sampleID name to call sample. If none provided, name will be automatically drawn from the provided vcf file name.
-#' @param referenceSignatures TODO
-#' @param purity TODO
-#' @param scoreMethod TODO
-#' @param binSize TODO
-#' @param desiredMinSegLen TODO
-#' @param refGenome TODO
+#' @param referenceSignatures dataframe containing definitions of mutational signatures.
+#' @param purity number between 0 and 1 of the percentage of cells in the sample that are cancerous
+#' @param scoreMethod string to indicate what scoring method to apply when finding changepoints. Options are "Signature", "SigFreq" and "Frequency"
+#' @param binSize number of mutations per bin (default 100)
+#' @param desiredMinSegLen minimum number of mutations to include in a PELT segment (the desiredMinSegLen will be overridden if there are too few for accurate scoring)
+#' @param refGenome BSgenome to use as reference
 #'
 #' @export
 
