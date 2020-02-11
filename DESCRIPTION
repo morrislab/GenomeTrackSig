@@ -17,7 +17,6 @@ LazyData: true
 Imports:
     reshape2,
     ggplot2,
-    NMF,
     assertthat,
     BSgenome.Hsapiens.UCSC.hg19,
     GenomicRanges,
@@ -25,7 +24,14 @@ Imports:
     SummarizedExperiment,
     VariantAnnotation,
     grid,
-    progress
+    progress,
+    cowplot,
+    rlang,
+    utils,
+    BSgenome,
+    GenomeInfoDb,
+    IRanges,
+    S4Vectors
 LinkingTo: 
 Suggests:
     testthat,

@@ -1,19 +1,19 @@
 # computeTrajectories.R
 # Authors: Yulia Rubanova, Cait Harrigan
 
-#' \code{generateContext} Generate a trinucleotide context from an alphabet. Note: this involves finding all three-member
-#' permutations of the alphabet, which can be inconveinent for large alphabets. Nucleotides are assumed to be provided as complementary pairs,
-#' where the first of each pair is used as the reference to build the context.
-#'
-#' @param alphabet list of pairs of characters to create combinations of as a mutation context type
-#' @return data.frame containing all the possible trinucleotide contextes for a mutation in the supplied alphabet
-#'
-#' @examples
-#' context <- TrackSig:::generateContext(c("CG", "TA"))
-#' dim(context) == c(96, 3)
-#' head(context)
-#'
-#' @name generateContext
+## \code{generateContext} Generate a trinucleotide context from an alphabet. Note: this involves finding all three-member
+## permutations of the alphabet, which can be inconveinent for large alphabets. Nucleotides are assumed to be provided as complementary pairs,
+## where the first of each pair is used as the reference to build the context.
+##
+## @param alphabet list of pairs of characters to create combinations of as a mutation context type
+## @return data.frame containing all the possible trinucleotide contextes for a mutation in the supplied alphabet
+##
+## @examples
+## context <- TrackSig:::generateContext(c("CG", "TA"))
+## dim(context) == c(96, 3)
+## head(context)
+##
+## @name generateContext
 
 generateContext <- function(alphabet){
 
@@ -29,12 +29,12 @@ generateContext <- function(alphabet){
   for (i in seq(1, length(allpha), by = 2)){
 
     midRef <- allpha[i]
-    rest <- setdiff(allpha, midRef)
+    rest <- base::setdiff(allpha, midRef)
     repSize <- length(allpha)^2 - length(allpha)
 
-    midSet <- cbind(rep(midRef, length.out = repSize), rep(rest, length.out=repSize),
+    midSet <- base::cbind(rep(midRef, length.out = repSize), rep(rest, length.out=repSize),
                     paste0(sort(rep(allpha, repSize)), rep(midRef, length.out = repSize), rep(allpha, repSize)))
-    context <- rbind(context, midSet)
+    context <- base::rbind(context, midSet)
   }
 
   stopifnot( dim(context)[1] == nTypes )
@@ -209,7 +209,7 @@ fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_chan
     chunkSums <- lapply(slices, data, FUN = sumSlice)
 
     # all counts should be present
-    assertthat::assert_that(all(rowSums(data) == rowSums(do.call(cbind,chunkSums))),
+    assertthat::assert_that(all(base::rowSums(data) == base::rowSums(do.call(base::cbind,chunkSums))),
                             msg = "Timepoints lost in chunking")
   }
 
@@ -218,7 +218,7 @@ fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_chan
   chunkFits <- mapply(chunkFits, times = c(changepoints, dim(data)[2]) - c(0, changepoints),
                       nSig = dim(alex.t)[2], FUN = repChunk)
 
-  fitted_values <- do.call(cbind, chunkFits)
+  fitted_values <- do.call(base::cbind, chunkFits)
   dimnames(fitted_values) <- list(colnames(alex.t), colnames(data))
 
   return(fitted_values)
@@ -256,7 +256,7 @@ betaLL <- function(qis, ...){
   alpha <- sum(qis) + 1
   beta <- sum(1-qis) + 1
 
-  LL <- lbeta(alpha, beta) + log(pbeta(max(qis), alpha, beta) - pbeta(min(qis), alpha, beta))
+  LL <- lbeta(alpha, beta) + log(stats::pbeta(max(qis), alpha, beta) - stats::pbeta(min(qis), alpha, beta))
 
   #print(c(alpha, beta, LL))
 
@@ -328,8 +328,7 @@ getActualMinSegLen <- function(desiredMinSegLen, binSize){
 
 # Find optimal changepoint and mixtures using PELT method.
 # if desiredMinSegLen is NULL, the value will be selected by default based off binSize to try to give good performance
-#' #' @name getChangepointsPELT
-#' @export
+
 getChangepointsPELT <- function(vcaf, countsPerBin, referenceSignatures, scoreMethod, binSize = 100, desiredMinSegLen = NULL)
 {
 
@@ -355,6 +354,7 @@ scorePartitionsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMe
   n_sigs <- dim(referenceSignatures)[2]
   n_mut <- dim(vcaf)[1]
 
+  penalty <- score_fxn <- NULL
   list[penalty, score_fxn] <- parseScoreMethod(scoreMethod)
   penalty <- eval(penalty)
 

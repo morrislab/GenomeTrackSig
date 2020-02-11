@@ -1,19 +1,19 @@
 # AUTHORS: Yulia Rubanova and Nil Sahin
 # Modified for package trackSig by Cait Harrigan
 
-#' Round vector of number to percentages. This function is from CRAN package MESS,
-#' replicated in full here to avoid unecessary dependancy for single internal funciton.
-#'
-#' Rounds a vector of numeric values to percentages ensuring that they add up to 100%
-#'
-#' Returns a vector of numeric values.
-#'
-#' @param x A numeric vector with non-negative values.
-#' @param decimals An integer giving the number of decimals that are used
-#' @param ties A string that is either 'random' (the default) or 'last'. Determines how to break ties. Random is random, last prefers to break ties at the last position
-#' @return Returns a numeric vector of the same length as x
-#' @author Claus Ekstrom \email{claus@@rprimer.dk}
-#'
+## Round vector of number to percentages. This function is from CRAN package MESS,
+## replicated in full here to avoid unecessary dependancy for single internal funciton.
+##
+## Rounds a vector of numeric values to percentages ensuring that they add up to 100%
+##
+## Returns a vector of numeric values.
+##
+## @param x A numeric vector with non-negative values.
+## @param decimals An integer giving the number of decimals that are used
+## @param ties A string that is either 'random' (the default) or 'last'. Determines how to break ties. Random is random, last prefers to break ties at the last position
+## @return Returns a numeric vector of the same length as x
+## @author Claus Ekstrom \email{claus@@rprimer.dk}
+##
 round_percent <- function(x, decimals=0L, ties=c("random", "last")) {
 
   ties <- match.arg(ties)
@@ -110,7 +110,7 @@ addPhiHist <- function(trajectory, trajPlot, truncateStrategy = c("exclude", "st
   }
 
   # plot stacked phi histogram
-  phiHist <- ( ggplot2::ggplot(vcaf, ggplot2::aes(x = phi, fill = sigAssignment))
+  phiHist <- ( ggplot2::ggplot(vcaf, ggplot2::aes(x = rlang::.data$phi, fill = rlang::.data$sigAssignment))
                + ggplot2::geom_histogram(binwidth = 0.02, position = "stack")
                + ggplot2::scale_fill_hue(limits=levels(vcaf$sigAssignment))
                + ggplot2::xlab("")
@@ -124,7 +124,7 @@ addPhiHist <- function(trajectory, trajPlot, truncateStrategy = c("exclude", "st
 
 
   # insert the histogram
-  plotHat <- cowplot::insert_xaxis_grob(trajPlot, phiHist, position = "top", height = grid::unit(0.15, "null"))
+  plotHat <- cowplot::insert_xaxis_grob(trajPlot, phiHist, position = "top", height = ggplot2::unit(0.15, "null"))
 
   grid::grid.draw(plotHat)
 
@@ -215,12 +215,13 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
 
     g <- (  ggplot2::ggplot(data = timeline)
           + ggplot2::geom_vline(xintercept = phis, alpha = 0.3)
-          + ggplot2::aes(x = xBin, y = exposure * 100, group = Signatures, color = Signatures)
+          + ggplot2::aes(x = rlang::.data$xBin, y = rlang::.data$exposure * 100,
+                         group = rlang::.data$Signatures, color = rlang::.data$Signatures)
           + ggplot2::scale_x_reverse(breaks = phis, labels = ticLab)
          )
 
     # slice changepoints (reverse axis means max to min)
-    cpPos <- cbind(phis[changepoints], phis[changepoints + 1])
+    cpPos <- base::cbind(phis[changepoints], phis[changepoints + 1])
 
   }else{ # ggplot formatting specific for linear scale
 
@@ -235,7 +236,7 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
     )
 
     # slice changepoints (reverse axis means max to min)
-    cpPos <- cbind((length(phis):1)[changepoints], (length(phis):1)[changepoints + 1])
+    cpPos <- base::cbind((length(phis):1)[changepoints], (length(phis):1)[changepoints + 1])
 
   }
 

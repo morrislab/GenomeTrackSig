@@ -96,6 +96,7 @@ TrackSig <- function(vcfFile,
   context <- generateContext(c("CG", "TA"))
 
   # TODO: other parameters non-default options
+  vcaf <- countsPerBin <- NULL
   list[vcaf, countsPerBin] <- vcfToCounts(vcfFile = vcfFile, cnaFile = cnaFile,
                                           purity = purity, binSize = binSize,
                                           context = context, refGenome = refGenome)
@@ -114,6 +115,7 @@ TrackSig <- function(vcfFile,
   }
 
   # compute results
+  mixtures <- changepoints <- NULL
   list[mixtures, changepoints] <- getChangepointsPELT(vcaf = vcaf,
                                                       countsPerBin = countsPerBin,
                                                       referenceSignatures = referenceSignatures,
@@ -125,7 +127,7 @@ TrackSig <- function(vcfFile,
   #plot <- NULL
   #tryCatch({
 
-  #          binned_phis <- aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
+  #          binned_phis <- stats::aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
 
   #          plot <- ( plotTrajectory(mixtures * 100, phis = binned_phis, changepoints, linearX = T, anmac = T)
   #                    + ggtitle(paste0(sampleID, " Signature Trajectory"))

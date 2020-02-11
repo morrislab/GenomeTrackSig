@@ -4,30 +4,30 @@
 # ==== SETUP AND PREPARE =================================================
 
 # loadable Hsapian genome
-require(BSgenome.Hsapiens.UCSC.hg19)
+#require(BSgenome.Hsapiens.UCSC.hg19)
 
 # get the trajectory
-vcfFile <- system.file("extdata", "Example.vcf", package = "TrackSig")
-cnaFile <- system.file("extdata", "Example_cna.txt", package = "TrackSig")
+#vcfFile <- system.file("extdata", "Example.vcf", package = "TrackSig")
+#cnaFile <- system.file("extdata", "Example_cna.txt", package = "TrackSig")
 
-detectedSigs <- detectActiveSignatures(vcfFile = vcfFile,
-                       cnaFile = cnaFile,
-                       purity = 1,
-                       threshold = 0.035,
-                       referenceSignatures = TrackSig:::alex_merged,
-                       refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
-
-traj <- TrackSig(sampleID = "example",
-                 activeInSample = detectedSigs,
-                 vcfFile = vcfFile,
-                 cnaFile = cnaFile,
-                 purity = 1,
-                 referenceSignatures = TrackSig:::alex_merged,
-                 scoreMethod = "SigFreq",
-                 binSize = 100,
-                 desiredMinSegLen = NULL,
-                 refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
-
+#detectedSigs <- detectActiveSignatures(vcfFile = vcfFile,
+#                       cnaFile = cnaFile,
+#                       purity = 1,
+#                       threshold = 0.035,
+#                       referenceSignatures = TrackSig:::alex_merged,
+#                       refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
+#
+#traj <- TrackSig(sampleID = "example",
+#                 activeInSample = detectedSigs,
+#                 vcfFile = vcfFile,
+#                 cnaFile = cnaFile,
+#                 purity = 1,
+#                 referenceSignatures = TrackSig:::alex_merged,
+#                 scoreMethod = "SigFreq",
+#                 binSize = 100,
+#                 desiredMinSegLen = NULL,
+#                 refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
+#
 #plotTrajectory(traj)
 #addPhiHist(traj, plotTrajectory(traj, linearX = T, anmac =F))
 #

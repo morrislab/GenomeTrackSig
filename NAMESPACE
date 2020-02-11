@@ -3,6 +3,4 @@
 export(TrackSig)
 export(addPhiHist)
 export(detectActiveSignatures)
-export(getChangepointsPELT)
 export(plotTrajectory)
-export(vcfToCounts)

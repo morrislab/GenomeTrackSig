@@ -2,19 +2,20 @@
 # Author: Cait Harrigan
 # R functions to depricate make_corrected_vaf.py and call_scripts.R
 
-#' \code{vcfToCounts} Take an input vcf file and annotation and generate the counts data
-#'
-#' @rdname loadData
-#' @name vcfToCounts
-#'
-#' @param vcfFile path to variant calling format (VCF) file
-#' @param cnaFile path to copy number abberation (CNA) file
-#' @param purity sample purity percentage between 0 and 1
-#' @param binSize size of TrackSig timeline bins
-#' @param context list of mutation types and their trinucleotide context
-#' @param refGenome refrence genome used to create VCF file
-#'
-#' @export
+## \code{vcfToCounts} Take an input vcf file and annotation and generate the counts data
+##
+## @rdname loadData
+## @name vcfToCounts
+##
+## @param vcfFile path to variant calling format (VCF) file
+## @param cnaFile path to copy number abberation (CNA) file
+## @param purity sample purity percentage between 0 and 1
+## @param binSize size of TrackSig timeline bins
+## @param context list of mutation types and their trinucleotide context
+## @param refGenome refrence genome used to create VCF file
+## @param verbose show intermediate print statements
+##
+## @export
 vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
                         context = generateContext(c("CG", "TA")), verbose = F,
                         refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19) {
@@ -39,6 +40,7 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
   vcaf <- getVcaf(vcf, purity, cna, refGenome, verbose)
   vcaf <- getTrinuc(vcaf, refGenome, verbose)
 
+  countsPerBin <- NULL
   list[vcaf, countsPerBin] <- getBinCounts(vcaf, binSize, context, verbose)
 
   # clean up unecessary vcaf features
@@ -49,9 +51,9 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
 
 }
 
-#' \code{vcfToCounts_simulation} Man placeholder
-#' @rdname loadData
-#' @name vcfToCounts_simulation
+## \code{vcfToCounts_simulation} Man placeholder
+## @rdname loadData
+## @name vcfToCounts_simulation
 
 vcfToCounts_simulation <- function(vcfFile, mutTypesFile, cnaFile = NULL, purity = 1,
                                    context = generateContext(c("CG", "TA")),
@@ -85,7 +87,7 @@ vcfToCounts_simulation <- function(vcfFile, mutTypesFile, cnaFile = NULL, purity
 
   # vcaf has vcf and vaf data concatenated
   vcaf <- getVcaf(vcf, purity, cnaRanges, refGenome)
-  mutTypes <- read.delim(mutTypesFile, stringsAsFactors = F)
+  mutTypes <- utils::read.delim(mutTypesFile, stringsAsFactors = F)
 
   # strip chr if present
   mutTypes$chromosome <- unlist(strsplit(mutTypes$chromosome, "chr"))[c(F, T)]
@@ -114,8 +116,8 @@ vcfToCounts_simulation <- function(vcfFile, mutTypesFile, cnaFile = NULL, purity
 }
 
 
-#' @rdname loadData
-#' @name parseVcfFile
+## @rdname loadData
+## @name parseVcfFile
 
 parseVcfFile <- function(vcfFile, cutoff = 10000, refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19){
 
@@ -141,33 +143,33 @@ parseVcfFile <- function(vcfFile, cutoff = 10000, refGenome = BSgenome.Hsapiens.
   return(vcf)
 }
 
-#' @rdname loadData
-#' @name parseCnaFile
+## @rdname loadData
+## @name parseCnaFile
 
 parseCnaFile <- function(cnaFile){
 
   #TODO: handle case where cnaFile is NULL
 
   if(!is.null(cnaFile)){
-    cnaGR <- read.table(cnaFile, header = T)
+    cnaGR <- utils::read.table(cnaFile, header = T)
     cnaGR <- GenomicRanges::GRanges(cnaGR$chromosome, IRanges::IRanges(cnaGR$start, cnaGR$end), cn = cnaGR$total_cn)
   }
 
   return(cnaGR)
 }
 
-#' @rdname loadData
-#' @name parsePurityFile
+## @rdname loadData
+## @name parsePurityFile
 
 parsePurityFile <- function(purityFile){
 
-  purities <- read.table(purityFile, header = T)
+  purities <- utils::read.table(purityFile, header = T)
 
   return(purities)
 }
 
-#' @rdname loadData
-#' @name annotateCn
+## @rdname loadData
+## @name annotateCn
 
 annotateCn <- function(vcf, cnaGR = NULL){
 
@@ -206,15 +208,15 @@ annotateCn <- function(vcf, cnaGR = NULL){
 
 }
 
-#' \code{getVcaf} Take an input vcf file and annotation and make vaf data
-#' @rdname loadData
-#' @name getVcaf
-#'
-#' @param vcf CollapsedVCF object
-#' @param purity sample purity percentage between 0 and 1
-#' @param cna GRanges object with cna information for the sample
-#' @param refGenome reference BSgenome to use
-#' @return A vcaf dataframe that has vcf and vaf data concatenated
+## \code{getVcaf} Take an input vcf file and annotation and make vaf data
+## @rdname loadData
+## @name getVcaf
+##
+## @param vcf CollapsedVCF object
+## @param purity sample purity percentage between 0 and 1
+## @param cna GRanges object with cna information for the sample
+## @param refGenome reference BSgenome to use
+## @return A vcaf dataframe that has vcf and vaf data concatenated
 
 getVcaf <- function(vcf, purity, cna, refGenome, verbose = F){
   #replaces make_corrected_vaf.py
@@ -226,12 +228,12 @@ getVcaf <- function(vcf, purity, cna, refGenome, verbose = F){
   vcaf <- vcafConstruction(vcf, refGenome, verbose = verbose)
 
   # calculate phi
-  phat <- rbeta(dim(vcaf)[1], vcaf$vi + 1, vcaf$ri + 1)
+  phat <- stats::rbeta(dim(vcaf)[1], vcaf$vi + 1, vcaf$ri + 1)
   vcaf$phi <- (2 + purity * (vcaf$cn - 2)) * phat   #phi = ccf * purity
 
   # re-sample phat to make qi's, and cut at qi = 1
   # TODO: will the chop cause problems in the distribution when there is high CNA?
-  vcaf$qi <- rbeta(dim(vcaf)[1], vcaf$vi + 1, vcaf$ri + 1)
+  vcaf$qi <- stats::rbeta(dim(vcaf)[1], vcaf$vi + 1, vcaf$ri + 1)
   vcaf$qi <- unlist(lapply(vcaf$qi, 1, FUN = min))
 
   # sort on phi
@@ -240,16 +242,16 @@ getVcaf <- function(vcf, purity, cna, refGenome, verbose = F){
   return(vcaf)
 }
 
-#' \code{checkVcaf} Perform some shallow input checks on a vcaf data frame. \cr
-#' Check for SNP criteria, and remove instances where reference allele matches alt allele.\cr
-#' Check chromosome and position is valid in reference genome.
-#'
-#' @rdname loadData
-#' @name checkVcaf
-#'
-#' @param vcaf vcaf data frame
-#' @param refGenome reference BSgenome to use
-#' @return A vcaf dataframe that has vcf and vaf data concatenated
+## \code{checkVcaf} Perform some shallow input checks on a vcaf data frame. \cr
+## Check for SNP criteria, and remove instances where reference allele matches alt allele.\cr
+## Check chromosome and position is valid in reference genome.
+##
+## @rdname loadData
+## @name checkVcaf
+##
+## @param vcaf vcaf data frame
+## @param refGenome reference BSgenome to use
+## @return A vcaf dataframe that has vcf and vaf data concatenated
 
 vcafConstruction <- function(vcf, refGenome, verbose = F){
   # some VCF formatting checks, filter for SNP's
@@ -328,14 +330,14 @@ vcafConstruction <- function(vcf, refGenome, verbose = F){
   return ( vcaf )
 }
 
-#' \code{getTrinuc} Get the trinucleotide context for each mutation in a vcaf data frame
-#' @rdname loadData
-#' @name getTrinuc
-#'
-#' @param vcaf vcaf data frame
-#' @param refGenome reference BSgenome to use
-#' @param intermediateFile file where to save intermediate results if saveIntermediate is True
-#' @return An updated vcaf data frame with trinucleotide context added for each mutation
+## \code{getTrinuc} Get the trinucleotide context for each mutation in a vcaf data frame
+## @rdname loadData
+## @name getTrinuc
+##
+## @param vcaf vcaf data frame
+## @param refGenome reference BSgenome to use
+## @param intermediateFile file where to save intermediate results if saveIntermediate is True
+## @return An updated vcaf data frame with trinucleotide context added for each mutation
 getTrinuc <- function(vcaf, refGenome, verbose = F){
   # replaces getMutationTypes.pl
 
@@ -391,15 +393,15 @@ getTrinuc <- function(vcaf, refGenome, verbose = F){
   return (vcaf)
 }
 
-#' \code{getBinCounts} Get the mutation type counts data for a vcaf dataframe
-#'
-#' @rdname loadData
-#' @name getBinCounts
-#'
-#' @param vcaf vcaf data frame
-#' @param binSize number of mutations per bin
-#' @param context trinucleotide combinations possible
-#' @return A data frame of summary statistics and mutation type counts for each bin.
+## \code{getBinCounts} Get the mutation type counts data for a vcaf dataframe
+##
+## @rdname loadData
+## @name getBinCounts
+##
+## @param vcaf vcaf data frame
+## @param binSize number of mutations per bin
+## @param context trinucleotide combinations possible
+## @return A data frame of summary statistics and mutation type counts for each bin.
 getBinCounts <- function(vcaf, binSize, context, verbose = F){
   # replaces make_hundreds.py script
 
@@ -420,7 +422,7 @@ getBinCounts <- function(vcaf, binSize, context, verbose = F){
   binCounts <- data.frame( row.names = 1:(nFullBins + (sizePartialBin != 0)) )
 
   # counts for each bin
-  binCounts <- cbind (binCounts, aggregate(paste(vcaf$ref, vcaf$alt, vcaf$mutType, sep = "_"), by = list(vcaf$bin), FUN = function(x){return(as.array(table(x)))})$x )
+  binCounts <- base::cbind(binCounts, stats::aggregate(paste(vcaf$ref, vcaf$alt, vcaf$mutType, sep = "_"), by = list(vcaf$bin), FUN = function(x){return(as.array(table(x)))})$x )
 
   # check that all mutation types have a count
   missingTypes <- setdiff(paste(context$V1, context$V2, context$V3, sep = "_"), names(binCounts))
