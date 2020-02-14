@@ -1,20 +1,19 @@
 # computeTrajectories.R
 # Authors: Yulia Rubanova, Cait Harrigan
 
-#' \code{generateContext} Generate a trinucleotide context from an alphabet. Note: this involves finding all three-member
-#' permutations of the alphabet, which can be inconveinent for large alphabets. Nucleotides are assumed to be provided as complementary pairs,
-#' where the first of each pair is used as the reference to build the context.
-#'
-#' @param alphabet list of pairs of characters to create combinations of as a mutation context type
-#' @return data.frame containing all the possible trinucleotide contextes for a mutation in the supplied alphabet
-#'
-#' @examples
-#' context <- TrackSig:::generateContext(c("CG", "TA"))
-#' dim(context) == c(96, 3)
-#' head(context)
-#'
-#' @name generateContext
-#' @export
+## \code{generateContext} Generate a trinucleotide context from an alphabet. Note: this involves finding all three-member
+## permutations of the alphabet, which can be inconveinent for large alphabets. Nucleotides are assumed to be provided as complementary pairs,
+## where the first of each pair is used as the reference to build the context.
+##
+## @param alphabet list of pairs of characters to create combinations of as a mutation context type
+## @return data.frame containing all the possible trinucleotide contextes for a mutation in the supplied alphabet
+##
+## @examples
+## context <- TrackSig:::generateContext(c("CG", "TA"))
+## dim(context) == c(96, 3)
+## head(context)
+##
+## @name generateContext
 
 generateContext <- function(alphabet){
 
@@ -30,12 +29,12 @@ generateContext <- function(alphabet){
   for (i in seq(1, length(allpha), by = 2)){
 
     midRef <- allpha[i]
-    rest <- setdiff(allpha, midRef)
+    rest <- base::setdiff(allpha, midRef)
     repSize <- length(allpha)^2 - length(allpha)
 
-    midSet <- cbind(rep(midRef, length.out = repSize), rep(rest, length.out=repSize),
+    midSet <- base::cbind(rep(midRef, length.out = repSize), rep(rest, length.out=repSize),
                     paste0(sort(rep(allpha, repSize)), rep(midRef, length.out = repSize), rep(allpha, repSize)))
-    context <- rbind(context, midSet)
+    context <- base::rbind(context, midSet)
   }
 
   stopifnot( dim(context)[1] == nTypes )
@@ -68,7 +67,8 @@ makeBinaryTable <- function(multinomial_vector)
 fitMixturesEM <- function(counts, composing_multinomials, prior=NULL)
 {
 
-  multinomial_vector <- counts
+  multinomial_vector <- rowSums(as.matrix(counts))
+
 
   # Number of mutations to fit
   nMut = sum(multinomial_vector)
@@ -210,7 +210,7 @@ fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_chan
     chunkSums <- lapply(slices, data, FUN = sumSlice)
 
     # all counts should be present
-    assertthat::assert_that(all(rowSums(data) == rowSums(do.call(cbind,chunkSums))),
+    assertthat::assert_that(all(base::rowSums(data) == base::rowSums(do.call(base::cbind,chunkSums))),
                             msg = "Timepoints lost in chunking")
   }
 
@@ -219,18 +219,96 @@ fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_chan
   chunkFits <- mapply(chunkFits, times = c(changepoints, dim(data)[2]) - c(0, changepoints),
                       nSig = dim(alex.t)[2], FUN = repChunk)
 
-  fitted_values <- do.call(cbind, chunkFits)
+  fitted_values <- do.call(base::cbind, chunkFits)
   dimnames(fitted_values) <- list(colnames(alex.t), colnames(data))
 
   return(fitted_values)
 }
 
 
+estDir <- function(counts, bin_size, epsilon = 1e-04, nit=500){
+  # estimate the dirichlet piror parameter that produced the counts
+
+  N <- dim(counts)[2] * bin_size
+  counts <- rowSums(as.matrix(counts))
+  p <- counts / N
+
+  stopifnot(all(p >= 0))
+
+  # random initialization
+  alphas <- runif(N)
+
+  s <- sum(alphas)
+  m <- alphas / s
+  lgpHat <- rowSums(log(as.matrix(counts))) /
+
+  # iteratively estimate m, then s
+  conv <- F
+  while(!conv){
+
+    last <- c(m, s)
+
+    # update m
 
 
-mixtureLL <- function(multinomial_vector, composing_multinomials, mixtures, ...) {
+    # update s
+
+    # check convergence
+    this <- c(m, s)
+    nit <- nit - 1
+    conv <- ( any(abs(last - this) <= epsilon) | (nit == 0) )
+  }
+
+}
+
+multinomialLL <- function(counts, ...){
+  # multinomial likelihood of mutation type distribution in the signature-free setting.
+
+  list[loglik, ite, gamma, pi, theta] <- dirmult::dirmult(counts)
+
+  counts <- rowSums(as.matrix(counts))
+  k <- length(counts)
+  n <- sum(counts)
+
+  alpha <- pi * theta
+
+  #alpha <- rep(1, k)
+  #p_mle <- (counts + 1) / (n + k)
+
+  # wiki
+  #ll <- ( (lgamma(n + 1) + lgamma(sum(alpha)) - lgamma(n + sum(alpha)))
+  #        + sum(lgamma(counts + alpha) - lgamma(counts + 1) - lgamma(alpha))
+  #      )
+
+  # stack overflow
+  #ll <- ( lgamma(n+1) + lgamma(sum(a)) + sum(lgamma(counts + 1))
+  #        - sum(lgamma(counts + 1)) - sum(lgamma(a)) - lgamma(sum(a + counts))
+  #      )
+
+  # categorical
+  #ll <- ( lgamma(k)
+  #        + sum(lgamma(counts + 1)) - lgamma(n + k)
+  #)
+
+  # uniformative prior with mle estimates
+  # ll <- ( lgamma(n+1) + lgamma(sum(alpha)) - lgamma(n + sum(alpha)) + sum( lgamma(counts + alpha) - lgamma(counts + 1) - lgamma(alpha) ) )
+
+  # in terms of beta
+  #ll <- ( log(n) + lbeta(k, n) - sum( log(counts[counts != 0]) + lbeta(a[counts != 0], counts[counts != 0]) ) )
+
+  # categorical2
+  ll <- lgamma(sum(alpha)) + sum(lgamma(counts + alpha)) - lgamma(n + sum(alpha)) - sum(lgamma(alpha))
+
+  #print(ll)
+  return(ll)
+}
+
+mixtureLL <- function(counts, composing_multinomials, mixtures, ...) {
   # replaces log_likelihood_mixture_multinomials
-  mutation_binary_table <-  makeBinaryTable(multinomial_vector)
+  multinomial_vector <- rowSums(counts)
+  #multinomial_vector <- counts
+
+  mutation_binary_table <- makeBinaryTable(multinomial_vector)
 
   # mutation_probabilities_under_signature_mixture[i,n] corresponds to class/signature i and sample/mutation n
   mutation_probabilities_under_signature_mixture <- matrix(0, nrow=ncol(composing_multinomials), ncol=ncol(mutation_binary_table))
@@ -257,7 +335,7 @@ betaLL <- function(qis, ...){
   alpha <- sum(qis) + 1
   beta <- sum(1-qis) + 1
 
-  LL <- lbeta(alpha, beta) + log(pbeta(max(qis), alpha, beta) - pbeta(min(qis), alpha, beta))
+  LL <- lbeta(alpha, beta) + log(stats::pbeta(max(qis), alpha, beta) - stats::pbeta(min(qis), alpha, beta))
 
   #print(c(alpha, beta, LL))
 
@@ -329,18 +407,24 @@ getActualMinSegLen <- function(desiredMinSegLen, binSize){
 
 # Find optimal changepoint and mixtures using PELT method.
 # if desiredMinSegLen is NULL, the value will be selected by default based off binSize to try to give good performance
-getChangepointsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize = 100, desiredMinSegLen = NULL)
+
+getChangepointsPELT <- function(vcaf, countsPerBin, referenceSignatures, scoreMethod, binSize = 100, desiredMinSegLen = NULL)
+
 {
 
   minSegLen <- getActualMinSegLen(desiredMinSegLen, binSize)
   score_matrix <- scorePartitionsPELT(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, minSegLen)
 
-  print(score_matrix[1:15, 1:15])
+  #print(score_matrix[1:15, 1:15])
 
   changepoints <- recoverChangepoints(score_matrix)
   mixtures <- fitMixturesInTimeline(countsPerBin, changepoints, referenceSignatures)
 
-  return(list(changepoints = changepoints, mixtures = mixtures))
+  # mixtures should also contain binned phi
+  binned_phis <- stats::aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
+  colnames(mixtures) <- binned_phis
+
+  return(list(mixtures = mixtures, changepoints = changepoints))
 }
 
 # Calculate penalized BIC score for all partitions using PELT method.
@@ -348,8 +432,10 @@ scorePartitionsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMe
 {
   n_bins <- dim(countsPerBin)[2]
   n_sigs <- dim(referenceSignatures)[2]
-  n_mut <- dim(vcaf)[1]
+  #n_mut <- dim(vcaf)[1]
 
+
+  penalty <- score_fxn <- NULL
   list[penalty, score_fxn] <- parseScoreMethod(scoreMethod)
   penalty <- eval(penalty)
 
@@ -360,11 +446,15 @@ scorePartitionsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMe
   max_sp_scores <- numeric(n_bins)
   prune_set <- c()
 
+  # Replace print msg with progress bar
+  pb <- progress::progress_bar$new(format = "Scoring subpartitions: [:bar] :percent",
+                         total = n_bins, clear = FALSE, width = 60)
+
   # Score all subproblems of length sp_len using last_cp as last changepoint
   for (sp_len in 1:n_bins)
   {
     valid_cps <- setdiff(0:(sp_len - 1), prune_set)
-    print(paste0("Scoring subpartitions of length: ", sp_len, "/", n_bins))
+    pb$tick()
 
     for (last_cp in valid_cps){
 
@@ -377,7 +467,7 @@ scorePartitionsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMe
       # score segment
       sp_slice <- c((last_cp + 1), sp_len)
       r_seg_qis <- vcaf$qi[vcaf$bin %in% (sp_slice[1] : sp_slice[2])]
-      r_seg_counts <- rowSums(countsPerBin[, sp_slice[1] : sp_slice[2], drop = FALSE])
+      r_seg_counts <- (countsPerBin[, sp_slice[1] : sp_slice[2]])
       r_seg_mix <- fitMixturesEM(r_seg_counts, referenceSignatures)
 
 
