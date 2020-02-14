@@ -2,6 +2,7 @@
 # Defines main functions for user to interact with package TrackSig.
 # Author: Cait Harrigan
 
+
 #' get binCounts from vcfToCounts
 #'
 #' @param vcfFile path to variant calling format (vcf) file
@@ -69,12 +70,13 @@ TrackSig <- function(vcfFile,
   # input checking
 
   assertthat::assert_that(grepl(".vcf$", vcfFile) | grepl(".txt$", vcfFile), msg = "Unsupported VCF file extension. Expected file type .vcf or .txt")
+  assertthat::assert_that(all(activeInSample %in% colnames(referenceSignatures)))
 
-  assertthat::assert_that(scoreMethod %in% c("SigFreq", "Signature", "Frequency"),
-  msg = "scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod)")
+  #assertthat::assert_that(scoreMethod %in% c("SigFreq", "Signature", "Frequency"),
+  #msg = "scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod)")
+
 
   # TODO: activeSignatures %in% colnames(referenceSignatures) must be TRUE
-  # TODO: binSize must be a natureal number >0
   # TODO: length(activeInSample) >1 should be true, else no mixture to fit
   # TODO: binSize has to make sense; positive, not larger than nMut, maybe throw warning if it's some ratio too large for low-resolution.
   # TODO: generateContext and mut types in referenceSignatures should make sense together.
@@ -101,6 +103,7 @@ TrackSig <- function(vcfFile,
                                           purity = purity, binSize = binSize,
                                           context = context, refGenome = refGenome)
 
+
   assertthat::assert_that(all(rownames(countsPerBin) %in%
                                 rownames(referenceSignatures)),
                           msg = "Mutation type counts failed.")
@@ -124,6 +127,7 @@ TrackSig <- function(vcfFile,
                                                       desiredMinSegLen = desiredMinSegLen)
 
   # side effect: plot
+
   #plot <- NULL
   #tryCatch({
 
@@ -143,6 +147,7 @@ TrackSig <- function(vcfFile,
 
   return (list(mixtures = mixtures, changepoints = changepoints, binData = vcaf))
 }
+
 
 # list unpacker util: used internally in package TrackSig
 # source: https://stat.ethz.ch/pipermail/r-help/2004-June/053343.html
