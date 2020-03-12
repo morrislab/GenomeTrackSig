@@ -146,7 +146,7 @@ parseVcfFile <- function(vcfFile, cutoff = 10000, refGenome = BSgenome.Hsapiens.
 
 parseCnaFile <- function(cnaFile){
 
-  #TODO: handle case where cnaFile is NULL
+  cnaGR <- NULL
 
   if(!is.null(cnaFile)){
     cnaGR <- read.table(cnaFile, header = T)
@@ -369,12 +369,12 @@ getTrinuc <- function(vcaf, refGenome){
     substr(vcaf$mutType, 2, 2) <- vcaf$ref
   }
 
-  # remove mutations with "N" in refrence context
+  # remove mutations with "N" in reference context
   rmSet <- !sapply(triNuc, FUN = BSgenome::hasOnlyBaseLetters)
   if (sum(rmSet) > 0){
 
     warning( sprintf("%s (of %s) mutations dropped for uncertain identity in reference genome" , sum(rmSet), dim(vcaf)[1]) )
-    vcaf <- vcaf[rmSet,]
+    vcaf <- vcaf[!rmSet,]
   }
 
   # take reverse complement of ref purines for context format
