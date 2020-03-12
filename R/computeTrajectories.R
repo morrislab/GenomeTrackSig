@@ -265,19 +265,20 @@ multinomialLL <- function(counts, ...){
 
   list[loglik, ite, gamma, pi, theta] <- dirmult::dirmult(counts)
 
-  counts <- rowSums(as.matrix(counts))
-  k <- length(counts)
-  n <- sum(counts)
+  #counts <- rowSums(as.matrix(counts))
+  #k <- length(counts)
+  #n <- sum(counts)
 
-  alpha <- pi * theta
+  alpha <- gamma
+  #a0 <- sum(gamma)
 
   #alpha <- rep(1, k)
   #p_mle <- (counts + 1) / (n + k)
 
   # wiki
-  #ll <- ( (lgamma(n + 1) + lgamma(sum(alpha)) - lgamma(n + sum(alpha)))
-  #        + sum(lgamma(counts + alpha) - lgamma(counts + 1) - lgamma(alpha))
-  #      )
+  ll <- ( (lgamma(n + 1) + lgamma(sum(alpha)) - lgamma(n + sum(alpha)))
+          + sum(lgamma(counts + alpha) - lgamma(counts + 1) - lgamma(alpha))
+        )
 
   # stack overflow
   #ll <- ( lgamma(n+1) + lgamma(sum(a)) + sum(lgamma(counts + 1))
@@ -296,7 +297,7 @@ multinomialLL <- function(counts, ...){
   #ll <- ( log(n) + lbeta(k, n) - sum( log(counts[counts != 0]) + lbeta(a[counts != 0], counts[counts != 0]) ) )
 
   # categorical2
-  ll <- lgamma(sum(alpha)) + sum(lgamma(counts + alpha)) - lgamma(n + sum(alpha)) - sum(lgamma(alpha))
+  #ll <- lgamma(sum(alpha)) + sum(lgamma(counts + alpha)) - lgamma(n + sum(alpha)) - sum(lgamma(alpha))
 
   #print(ll)
   return(ll)
