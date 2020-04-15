@@ -15,7 +15,7 @@
 #'
 #' @export
 detectActiveSignatures <- function(vcfFile, cnaFile = NULL, purity = 1,
-                                   threshold = 0.05, prior = NULL,
+                                   threshold = 0.05, prior = NULL, binSize = 100,
                                    referenceSignatures = alex_merged,
                                    refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19){
 
@@ -25,7 +25,7 @@ detectActiveSignatures <- function(vcfFile, cnaFile = NULL, purity = 1,
   context = generateContext(c("CG", "TA"))
 
   binCounts <- vcfToCounts(vcfFile = vcfFile, cnaFile = cnaFile,
-                           purity = purity, binSize = 100,
+                           purity = purity, binSize = binSize,
                            context = context, refGenome = refGenome)[[2]]
 
   counts <-  rowSums(binCounts)
