@@ -127,18 +127,19 @@ parseVcfFile <- function(vcfFile, cutoff = 10000, refGenome = BSgenome.Hsapiens.
 
   # TODO: remove samples with missing ref or alt counts (ri/vi)
   assertthat::assert_that("t_alt_count" %in% rownames(VariantAnnotation::info(VariantAnnotation::header(vcf))),
-                          msg = "Tumor alternate variant count \"t_alt_count\" was not found in the vcf header. Please check formatting")
+                          msg = "Tumor alternate variant count \"t_alt_count\" was not found in the vcf header. Please check formatting\n")
   assertthat::assert_that("t_ref_count" %in% rownames(VariantAnnotation::info(VariantAnnotation::header(vcf))),
-                          msg = "Tumor refrence variant count \"t_ref_count\" was not found in the vcf header. Please check formatting")
+                          msg = "Tumor refrence variant count \"t_ref_count\" was not found in the vcf header. Please check formatting\n")
 
   # implement cutoff if too many variants present in sample
   if (dim(vcf)[1] > cutoff){
-
     vcf <- sample(vcf, cutoff)
-
   }
 
-
+  # throw warning if not enough variants
+  if (dim(vcf)[1] <= 400){
+    warning("For high resolution segmentation, recommend >400 mutations total\n")
+  }
 
   return(vcf)
 }
@@ -266,11 +267,11 @@ vcafConstruction <- function(vcf, refGenome, verbose = F){
   assertthat::assert_that("ALT" %in% colnames(VariantAnnotation::fixed(vcf)))
 
   # mutations in vcf should be SNPs => one ref, one alt allele
-  # drop those that are not SNVs
+  # drop those that are not SNPs
   rmSel <- !VariantAnnotation::isSNV(vcf, singleAltOnly = F)
 
   if (sum(rmSel) > 0){
-    warning( sprintf("%s mutations dropped for not meeting SNP cirteria" , sum(rmSel) ) )
+    warning( sprintf("%s mutations dropped for not meeting SNP cirteria\n" , sum(rmSel) ) )
     vcf <- vcf[!rmSel,]
   }
 
@@ -301,7 +302,7 @@ vcafConstruction <- function(vcf, refGenome, verbose = F){
   # check - ref should not match alt in a mutation
   rmSel <- vcaf$ref == vcaf$alt
   if (sum(rmSel) > 0){
-    warning(sprintf("%s mutations dropped for refrence allele matching alt", sum(rmSel)))
+    warning(sprintf("%s mutations dropped for refrence allele matching alt\n", sum(rmSel)))
     vcaf <- vcaf[!rmSel,]
   }
 
@@ -319,7 +320,7 @@ vcafConstruction <- function(vcf, refGenome, verbose = F){
   rmSet <- union(rmSet, which ( ! ( vcaf$pos < GenomeInfoDb::seqlengths(refGenome)[paste0("chr", vcaf$chr)] ) ))
 
   if (length(rmSet) > 0){
-    warning( sprintf("%s mutations dropped for not appearing in reference genome" , length(rmSet) ) )
+    warning( sprintf("%s mutations dropped for not appearing in reference genome\n" , length(rmSet) ) )
     vcaf <- vcaf[-rmSet,]
   }
 
@@ -375,7 +376,7 @@ getTrinuc <- function(vcaf, refGenome, verbose = F){
   rmSet <- !sapply(triNuc, FUN = BSgenome::hasOnlyBaseLetters)
   if (sum(rmSet) > 0){
 
-    warning( sprintf("%s (of %s) mutations dropped for uncertain identity in reference genome" , sum(rmSet), dim(vcaf)[1]) )
+    warning( sprintf("%s (of %s) mutations dropped for uncertain identity in reference genome\n" , sum(rmSet), dim(vcaf)[1]) )
     vcaf <- vcaf[!rmSet,]
   }
 
@@ -408,8 +409,8 @@ getBinCounts <- function(vcaf, binSize, context, verbose = F){
   if(verbose){ print("Making counts...") }
 
   nMut <- dim(vcaf)[1]
-  assertthat::assert_that(nMut >= binSize, msg = "number of mutations may not be less than specified bin size")
-  assertthat::assert_that(dim(unique(vcaf[c("ref","alt","mutType")]))[1] <= dim(context)[1], msg = sprintf("too many mutation types (%s) for context (%s)",
+  assertthat::assert_that(nMut >= binSize, msg = "number of mutations may not be less than specified binSize\n")
+  assertthat::assert_that(dim(unique(vcaf[c("ref","alt","mutType")]))[1] <= dim(context)[1], msg = sprintf("too many mutation types (%s) for context (%s)\n",
                                                                                                            dim(unique(vcaf[c("ref","alt","mutType")]))[1],  dim(context)[1]) )
 
   # populate all possible bins, up to one possible remaining partial bin

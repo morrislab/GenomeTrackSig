@@ -65,7 +65,7 @@ addPhiHist <- function(trajectory, trajPlot, truncateStrategy = c("exclude", "st
 
   # input checking
   assertthat::assert_that((trajPlot$plot_env$linearX == FALSE),
-                          msg = "Can't add phi histogram to linearly scaled axis")
+                          msg = "Can't add phi histogram to linearly scaled axis\n")
 
 
   sigs <- base::unique(trajPlot$data$Signatures)
@@ -92,7 +92,7 @@ addPhiHist <- function(trajectory, trajPlot, truncateStrategy = c("exclude", "st
 
   # display check
   if(any(trajPlot$data$exposure * inBin[trajPlot$data$bin] < 1)){
-    warning("Signatures with activity level less than 1% will not be displayed in the phi histogram")
+    warning("Signatures with activity level less than 1% will not be displayed in the phi histogram\n")
   }
 
   for (bin in vcaf$bin){
@@ -158,18 +158,18 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
   }
 
   # input checking
-  assertthat::assert_that(!is.null(mixtures), msg = "Could not find mixtures for timeline, please supply through results or mixtures paramter.")
+  assertthat::assert_that(!is.null(mixtures), msg = "Could not find mixtures for timeline, please supply through results or mixtures paramter.\n")
 
   # set the phis to colnames(mixtures) - note: used when anmac = T
   phis <- as.numeric(colnames(mixtures))
 
   # mixtures and phis are binned the same way
   assertthat::assert_that(length(phis) == dim(mixtures)[2],
-                          msg = "The mixtures object is mal-specified. Column names should correspond to binned phis.")
+                          msg = "The mixtures object is mal-specified. Column names should correspond to binned phis.\n")
 
   # phis should be decreasings
   assertthat::assert_that(all(order(phis, decreasing = T) == 1:length(phis)),
-                          msg = "The mixtures object is mal-specified. Binned phis (column names) should be in decreasing order.")
+                          msg = "The mixtures object is mal-specified. Binned phis (column names) should be in decreasing order.\n")
 
   if(!anmac){ # take x-axis as ccf scale
 

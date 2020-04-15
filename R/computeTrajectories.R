@@ -55,7 +55,7 @@ makeBinaryTable <- function(multinomial_vector)
   binaryTable <- oneHotTypes[,sel]
 
   assertthat::assert_that(all(dim(binaryTable) == c(nMutTypes, nMut)),
-                          msg = "Binary matrix construction failed: dimensions don't match input")
+                          msg = "Binary matrix construction failed: dimensions don't match input\n")
 
   return(binaryTable)
 
@@ -81,7 +81,7 @@ fitMixturesEM <- function(counts, composing_multinomials, prior=NULL)
 
 
   assertthat::assert_that(length(multinomial_vector) == nrow(composing_multinomials),
-                          msg = "Length of data vector is not equal to nrow of matrix to fit. Did you forget to transpose the matrix?")
+                          msg = "Length of data vector is not equal to nrow of matrix to fit. Did you forget to transpose the matrix?\n")
 
   mutType <- makeBinaryTable(multinomial_vector)
 
@@ -99,7 +99,7 @@ fitMixturesEM <- function(counts, composing_multinomials, prior=NULL)
   if (!is.null(prior)){
 
     assertthat::assert_that(length(prior) == nSig,
-                            msg = sprintf("Length of prior should be equal to %s", nSig))
+                            msg = sprintf("Length of prior should be equal to %s\n", nSig))
     pi <- prior
   }
 
@@ -182,8 +182,8 @@ fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_chan
   }
 
   # ensure changepoints are valid
-  assertthat::assert_that((1 %in% changepoints) == FALSE, msg = "Impossible changepoint, cannot segment before first timepoint")
-  assertthat::assert_that((dim(data)[2] %in% changepoints) == FALSE, msg = "Impossible changepoint, cannot segment after last timepoint")
+  assertthat::assert_that((1 %in% changepoints) == FALSE, msg = "Impossible changepoint, cannot segment before first timepoint\n")
+  assertthat::assert_that((dim(data)[2] %in% changepoints) == FALSE, msg = "Impossible changepoint, cannot segment after last timepoint\n")
   changepoints <- sort(changepoints)
 
 
@@ -202,7 +202,7 @@ fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_chan
 
     # all counts should be present
     assertthat::assert_that(all(rowSums(data) == rowSums(do.call(cbind,chunkSums))),
-                            msg = "Timepoints lost in chunking")
+                            msg = "Timepoints lost in chunking\n")
 
 
   } else {
@@ -211,7 +211,7 @@ fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_chan
 
     # all counts should be present
     assertthat::assert_that(all(base::rowSums(data) == base::rowSums(do.call(base::cbind,chunkSums))),
-                            msg = "Timepoints lost in chunking")
+                            msg = "Timepoints lost in chunking\n")
   }
 
 
@@ -384,23 +384,27 @@ parseScoreMethod <- function(scoreMethod){
                 score_fxn = multinomialLL))
   }
 
-  stop("scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod)")
+  stop("scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod\n)")
 
 }
 
-getActualMinSegLen <- function(desiredMinSegLen, binSize){
-  # return the minimum segment length to use.
+getActualMinSegLen <- function(desiredMinSegLen, binSize, n_mut){
+  # return the minimum segment length (in bins) to use
 
   # for high resolution segment scoring, use at least 400 mutations per segment.
-  if(is.null(desiredMinSegLen)){
-    return (ceiling(400/binSize))
+  if( (desiredMinSegLen == 1) & (n_mut > 400)){
+    return ( ceiling(400/binSize) )
   }
 
   # for accurate segment scoring, reqire at least 100 mutations per segment.
-  actualMinSegLen <- max(desiredMinSegLen, ceiling(100/binSize))
+  actualMinSegLen <- max(as.integer(desiredMinSegLen), ceiling(100/binSize) )
 
   if (actualMinSegLen != desiredMinSegLen){
-    warning(sprintf("Could not use desiredMinSegLen, too few mutations for accurate segment scoring. minSegLen set to: %s", actualMinSegLen))
+    warning(sprintf("Could not use desiredMinSegLen, too few mutations for accurate segment scoring. minSegLen set to: %s\n", actualMinSegLen))
+  }
+
+  if (n_mut < binSize * actualMinSegLen){
+    warning("Not enough total mutations to segment at selected binSize.\n")
   }
 
   return(actualMinSegLen)
@@ -413,7 +417,7 @@ getChangepointsPELT <- function(vcaf, countsPerBin, referenceSignatures, scoreMe
 
 {
 
-  minSegLen <- getActualMinSegLen(desiredMinSegLen, binSize)
+  minSegLen <- getActualMinSegLen(desiredMinSegLen, binSize, dim(vcaf)[1])
   score_matrix <- scorePartitionsPELT(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, minSegLen)
 
   #print(score_matrix[1:15, 1:15])
@@ -433,7 +437,7 @@ scorePartitionsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMe
 {
   n_bins <- dim(countsPerBin)[2]
   n_sigs <- dim(referenceSignatures)[2]
-  #n_mut <- dim(vcaf)[1]
+  n_mut <- dim(vcaf)[1]
 
 
   penalty <- score_fxn <- NULL

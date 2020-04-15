@@ -64,16 +64,19 @@ TrackSig <- function(vcfFile,
                      referenceSignatures = TrackSig:::alex_merged,
                      scoreMethod = "SigFreq",
                      binSize = 100,
-                     desiredMinSegLen = NULL,
+                     desiredMinSegLen = 1,
                      refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19) {
 
   # input checking
 
-  assertthat::assert_that(grepl(".vcf$", vcfFile) | grepl(".txt$", vcfFile), msg = "Unsupported VCF file extension. Expected file type .vcf or .txt")
+  assertthat::assert_that(grepl(".vcf$", vcfFile) | grepl(".txt$", vcfFile), msg = "Unsupported VCF file extension. Expected file type .vcf or .txt\n")
   assertthat::assert_that(all(activeInSample %in% colnames(referenceSignatures)))
 
-  #assertthat::assert_that(scoreMethod %in% c("SigFreq", "Signature", "Frequency"),
-  #msg = "scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod)")
+  assertthat::assert_that(is.numeric(purity) & (0 < purity) & (purity <= 1),
+                          msg = "Purity should be a proportion between 0 and 1\n")
+
+  assertthat::assert_that(is.numeric(desiredMinSegLen) & (0 < desiredMinSegLen),
+                          msg = "desiredMinSegLen should be an integer greater than 0\n")
 
 
   # TODO: activeSignatures %in% colnames(referenceSignatures) must be TRUE
@@ -94,7 +97,7 @@ TrackSig <- function(vcfFile,
 
   }
 
-  # TODO: geet context from supplied referenceSignatures
+  # TODO: get context from supplied referenceSignatures
   context <- generateContext(c("CG", "TA"))
 
   # TODO: other parameters non-default options
@@ -163,6 +166,9 @@ list <- structure(NA,class="result")
   }
   x
 }
+
+# TODO: function recommendBinSize()
+
 
 # TODO: see http://adv-r.had.co.nz/S3.html for best practices
 # constructor function for tracksig results. Returned by TrackSig when class=T
