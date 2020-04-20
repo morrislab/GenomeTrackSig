@@ -5,7 +5,8 @@
 \title{get binCounts from vcfToCounts}
 \usage{
 detectActiveSignatures(vcfFile, cnaFile = NULL, purity = 1,
-  threshold = 0.05, prior = NULL, referenceSignatures = alex_merged,
+  threshold = 0.05, prior = NULL, binSize = 100,
+  referenceSignatures = alex_merged,
   refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
 }
 \arguments{

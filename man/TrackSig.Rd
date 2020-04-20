@@ -5,9 +5,9 @@
 \title{\code{TrackSig} Take an input vcf file and annotation and generate the counts data.
 Create all plotting output that compute_signatures_for_all_examples does.}
 \usage{
-TrackSig(vcfFile, activeInSample, cnaFile = NULL, purity = NULL,
-  sampleID = NULL, referenceSignatures = alex_merged,
-  scoreMethod = "SigFreq", binSize = 100, desiredMinSegLen = NULL,
+TrackSig(vcfFile, activeInSample, cnaFile = NULL, purity = 1,
+  sampleID = NULL, referenceSignatures = TrackSig:::alex_merged,
+  scoreMethod = "SigFreq", binSize = 100, desiredMinSegLen = 1,
   refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
 }
 \arguments{
