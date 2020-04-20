@@ -391,6 +391,9 @@ parseScoreMethod <- function(scoreMethod){
 getActualMinSegLen <- function(desiredMinSegLen, binSize, n_mut){
   # return the minimum segment length (in bins) to use
 
+  assertthat::assert_that(is.numeric(desiredMinSegLen) & (0 < desiredMinSegLen),
+                          msg = "desiredMinSegLen should be an integer greater than 0\n")
+
   # for high resolution segment scoring, use at least 400 mutations per segment.
   if( (desiredMinSegLen == 1) & (n_mut > 400)){
     return ( ceiling(400/binSize) )

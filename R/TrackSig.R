@@ -75,9 +75,6 @@ TrackSig <- function(vcfFile,
   assertthat::assert_that(is.numeric(purity) & (0 < purity) & (purity <= 1),
                           msg = "Purity should be a proportion between 0 and 1\n")
 
-  assertthat::assert_that(is.numeric(desiredMinSegLen) & (0 < desiredMinSegLen),
-                          msg = "desiredMinSegLen should be an integer greater than 0\n")
-
 
   # TODO: activeSignatures %in% colnames(referenceSignatures) must be TRUE
   # TODO: length(activeInSample) >1 should be true, else no mixture to fit
