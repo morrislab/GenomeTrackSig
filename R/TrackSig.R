@@ -70,7 +70,12 @@ TrackSig <- function(vcfFile,
   # input checking
 
   assertthat::assert_that(grepl(".vcf$", vcfFile) | grepl(".txt$", vcfFile), msg = "Unsupported VCF file extension. Expected file type .vcf or .txt\n")
-  assertthat::assert_that(all(activeInSample %in% colnames(referenceSignatures)))
+
+  if(missing(activeInSample)){
+    assertthat::assert_that(scoreMethod == "Frequency", msg = "When scoreMethod is not equal to \"Frequency\", activeInSample must be provided.")
+  }else{
+    assertthat::assert_that(all(activeInSample %in% colnames(referenceSignatures)))
+  }
 
   assertthat::assert_that(is.numeric(purity) & (0 < purity) & (purity <= 1),
                           msg = "Purity should be a proportion between 0 and 1\n")
@@ -108,7 +113,7 @@ TrackSig <- function(vcfFile,
                                 rownames(referenceSignatures)),
                           msg = "Mutation type counts failed.")
 
-  countsPerBin <- countsPerBin[rownames(referenceSignatures),]
+  countsPerBin <- countsPerBin[rownames(referenceSignatures),,drop = FALSE]
 
   # subset referenceSignatures with activeInSample
   referenceSignatures <- referenceSignatures[activeInSample]
@@ -126,24 +131,8 @@ TrackSig <- function(vcfFile,
                                                       binSize = binSize,
                                                       desiredMinSegLen = desiredMinSegLen)
 
-  # side effect: plot
-
-  #plot <- NULL
-  #tryCatch({
-
-  #          binned_phis <- stats::aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
-
-  #          plot <- ( plotTrajectory(mixtures * 100, phis = binned_phis, changepoints, linearX = T, anmac = T)
-  #                    + ggtitle(paste0(sampleID, " Signature Trajectory"))
-  #                  )
-
-  #          print(plot)
-
-  #         },
-  #         warning = function(w){w},
-  #         error = function(e){print("Error: failed to plot signature trajectory")}
-  #        )
-
+  # record the call parameters
+  #call <- mget(names(formals()),sys.frame(sys.nframe()))
 
   return (list(mixtures = mixtures, changepoints = changepoints, binData = vcaf))
 }

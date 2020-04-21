@@ -55,7 +55,7 @@ round_percent <- function(x, decimals=0L, ties=c("random", "last")) {
 #' @name addPhiHist
 #' @export
 
-
+# TODO: create phiHist function as standalone, and add two plots with cowplot.
 addPhiHist <- function(trajectory, trajPlot, truncateStrategy = c("exclude", "stack")){
   # TODO: phiHist plot should be able to stack or exclude >1 ccf if x range is truncated.
   # create phi histogram ggplot and add it on top of cpPlot
@@ -110,7 +110,7 @@ addPhiHist <- function(trajectory, trajPlot, truncateStrategy = c("exclude", "st
   }
 
   # plot stacked phi histogram
-  phiHist <- ( ggplot2::ggplot(vcaf, ggplot2::aes(x = rlang::.data$phi, fill = rlang::.data$sigAssignment))
+  phiHist <- ( ggplot2::ggplot(vcaf, ggplot2::aes(x = .data$phi, fill = .data$sigAssignment))
                + ggplot2::geom_histogram(binwidth = 0.02, position = "stack")
                + ggplot2::scale_fill_hue(limits=levels(vcaf$sigAssignment))
                + ggplot2::xlab("")
@@ -147,6 +147,7 @@ addPhiHist <- function(trajectory, trajPlot, truncateStrategy = c("exclude", "st
 #' @return ggplot object
 #'
 #' @name plotTrajectory
+#' @import rlang
 #' @export
 
 plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
@@ -177,7 +178,7 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
     # truncate x-axis at phi = 1
     truncateSel <- which(phis <= 1)
     phis <- phis[truncateSel]
-    mixtures <- mixtures[,truncateSel]
+    mixtures <- mixtures[,truncateSel,drop = FALSE]
 
     # change x-axis lable
     xAx <- "Cancer cell fraction"
@@ -215,8 +216,8 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
 
     g <- (  ggplot2::ggplot(data = timeline)
           + ggplot2::geom_vline(xintercept = phis, alpha = 0.3)
-          + ggplot2::aes(x = rlang::.data$xBin, y = rlang::.data$exposure * 100,
-                         group = rlang::.data$Signatures, color = rlang::.data$Signatures)
+          + ggplot2::aes(x = .data$xBin, y = .data$exposure * 100,
+                         group = .data$Signatures, color = .data$Signatures)
           + ggplot2::scale_x_reverse(breaks = phis, labels = ticLab)
          )
 
@@ -231,7 +232,7 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
 
     g <- (  ggplot2::ggplot(data = timeline)
           + ggplot2::geom_vline(xintercept = 0:(length(phis) + 1), alpha = 0.3)
-          + ggplot2::aes(x = xBin, y = exposure * 100, group = Signatures, color = Signatures)
+          + ggplot2::aes(x = .data$xBin, y = .data$exposure * 100, group = .data$Signatures, color = .data$Signatures)
           + ggplot2::scale_x_reverse(breaks = length(phis):1, labels = ticLab)
     )
 
@@ -270,6 +271,25 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
 }
 
 
+#TODO: ggplot version of this funciton that can be passed to addPhiHist
+plotChangepointChoice <- function(trajectory){
+
+  nMut <- dim(trajectory$binData)[1]
+  nBin <- trajectory$binData$bin[nMut]
+  binSize <- sum(trajectory$binData$bin == 1)
+
+  potentialCps <- binSize * 1:(nMut/binSize)
+
+  plot(trajectory$binData$phi, ylab = "Empirical Phi", xlab = "Mutation Index",
+       main = "Potential changepoints in black, selected changepoints in red")
+
+  abline(v = potentialCps)
+
+  if(!is.null(trajectory$changepoints)){
+    abline(v = potentialCps[trajectory$changepoints], col = 2)
+  }
+
+}
 
 
 
