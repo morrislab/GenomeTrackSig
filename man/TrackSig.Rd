@@ -2,8 +2,7 @@
 % Please edit documentation in R/TrackSig.R
 \name{TrackSig}
 \alias{TrackSig}
-\title{\code{TrackSig} Take an input vcf file and annotation and generate the counts data.
-Create all plotting output that compute_signatures_for_all_examples does.}
+\title{Determine an evolutionary trajectory.}
 \usage{
 TrackSig(vcfFile, activeInSample, cnaFile = NULL, purity = 1,
   sampleID = NULL, referenceSignatures = TrackSig:::alex_merged,
@@ -32,6 +31,5 @@ TrackSig(vcfFile, activeInSample, cnaFile = NULL, purity = 1,
 \item{refGenome}{BSgenome to use as reference}
 }
 \description{
-\code{TrackSig} Take an input vcf file and annotation and generate the counts data.
-Create all plotting output that compute_signatures_for_all_examples does.
+\code{TrackSig} will take an input VCF file and corresponding annotation, and determine an eveolutionary trajectory for the sample, based on changepoints found using the PELT segmentation algorithm.
 }

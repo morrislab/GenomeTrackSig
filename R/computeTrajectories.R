@@ -398,7 +398,7 @@ scorePartitionsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMe
 
 
       r_seg_score <- 2 * score_fxn(counts = r_seg_counts, composing_multinomials = referenceSignatures,
-                                   mixtures = r_seg_mix, bin_size = bin_size, qis = r_seg_qis, sp_len = sp_len)
+                                   mixtures = r_seg_mix, qis = r_seg_qis, sp_len = sp_len)
       l_seg_score <- ifelse(last_cp == 0, penalty, max_sp_scores[last_cp])
 
       sp_scores[sp_len, last_cp + 1] <- l_seg_score + r_seg_score - penalty

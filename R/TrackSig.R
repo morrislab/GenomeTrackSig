@@ -3,16 +3,29 @@
 # Author: Cait Harrigan
 
 
-#' get binCounts from vcfToCounts
+#' Get a list of signatures active in a sample
+#'
+#' @description
+#' \code{detectActiveSignatures} determines what signatures are active above an
+#' activity threshold, from a list of signature definintions. To do this, a
+#' multinomial mixture model of signature activities is fit to the collection of
+#' all mutations in the sample.
 #'
 #' @param vcfFile path to variant calling format (vcf) file
-#' @param cnaFile path to copy number abberation (cna) file. If not provided, all copy numbers default to 2.
-#' @param purity number between 0 and 1 of the percentage of cells in the sample that are cancerous
-#' @param threshold minimum activity level that signature must have to be detected
-#' @param prior prior on the likelihood of observing a given signature (must match signatures present in referenceSignatures)
-#' @param referenceSignatures dataframe containing definitions of mutational signatures.
+#' @param cnaFile path to copy number abberation (cna) file. If not provided,
+#'   all copy numbers default to 2.
+#' @param purity number between 0 and 1 of the percentage of cells in the sample
+#'   that are cancerous
+#' @param threshold minimum activity level that signature must have to be
+#'   detected
+#' @param prior prior on the likelihood of observing a given signature (must
+#'   match signatures present in referenceSignatures)
+#' @param binSize number of mutations per bin (default 100)
+#' @param referenceSignatures dataframe containing definitions of mutational
+#'   signatures.
 #' @param refGenome BSgenome to use as reference
 #'
+#' @return Names of signatures active in sample.
 #' @export
 detectActiveSignatures <- function(vcfFile, cnaFile = NULL, purity = 1,
                                    threshold = 0.05, prior = NULL, binSize = 100,
@@ -37,11 +50,11 @@ detectActiveSignatures <- function(vcfFile, cnaFile = NULL, purity = 1,
 }
 
 
-#' \code{TrackSig} Take an input vcf file and annotation and generate the counts data.
-#' Create all plotting output that compute_signatures_for_all_examples does.
+#' Determine an evolutionary trajectory.
 #'
-#' @rdname TrackSig
-#' @name TrackSig
+#'
+#' @description
+#' \code{TrackSig} will take an input VCF file and corresponding annotation, and determine an eveolutionary trajectory for the sample, based on changepoints found using the PELT segmentation algorithm.
 #'
 #' @param vcfFile path to variant calling format (vcf) file
 #' @param activeInSample list of signatures names to fit the exposures of. All listed signatures must be present in the referenceSignatures dataframe.
@@ -131,8 +144,10 @@ TrackSig <- function(vcfFile,
                                                       binSize = binSize,
                                                       desiredMinSegLen = desiredMinSegLen)
 
+
   # record the call parameters
   #call <- mget(names(formals()),sys.frame(sys.nframe()))
+
 
   return (list(mixtures = mixtures, changepoints = changepoints, binData = vcaf))
 }

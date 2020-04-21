@@ -280,13 +280,13 @@ plotChangepointChoice <- function(trajectory){
 
   potentialCps <- binSize * 1:(nMut/binSize)
 
-  plot(trajectory$binData$phi, ylab = "Empirical Phi", xlab = "Mutation Index",
+  graphics::plot(trajectory$binData$phi, ylab = "Empirical Phi", xlab = "Mutation Index",
        main = "Potential changepoints in black, selected changepoints in red")
 
-  abline(v = potentialCps)
+  graphics::abline(v = potentialCps)
 
   if(!is.null(trajectory$changepoints)){
-    abline(v = potentialCps[trajectory$changepoints], col = 2)
+    graphics::abline(v = potentialCps[trajectory$changepoints], col = 2)
   }
 
 }
