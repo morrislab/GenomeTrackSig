@@ -143,7 +143,14 @@ TrackSig <- function(vcfFile,
                                                       scoreMethod = scoreMethod,
                                                       binSize = binSize,
                                                       desiredMinSegLen = desiredMinSegLen)
-
+  # assign mutations to clusters
+  if(is.null(changepoints)){
+    vcaf$clust = 1
+  }else{
+    clustIdx = rep(1:(length(changepoints) + 1),
+                   times = c(changepoints, max(vcaf$bin)) - c(0, changepoints))
+    vcaf$clust = clustIdx[vcaf$bin]
+  }
 
   # record the call parameters
   #call <- mget(names(formals()),sys.frame(sys.nframe()))
