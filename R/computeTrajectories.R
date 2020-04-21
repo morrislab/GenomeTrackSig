@@ -302,11 +302,6 @@ parseScoreMethod <- function(scoreMethod){
                 score_fxn = betaLL))
   }
 
-  if(scoreMethod == "Sigless"){
-    return(list(penalty = expression(30),
-                score_fxn = multinomialLL))
-  }
-
   stop("scoreMethod should be one of \"SigFreq\", \"Signature\", \"Frequency\". \n Please see documentation for more information on selecting a scoreMethod\n)")
 
 }
