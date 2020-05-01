@@ -4,10 +4,16 @@
 \alias{detectActiveSignatures}
 \title{Get a list of signatures active in a sample}
 \usage{
-detectActiveSignatures(vcfFile, cnaFile = NULL, purity = 1,
-  threshold = 0.05, prior = NULL, binSize = 100,
+detectActiveSignatures(
+  vcfFile,
+  cnaFile = NULL,
+  purity = 1,
+  threshold = 0.05,
+  prior = NULL,
+  binSize = 100,
   referenceSignatures = alex_merged,
-  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
+  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19
+)
 }
 \arguments{
 \item{vcfFile}{path to variant calling format (vcf) file}

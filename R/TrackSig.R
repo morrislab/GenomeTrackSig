@@ -152,11 +152,7 @@ TrackSig <- function(vcfFile,
     vcaf$clust = clustIdx[vcaf$bin]
   }
 
-  # record the call parameters
-  #call <- mget(names(formals()),sys.frame(sys.nframe()))
-
-
-  return (list(mixtures = mixtures, changepoints = changepoints, binData = vcaf))
+  return (list(mixtures = mixtures, changepoints = changepoints, sampleID = sampleID, binData = vcaf))
 }
 
 

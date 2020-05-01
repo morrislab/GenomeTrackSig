@@ -4,10 +4,18 @@
 \alias{TrackSig}
 \title{Determine an evolutionary trajectory.}
 \usage{
-TrackSig(vcfFile, activeInSample, cnaFile = NULL, purity = 1,
-  sampleID = NULL, referenceSignatures = TrackSig:::alex_merged,
-  scoreMethod = "SigFreq", binSize = 100, desiredMinSegLen = 1,
-  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
+TrackSig(
+  vcfFile,
+  activeInSample,
+  cnaFile = NULL,
+  purity = 1,
+  sampleID = NULL,
+  referenceSignatures = TrackSig:::alex_merged,
+  scoreMethod = "SigFreq",
+  binSize = 100,
+  desiredMinSegLen = 1,
+  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19
+)
 }
 \arguments{
 \item{vcfFile}{path to variant calling format (vcf) file}
