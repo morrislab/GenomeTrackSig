@@ -372,7 +372,7 @@ getTrinuc <- function(vcaf, refGenome, verbose = F){
   }
 
   # remove mutations with "N" in reference context
-  rmSet <- !sapply(triNuc, FUN = BSgenome::hasOnlyBaseLetters)
+  rmSet <- !sapply(triNuc, FUN = Biostrings::hasOnlyBaseLetters)
   if (sum(rmSet) > 0){
 
     warning( sprintf("%s (of %s) mutations dropped for uncertain identity in reference genome\n" , sum(rmSet), dim(vcaf)[1]) )
