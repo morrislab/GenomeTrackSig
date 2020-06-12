@@ -44,7 +44,9 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
   list[vcaf, countsPerBin] <- getBinCounts(vcaf, binSize, context, verbose)
 
   # clean up unecessary vcaf features
-  vcaf <- vcaf[,c("chr", "pos", "cn", "mutType", "alt", "phi", "qi", "bin")]
+  extras <- setdiff(colnames(VariantAnnotation::info(vcf)), c("t_alt_count", "t_ref_count", "cn"))
+  vcaf <- vcaf[,c(extras, "chr", "pos", "cn", "mutType", "alt", "phi", "qi", "bin")]
+  rownames(vcaf) <- NULL
 
   return( list(vcaf = vcaf, countsPerBin = countsPerBin) )
 
@@ -279,8 +281,11 @@ vcafConstruction <- function(vcf, refGenome, verbose = F){
   # subset with [0,] to avoid casting metadata columns
   vcaf <- as.data.frame(SummarizedExperiment::rowRanges(vcf)[,0])[c("seqnames", "start")]
   colnames(vcaf) <- c("chr", "pos")
-
   vcaf$ref <- unlist(IRanges::CharacterList(list(SummarizedExperiment::rowRanges(vcf)$REF)))
+
+  # add back any extra mutation-wise data that the vcf contains
+  extras <- setdiff(colnames(VariantAnnotation::info(vcf)), c("t_alt_count", "t_ref_count", "cn"))
+  vcaf <- base::as.data.frame(base::cbind(vcaf, VariantAnnotation::info(vcf)[,extras]))
 
   # drop secondary alleles in multiallelic alt hits
   allAlts <- IRanges::CharacterList(SummarizedExperiment::rowRanges(vcf)$ALT)
