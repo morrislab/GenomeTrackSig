@@ -13,6 +13,7 @@ TrackSig(
   referenceSignatures = TrackSig:::alex_merged,
   scoreMethod = "SigFreq",
   binSize = 100,
+  nCutoff = 10000,
   desiredMinSegLen = 1,
   refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19
 )
@@ -33,6 +34,8 @@ TrackSig(
 \item{scoreMethod}{string to indicate what scoring method to apply when finding changepoints. Options are "Signature", "SigFreq" and "Frequency"}
 
 \item{binSize}{number of mutations per bin (default 100)}
+
+\item{nCutoff}{maximum number of total mutations to consider (samples with more than nCutoff muations will be down-sampled)}
 
 \item{desiredMinSegLen}{minimum number of mutations to include in a PELT segment (the desiredMinSegLen will be overridden if there are too few for accurate scoring)}
 
