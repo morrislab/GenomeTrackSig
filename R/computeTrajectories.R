@@ -136,23 +136,22 @@ fitMixturesEM <- function(counts, composing_multinomials, prior=NULL)
 }
 
 
-distributeBinCounts <- function(binCounts, leftChunk, rightChunk){
+distributeBinCounts <- function(binCounts){
   # split the counts of a changepoint bin and add them to the chunks that surround it
 
   # distribute evenly what can be
-  leftChunk <- leftChunk + floor(binCounts / 2)
-  rightChunk <- rightChunk + floor(binCounts / 2)
+  leftChunk <- rightChunk <- floor(binCounts / 2)
 
   # sample masks to assign remaining counts
   binCounts <- binCounts - (2 * floor(binCounts/2))
   leftMask <- sample( which(binCounts > 0), (length(which(binCounts > 0)) / 2) )
-  rightMask <- Biostrings::setdiff(which(binCounts >0), leftMask)
+  rightMask <- base::setdiff(which(binCounts >0), leftMask)
 
   # distribute remaining counts
   leftChunk[leftMask] <- leftChunk[leftMask] + binCounts[leftMask]
   rightChunk[rightMask] <- rightChunk[rightMask] + binCounts[rightMask]
 
-  return(list(leftChunk = leftChunk, rightChunk = rightChunk))
+  return(list(leftAdd = leftChunk, rightAdd = rightChunk))
 
 }
 
@@ -186,18 +185,24 @@ fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_chan
   assertthat::assert_that((dim(data)[2] %in% changepoints) == FALSE, msg = "Impossible changepoint, cannot segment after last timepoint\n")
   changepoints <- sort(changepoints)
 
+  # TODO: distributing counts between bins with two immediately adjacent cahngepoints
+  # is undefined behaviour. Minseglen >2 should avoid this, but may not be guarenteed.
+  if (any((c(1, changepoints + 1) - c(changepoints - 1, dim(data)[2])) == 1 )){
+    split_data_at_change_point <- F
+  }
 
   # if changepoints, get changepoints as data indices
   if (split_data_at_change_point){
 
-    slices <- mapply(c(1, changepoints + 1), c(changepoints - 1, dim(data)[2]), FUN = `:`)
+    slices <- mapply(c(1, changepoints + 1), c(changepoints - 1, dim(data)[2]), FUN = `:`, SIMPLIFY = F)
     chunkSums <- lapply(slices, data, FUN = sumSlice)
 
     # split change point bins over chunks
     for (cp_i in 1:length(changepoints)){
-      list[chunkSums[[cp_i]], chunkSums[[(cp_i + 1)]]] <- distributeBinCounts(data[,changepoints[cp_i]],
-                                                                              chunkSums[[cp_i]],
-                                                                              chunkSums[[(cp_i + 1)]])
+      leftAdd <- rightAdd <- NULL
+      list[leftAdd, rightAdd] <- distributeBinCounts(data[,changepoints[cp_i]])
+      chunkSums[[cp_i]] <- chunkSums[[cp_i]] + leftAdd
+      chunkSums[[(cp_i + 1)]] <- chunkSums[[(cp_i + 1)]] + rightAdd
     }
 
     # all counts should be present
@@ -206,11 +211,11 @@ fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_chan
 
 
   } else {
-    slices <- mapply(c(1, changepoints + 1), c(changepoints, dim(data)[2]), FUN = `:`)
+    slices <- mapply(c(1, changepoints + 1), c(changepoints, dim(data)[2]), FUN = `:`, SIMPLIFY = F)
     chunkSums <- lapply(slices, data, FUN = sumSlice)
 
     # all counts should be present
-    assertthat::assert_that(all(base::rowSums(data) == base::rowSums(do.call(base::cbind,chunkSums))),
+    assertthat::assert_that(all(base::rowSums(data) == rowSums(do.call(cbind,chunkSums))),
                             msg = "Timepoints lost in chunking\n")
   }
 
@@ -219,7 +224,7 @@ fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_chan
   chunkFits <- mapply(chunkFits, times = c(changepoints, dim(data)[2]) - c(0, changepoints),
                       nSig = dim(alex.t)[2], FUN = repChunk)
 
-  fitted_values <- do.call(base::cbind, chunkFits)
+  fitted_values <- do.call(cbind, chunkFits)
   dimnames(fitted_values) <- list(colnames(alex.t), colnames(data))
 
   return(fitted_values)
