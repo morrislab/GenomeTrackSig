@@ -222,7 +222,7 @@ fitMixturesInTimeline <- function(data, changepoints, alex.t, split_data_at_chan
 
   chunkFits <- lapply(chunkSums, composing_multinomials = alex.t, FUN = fitMixturesEM)
   chunkFits <- mapply(chunkFits, times = c(changepoints, dim(data)[2]) - c(0, changepoints),
-                      nSig = dim(alex.t)[2], FUN = repChunk)
+                      nSig = dim(alex.t)[2], FUN = repChunk, SIMPLIFY = F)
 
   fitted_values <- do.call(cbind, chunkFits)
   dimnames(fitted_values) <- list(colnames(alex.t), colnames(data))
