@@ -60,6 +60,7 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
 parseVcfFile <- function(vcfFile, cutoff = 10000, refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19){
 
   vcf <- VariantAnnotation::readVcf(vcfFile, genome = GenomeInfoDb::providerVersion(refGenome))
+  seqlevelsStyle(vcf) <- "UCSC"
 
   # TODO: remove any duplicates
 
