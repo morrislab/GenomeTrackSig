@@ -60,7 +60,7 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
 parseVcfFile <- function(vcfFile, cutoff = 10000, refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19){
 
   vcf <- VariantAnnotation::readVcf(vcfFile, genome = GenomeInfoDb::providerVersion(refGenome))
-  seqlevelsStyle(vcf) <- "UCSC"
+  GenomeInfoDb::seqlevelsStyle(vcf) <- "UCSC"
 
   # TODO: remove any duplicates
 
@@ -345,6 +345,7 @@ getTrinuc <- function(vcaf, refGenome, verbose = F){
 ## @param binSize number of mutations per bin
 ## @param context trinucleotide combinations possible
 ## @return A data frame of summary statistics and mutation type counts for each bin.
+#' @importFrom magrittr "%>%"
 getBinCounts <- function(vcaf, binSize, context, verbose = F){
   # replaces make_hundreds.py script
 
@@ -361,11 +362,14 @@ getBinCounts <- function(vcaf, binSize, context, verbose = F){
 
   vcaf$bin <- c(rep(1:nFullBins, each = binSize), rep( (nFullBins + 1) , times = sizePartialBin))
 
-  # aggregate on bins
-  binCounts <- data.frame( row.names = 1:(nFullBins + (sizePartialBin != 0)) )
+  # get count of each mutation type for each bin
+  vcaf %>%
+    dplyr::mutate(cat = paste(.data$ref, .data$alt, .data$mutType, sep = "_")) %>%
+    dplyr::group_by(.data$bin, .data$cat) %>% dplyr::summarize(sum(.data$bin)) %>%
+    reshape2::dcast(.data$bin~.data$cat) -> binCounts
 
-  # counts for each bin
-  binCounts <- base::cbind(binCounts, stats::aggregate(paste(vcaf$ref, vcaf$alt, vcaf$mutType, sep = "_"), by = list(vcaf$bin), FUN = function(x){return(as.array(table(x)))})$x )
+  # replace NAs with 0
+  binCounts[is.na(binCounts)] <- 0
 
   # check that all mutation types have a count
   missingTypes <- setdiff(paste(context$V1, context$V2, context$V3, sep = "_"), names(binCounts))

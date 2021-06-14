@@ -1,10 +1,10 @@
 ---
-title: "TrackSig"
+title: "TrackSig Demo"
 author: "Cait Harrigan"
 date: "`r Sys.Date()`"
-output: rmdformats::html_clean
+#output: rmdformats::html_clean
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{Simple Demo}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
