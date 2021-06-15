@@ -33,7 +33,8 @@ Imports:
     BSgenome,
     GenomeInfoDb,
     IRanges,
-    S4Vectors
+    S4Vectors,
+    tidyr
 LinkingTo: 
 Suggests:
     testthat,
