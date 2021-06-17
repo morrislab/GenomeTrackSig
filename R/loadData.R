@@ -46,7 +46,7 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
 
   # clean up unecessary vcaf features
   extras <- setdiff(colnames(VariantAnnotation::info(vcf)), c("t_alt_count", "t_ref_count", "cn"))
-  vcaf <- vcaf[,c(extras, "chr", "pos", "cn", "mutType", "alt", "phi", "qi", "bin")]
+  vcaf <- vcaf[,c(extras, "chr", "pos", "chr_pos", "cn", "mutType", "alt", "phi", "qi", "bin")]
   rownames(vcaf) <- NULL
 
   return( list(vcaf = vcaf, countsPerBin = countsPerBin) )
@@ -359,6 +359,11 @@ getBinCounts <- function(vcaf, binSize, context, verbose = F){
   # populate all possible bins, up to one possible remaining partial bin
   nFullBins <- floor( (nMut / binSize) )
   sizePartialBin <- round(((nMut / binSize) %% 1) * binSize)
+
+  # order mutations by position in the genome
+  vcaf <- vcaf %>%
+    dplyr::mutate(chr_pos = as.numeric(paste(.data$chr, .data$pos, sep = "."))) %>%
+    dplyr::arrange(desc(chr_pos))
 
   vcaf$bin <- c(rep(1:nFullBins, each = binSize), rep( (nFullBins + 1) , times = sizePartialBin))
 

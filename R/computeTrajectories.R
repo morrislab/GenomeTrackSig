@@ -352,8 +352,8 @@ getChangepointsPELT <- function(vcaf, countsPerBin, referenceSignatures, scoreMe
   mixtures <- fitMixturesInTimeline(countsPerBin, changepoints, referenceSignatures)
 
   # mixtures should also contain binned phi
-  binned_phis <- stats::aggregate(vcaf$phi, by = list(vcaf$bin), FUN = mean)$x
-  colnames(mixtures) <- binned_phis
+  binned_pos <- stats::aggregate(vcaf$chr_pos, by = list(vcaf$bin), FUN = min)$x
+  colnames(mixtures) <- binned_pos
 
   return(list(mixtures = mixtures, changepoints = changepoints))
 }
