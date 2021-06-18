@@ -38,6 +38,7 @@ round_percent <- function(x, decimals=0L, ties=c("random", "last")) {
     o <- order(x%%1, tiebreaker, decreasing=TRUE)
     res[o[1:(multiplier-rsum)]] <- res[o[1:(multiplier-rsum)]]+1
   }
+
   res/(10^decimals)
 }
 
@@ -277,72 +278,71 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
   # set the phis to colnames(mixtures) - note: used when anmac = T
   phis <- as.numeric(colnames(mixtures))
 
-  # mixtures and phis are binned the same way
+  # mixtures and phis are binned the same way100
   assertthat::assert_that(length(phis) == dim(mixtures)[2],
                           msg = "The mixtures object is mal-specified. Column names should correspond to binned phis.\n")
 
-  # phis should be decreasings
+  # phis should be increasing
   assertthat::assert_that(all(order(phis, decreasing = T) == 1:length(phis)),
                           msg = "The mixtures object is mal-specified. Binned phis (column names) should be in decreasing order.\n")
 
   if(!anmac){ # take x-axis as ccf scale
 
     # change x-axis lable
-    xAx <- "Cancer cell fraction"
+    xAx <- "Locus (chromosome.position)"
 
   }else{ xAx <- "Average number of mutant alleles per cell" }
 
-  # Plotting the change of mutational signature weights during evolution specified as the order of phi
-  colnames(mixtures) <- dim(mixtures)[2]:1
-  timeline <- reshape2::melt(mixtures)
-  colnames(timeline) <- c("Signatures", "xBin", "exposure")
-  timeline$xBin <- as.numeric(timeline$xBin)
-  timeline$exposure <- as.numeric(timeline$exposure)
+# Plotting the change of mutational signature weights during evolution specified as the order of phi
+colnames(mixtures) <- 1:dim(mixtures)[2]
+timeline <- reshape2::melt(mixtures)
+colnames(timeline) <- c("Signatures", "xBin", "exposure")
+timeline$xBin <- as.numeric(timeline$xBin)
+timeline$exposure <- as.numeric(timeline$exposure)
 
 
-  if(!linearX){ # ggplot formatting specific for non-linear scale
+if(!linearX){ # ggplot formatting specific for non-linear scale
 
-    # non-linear scale shows ccf densities
+  # non-linear scale shows ccf densities
 
-    # place labels in a way that depends on bin density
-    # take 8 times the smallest spacing (%)
-    spacing <- 800 * min(c(NA, phis) - c(phis, NA), na.rm = T)
+  # place labels in a way that depends on bin density
+  # take 8 times the smallest spacing (%)
+  spacing <- 800 * min(c(NA, phis) - c(phis, NA), na.rm = T)
 
-    ticSel <- seq(1, length(phis), by = spacing)
-    ticLab <- rep("", length(phis))
-    ticLab[ticSel] <- round(phis, 2)[ticSel]
+  ticSel <- seq(1, length(phis), by = spacing)
+  ticLab <- rep("", length(phis))
+  ticLab[ticSel] <- round(phis, 12)[ticSel]
 
-    # increasing phi by bin
-    timeline$xBin <- phis[timeline$xBin]
-    timeline$xBin <- timeline$xBin[length(timeline$xBin) : 1]
+  # increasing phi by bin
+  timeline$xBin <- phis[timeline$xBin]
+  timeline$xBin <- timeline$xBin[1:length(timeline$xBin)]
 
-    g <- (  ggplot2::ggplot(data = timeline)
-            + ggplot2::geom_vline(xintercept = phis, alpha = 0.3)
-            + ggplot2::aes(x = .data$xBin, y = .data$exposure * 100,
-                           group = .data$Signatures, color = .data$Signatures)
-            + ggplot2::scale_x_continuous(breaks = phis, labels = ticLab)
-    )
+  g <- (  ggplot2::ggplot(data = timeline)
+          + ggplot2::geom_vline(xintercept = phis, alpha = 0.3)
+          + ggplot2::aes(x = .data$xBin, y = .data$exposure * 100,
+                         group = .data$Signatures, color = .data$Signatures)
+          + ggplot2::scale_x_continuous(breaks = phis, labels = ticLab)
+  )
 
-    # slice changepoints (reverse axis means max to min)
-    cpPos <- base::cbind(phis[changepoints], phis[changepoints + 1])
+  # slice changepoints (reverse axis means max to min)
+  cpPos <- base::cbind(phis[changepoints], phis[changepoints + 1])
 
-  }else{ # ggplot formatting specific for linear scale
+}else{ # ggplot formatting specific for linear scale
 
-    ticSel <- seq(1, length(phis), length.out = min(length(phis), 25))
-    ticLab <- rep("", length(phis))
-    ticLab[ticSel] <- round(phis, 2)[ticSel]
+  ticSel <- seq(1, length(phis), length.out = min(length(phis), 25))
+  ticLab <- rep("", length(phis))
+  ticLab[ticSel] <- round(phis, 12)[ticSel]
 
-    g <- (  ggplot2::ggplot(data = timeline)
-            + ggplot2::geom_vline(xintercept = 0:(length(phis) + 1), alpha = 0.3)
-            + ggplot2::aes(x = .data$xBin, y = .data$exposure * 100, group = .data$Signatures, color = .data$Signatures)
-            + ggplot2::scale_x_continuous(breaks = length(phis):1, labels = ticLab)
-    )
+  g <- (  ggplot2::ggplot(data = timeline)
+          + ggplot2::geom_vline(xintercept = 0:(length(phis) + 1), alpha = 0.3)
+          + ggplot2::aes(x = .data$xBin, y = .data$exposure * 100, group = .data$Signatures, color = .data$Signatures)
+          + ggplot2::scale_x_continuous(breaks = length(phis):1, labels = ticLab)
+  )
 
-    # slice changepoints (reverse axis means max to min)
-    cpPos <- base::cbind((length(phis):1)[changepoints], (length(phis):1)[changepoints + 1])
+  # slice changepoints (reverse axis means max to min)
+  cpPos <- base::cbind((1:length(phis))[changepoints], (1:length(phis))[changepoints + 1])
 
-  }
-
+}
   # TODO: have truncate x range as option
   # TODO: adjust text element size, and alpha for repear lines
 
@@ -352,7 +352,8 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
            + ggplot2::geom_line()
            + ggplot2::theme_bw()
            + ggplot2::theme(panel.grid.major.x = ggplot2::element_blank(),
-                            panel.grid.minor.x = ggplot2::element_blank())
+                            panel.grid.minor.x = ggplot2::element_blank(),
+                            axis.text.x = ggplot2::element_text(angle=90))
            + ggplot2::ylab("Signature Exposure (%)")
            + ggplot2::xlab(xAx)
   )

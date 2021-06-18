@@ -349,6 +349,8 @@ getTrinuc <- function(vcaf, refGenome, verbose = F){
 getBinCounts <- function(vcaf, binSize, context, verbose = F){
   # replaces make_hundreds.py script
 
+  chr_pos <- NULL
+
   if(verbose){ print("Making counts...") }
 
   nMut <- dim(vcaf)[1]
@@ -363,7 +365,7 @@ getBinCounts <- function(vcaf, binSize, context, verbose = F){
   # order mutations by position in the genome
   vcaf <- vcaf %>%
     dplyr::mutate(chr_pos = as.numeric(paste(.data$chr, .data$pos, sep = "."))) %>%
-    dplyr::arrange(desc(chr_pos))
+    dplyr::arrange(dplyr::desc(chr_pos))
 
   vcaf$bin <- c(rep(1:nFullBins, each = binSize), rep( (nFullBins + 1) , times = sizePartialBin))
 

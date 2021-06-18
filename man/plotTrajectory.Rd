@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotting.R
 \name{plotTrajectory}
 \alias{plotTrajectory}
-\title{Plot the exolutionary trajectory of a tumour}
+\title{Plot the evolutionary trajectory of a tumour}
 \usage{
 plotTrajectory(trajectory, linearX = F, anmac = F, show = T)
 }
@@ -22,6 +22,6 @@ estimated average number of mutant alleles per cell (anmac)}
 ggplot object
 }
 \description{
-For each bin in a set of signature mixtures, the mixture is plotted accross
+For each bin in a set of signature mixtures, the mixture is plotted ac ross
 pseudo-time. Provided changepoints will be highlighted.
 }
