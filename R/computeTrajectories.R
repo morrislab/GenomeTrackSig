@@ -339,12 +339,12 @@ getActualMinSegLen <- function(desiredMinSegLen, binSize, n_mut){
 # Find optimal changepoint and mixtures using PELT method.
 # if desiredMinSegLen is NULL, the value will be selected by default based off binSize to try to give good performance
 
-getChangepointsPELT <- function(vcaf, countsPerBin, referenceSignatures, scoreMethod, binSize = 100, desiredMinSegLen = NULL)
+getChangepointsPELT <- function(binCounts, countsPerBin, referenceSignatures, scoreMethod, binSize, desiredMinSegLen = NULL)
 
 {
 
-  minSegLen <- getActualMinSegLen(desiredMinSegLen, binSize, dim(vcaf)[1])
-  score_matrix <- scorePartitionsPELT(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, minSegLen)
+  minSegLen <- getActualMinSegLen(desiredMinSegLen, binSize, base::sum(base::rowSums(countsPerBin)))
+  score_matrix <- scorePartitionsPELT(countsPerBin, referenceSignatures, binCounts, scoreMethod, binSize, minSegLen)
 
   #print(score_matrix[1:15, 1:15])
 
@@ -352,18 +352,18 @@ getChangepointsPELT <- function(vcaf, countsPerBin, referenceSignatures, scoreMe
   mixtures <- fitMixturesInTimeline(countsPerBin, changepoints, referenceSignatures)
 
   # mixtures should also contain binned phi
-  binned_pos <- stats::aggregate(vcaf$chr_pos, by = list(vcaf$bin), FUN = min)$x
+  binned_pos <- stats::aggregate(binCounts$chr_pos, by = list(binCounts$bin), FUN = min)$x
   colnames(mixtures) <- binned_pos
 
   return(list(mixtures = mixtures, changepoints = changepoints))
 }
 
 # Calculate penalized BIC score for all partitions using PELT method.
-scorePartitionsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMethod, binSize, minSegLen)
+scorePartitionsPELT <- function(countsPerBin, referenceSignatures, binCounts, scoreMethod, binSize, minSegLen)
 {
   n_bins <- dim(countsPerBin)[2]
   n_sigs <- dim(referenceSignatures)[2]
-  n_mut <- dim(vcaf)[1]
+  n_mut <- base::sum(base::rowSums(countsPerBin))
 
 
   penalty <- score_fxn <- NULL
@@ -397,13 +397,12 @@ scorePartitionsPELT <- function(countsPerBin, referenceSignatures, vcaf, scoreMe
 
       # score segment
       sp_slice <- c((last_cp + 1), sp_len)
-      r_seg_qis <- vcaf$qi[vcaf$bin %in% (sp_slice[1] : sp_slice[2])]
       r_seg_counts <- (countsPerBin[, sp_slice[1] : sp_slice[2]])
       r_seg_mix <- fitMixturesEM(r_seg_counts, referenceSignatures)
 
 
       r_seg_score <- 2 * score_fxn(counts = r_seg_counts, composing_multinomials = referenceSignatures,
-                                   mixtures = r_seg_mix, qis = r_seg_qis, sp_len = sp_len)
+                                   mixtures = r_seg_mix, sp_len = sp_len)
       l_seg_score <- ifelse(last_cp == 0, penalty, max_sp_scores[last_cp])
 
       sp_scores[sp_len, last_cp + 1] <- l_seg_score + r_seg_score - penalty
