@@ -163,7 +163,7 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
   assertthat::assert_that(!is.null(mixtures), msg = "Could not find mixtures for timeline, please supply through results or mixtures paramter.\n")
 
   # set the phis to colnames(mixtures) - note: used when anmac = T
-  phis <- as.numeric(colnames(mixtures))
+  phis <- as.numeric(binData$bin)
 
   # mixtures and phis are binned the same way100
   assertthat::assert_that(length(phis) == dim(mixtures)[2],
@@ -173,20 +173,34 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
   #assertthat::assert_that(all(order(phis, decreasing = F) == 1:length(phis)),
                           #msg = "The mixtures object is mal-specified. Binned phis (column names) should be in decreasing order.\n")
 
-# Plotting the change of mutational signature weights during evolution specified as the order of phi
-colnames(mixtures) <- 1:dim(mixtures)[2]
-timeline <- reshape2::melt(mixtures)
-colnames(timeline) <- c("Signatures", "xBin", "exposure")
-timeline$xBin <- as.numeric(timeline$xBin)
-timeline$exposure <- as.numeric(timeline$exposure)
-timeline$chrom <- c(rep(binData$start_chrom, each=as.numeric(dim(mixtures)[1])))
-timeline$chr_pos <- as.numeric(c(rep(binData$chr_pos, each=as.numeric(dim(mixtures)[1]))))
+  # Plotting the change of mutational signature weights during evolution specified as the order of phi
+  colnames(mixtures) <- 1:dim(mixtures)[2]
+  timeline <- reshape2::melt(mixtures)
+  colnames(timeline) <- c("Signatures", "xBin", "exposure")
+  timeline$xBin <- c(rep(binData$bin, each = as.numeric(dim(mixtures)[1])))
+  timeline$exposure <- as.numeric(timeline$exposure)
+  timeline$chrom <- c(rep(binData$start_chrom, each=as.numeric(dim(mixtures)[1])))
+  timeline$start <- c(rep(binData$start, each = as.numeric(dim(mixtures)[1])))
+  timeline$chr_pos <- c(rep(binData$chr_pos, each=as.numeric(dim(mixtures)[1])))
 
+  # assigning changepoints to chr_pos
+  # chr_breaks <- c(1.1:24.1)
+  # chr_labels <- c(1:22, "X", "Y")
 
-chr_breaks <- as.numeric(c(1.1:24.1))
-chr_labels <- as.character(c(1:22, "X", "Y"))
+  # assigning changepoints to bin
+  change_phis <- c(1)
+  for (i in nrow(binData):2) {
+    if (binData$start_chrom[i] < binData$start_chrom[i-1]) {
+      change_phis <- c(change_phis, binData$bin[i])
+    }
+  }
+  # if (length(change_phis) == 23) {
+  #   change_phis <- c(change_phis, binData$bin[1])
+  #}
+  chr_breaks <- change_phis
+  chr_labels <- as.character(c(1:22, "X", "Y"))
 
-if(!linearX){ # ggplot formatting specific for non-linear scale
+  if(!linearX){ # ggplot formatting specific for non-linear scale
 
   # non-linear scale shows ccf densities
 
@@ -203,14 +217,14 @@ if(!linearX){ # ggplot formatting specific for non-linear scale
   timeline$xBin <- timeline$xBin[1:length(timeline$xBin)]
 
   g <- (  ggplot2::ggplot(data = timeline)
-          + ggplot2::geom_vline(xintercept = chr_breaks, alpha = 0.3)
+          + ggplot2::geom_vline(xintercept = chr_breaks, alpha = 0.3, col ="red")
           + ggplot2::aes(x = .data$chr_pos, y = .data$exposure * 100,
                          group = .data$Signatures, color = .data$Signatures)
-          + ggplot2::scale_x_continuous(breaks = chr_breaks, labels = chr_labels)
+          + ggplot2::scale_x_continuous(breaks = levels(chr_breaks), labels = levels(chr_labels))
   )
 
   # slice changepoints (reverse axis means max to min)
-  cpPos <- base::cbind(phis[changepoints], phis[changepoints + 1])
+  cpPos <- base::cbind(phis[phis %in% changepoints], phis[phis %in% (changepoints+1)])
 
 }else{ # ggplot formatting specific for linear scale
 
@@ -219,17 +233,39 @@ if(!linearX){ # ggplot formatting specific for non-linear scale
   ticLab[ticSel] <- round(phis, 12)[ticSel]
 
   g <- (  ggplot2::ggplot(data = timeline)
-          + ggplot2::geom_vline(xintercept = chr_breaks, alpha = 0.3, col = "gray")
-          + ggplot2::aes(x = .data$chr_pos, y = .data$exposure * 100, group = .data$Signatures, color = .data$Signatures)
+          + ggplot2::geom_vline(xintercept = chr_breaks, alpha = 0.3, col = "red")
+          + ggplot2::aes(x = .data$xBin, y = .data$exposure * 100, group = .data$Signatures, color = .data$Signatures)
           + ggplot2::scale_x_continuous(breaks = chr_breaks, labels = chr_labels)
   )
 
   # slice changepoints (reverse axis means max to min)
-  cpPos <- base::cbind((1:length(phis))[changepoints], (1:length(phis))[changepoints + 1])
+  # dt = data.table::data.table(phis, val = phis)
+  # data.table::setattr(dt, "sorted", "phis")
+  # dt <- as.data.table(dt)
+  # cpPos1 <- NULL
+  # cpPos2 <- NULL
+  # for (cp in changepoints) {
+  #   if (cp %in% phis){
+  #     cpPos1 <- c(cpPos1, cp)
+  #     cpPos2 <- c(cpPos2, phis[match(cp, phis)+1])
+  #   }
+  #   else {
+  #     print(typeof(cp))
+  #     print(typeof(i))
+  #     print(typeof(dt))
+  #     i <- dt[data.table::SJ(cp), roll = "nearest", which = TRUE]
+  #     cpPos1 <- c(cpPos1, phis[i])
+  #     cpPos2 <- c(cpPos2, phis[i+1])
+  #   }
+  # }
+  # cpPos <- base::cbind(cpPos1, cpPos2)
+
+  cpPos <- base::cbind(phis[phis %in% changepoints], phis[phis %in% (changepoints+1)])
 
 }
   # TODO: have truncate x range as option
   # TODO: adjust text element size, and alpha for repear lines
+
 
   # general ggplot formatting
   g <- (   g
@@ -243,7 +279,7 @@ if(!linearX){ # ggplot formatting specific for non-linear scale
            + ggplot2::labs(group="Signatures", color = "Signatures")
   )
 
-  # add changepoints
+  #add changepoints
   if (!is.null(changepoints)) {
 
     for (i in 1:dim(cpPos)[1]) {

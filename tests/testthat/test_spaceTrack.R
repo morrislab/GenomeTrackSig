@@ -1,11 +1,46 @@
+library(foreach)
+library(doParallel)
+myCluster <- makeCluster(2, type = "FORK")
+registerDoParallel(myCluster)
+############
+
 library(ggplot2)
 
+# Cervix-SCC
 path <- "~/Desktop/CBSP2021/Cervix-SCC_pooled.csv"
 
-detectedSigs <- detectActiveSigsCopy(path = path, binSize = 100)
+cervical_sigs <- c("SBS1", "SBS2.13", "SBS5", "SBS18", "SBS40")
+counts <- binningNmut(path, binSize = 200)
 
-traj <- TrackSigCopy(path = path, binSize = 100, activeInSample = detectedSigs, sampleID = "test")
+cervix_results_bin <- foreach(i = c(1:23), .combine = 'c') %dopar% trackParallel(counts, i, cervical_sigs)
 
-plotTrajectory(traj, linearX = T) + labs(title = "Example trajectory with linear x-axis")
+cervix_traj <- combineTraj(cervix_results_bin)
+cervix_traj[['changepoints']] <- sort(cervix_traj[['changepoints']])
+cervix_traj[['binData']] <- cervix_traj[['binData']] %>%
+  dplyr::arrange(dplyr::desc(bin))
 
-nonLinPlot <- plotTrajectory(traj, linearX = F) + labs(title = "Example trajectory with non-linear x-axis")
+plotTrajectory(cervix_traj, linearX = T) + labs(title = "Cervix-SCC (n=18), Binsize = 200 mutations")
+
+
+
+
+
+
+
+
+# Prostate Adeno-CA
+prostate_sigs <- c("SBS1", "SBS2.13", "SBS5", "SBS8", "SBS18", "SBS33", "SBS37", "SBS40", 'SBS41')
+
+prostate_master <- poolSamples(archivePath = "~/Desktop/CBSP2021/archive", typesPath = "~/Desktop/CBSP2021/pcawg_cancer_types.csv",
+                             cancerType = "Prost-AdenoCA")
+
+prostate_counts <- binningNmut(path = "Prost-AdenoCA_pooled.csv", binSize = 200)
+
+prostate_results <- foreach(i = c(1:23), .combine = 'c') %dopar% trackParallel(prostate_counts, i, prostate_sigs)
+
+prostate_traj <- combineTraj(prostate_results)
+prostate_traj[['changepoints']] <- sort(prostate_traj[['changepoints']])
+
+
+
+
