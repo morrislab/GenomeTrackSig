@@ -13,27 +13,6 @@ trackParallel <- function (counts, i, activeInSample) {
   if (i == 23) {
     temp <- counts[counts$start_chrom >= i, ]
     temp$temp_bin <- rep(1:nrow(temp))
-    traj <- TrackSigCopy(temp, binSize = 200, activeInSample = cervical_sigs, sampleID = "test")
-
-    # assigning changepoints to chr_pos
-    # if (!is.null(traj[['changepoints']])) {
-    #   for (i in length(traj[['changepoints']])) {
-    #     traj[['changepoints']][i] <- traj[['binData']]$chr_pos[traj[['binData']]$temp_bin==traj[['changepoints']][i]]
-    #   }
-    #
-    # }
-
-    # assigning changepoints to bin
-    if (!is.null(traj[['changepoints']])) {
-      for (i in length(traj[['changepoints']])) {
-        traj[['changepoints']][i] <- traj[['binData']]$bin[traj[['binData']]$temp_bin==traj[['changepoints']][i]]
-      }
-
-    }
-  }
-  else {
-    temp <- counts[counts$start_chrom == i, ]
-    temp$temp_bin <- rep(1:nrow(temp))
     traj <- TrackSigCopy(temp, binSize = 200, activeInSample = activeInSample, sampleID = "test")
 
     # assigning changepoints to chr_pos
@@ -44,13 +23,39 @@ trackParallel <- function (counts, i, activeInSample) {
     #
     # }
 
-    # assigning changepoints to bin
     if (!is.null(traj[['changepoints']])) {
-      for (i in length(traj[['changepoints']])) {
-        traj[['changepoints']][i] <- traj[['binData']]$bin[traj[['binData']]$temp_bin==traj[['changepoints']][i]]
+      cp <- c()
+      for (i in traj[['changepoints']]) {
+        cp <- c(cp, as.numeric(colnames(traj[['mixtures']])[i]))
       }
+      traj[['changepoints']] <- cp
+      traj[['mixtures']] <- traj[['mixtures']][, ncol(traj[['mixtures']]):1]
 
     }
+  }
+  else {
+    temp <- counts[counts$start_chrom == i, ]
+    temp$temp_bin <- rep(nrow(temp):1)
+    traj <- TrackSigCopy(temp, binSize = 200, activeInSample = activeInSample, sampleID = "test")
+
+    # assigning changepoints to chr_pos
+    # if (!is.null(traj[['changepoints']])) {
+    #   for (i in length(traj[['changepoints']])) {
+    #     traj[['changepoints']][i] <- traj[['binData']]$chr_pos[traj[['binData']]$temp_bin==traj[['changepoints']][i]]
+    #   }
+    #
+    # }
+
+    if (!is.null(traj[['changepoints']])) {
+      cp <- c()
+      for (i in traj[['changepoints']]) {
+        cp <- c(cp, as.numeric(colnames(traj[['mixtures']])[i]))
+      }
+      traj[['changepoints']] <- cp
+      traj[['mixtures']] <- traj[['mixtures']][, ncol(traj[['mixtures']]):1]
+
+    }
+
   }
   return (traj)
 }

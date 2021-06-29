@@ -177,11 +177,11 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
   colnames(mixtures) <- 1:dim(mixtures)[2]
   timeline <- reshape2::melt(mixtures)
   colnames(timeline) <- c("Signatures", "xBin", "exposure")
-  timeline$xBin <- c(rep(binData$bin, each = as.numeric(dim(mixtures)[1])))
+  # timeline$xBin <- c(rep(colnames(mixtures)), each = as.numeric(dim(mixtures)[1])))
   timeline$exposure <- as.numeric(timeline$exposure)
-  timeline$chrom <- c(rep(binData$start_chrom, each=as.numeric(dim(mixtures)[1])))
-  timeline$start <- c(rep(binData$start, each = as.numeric(dim(mixtures)[1])))
-  timeline$chr_pos <- c(rep(binData$chr_pos, each=as.numeric(dim(mixtures)[1])))
+  # timeline$chrom <- c(rep(binData$start_chrom, each=as.numeric(dim(mixtures)[1])))
+  # timeline$start <- c(rep(binData$start, each = as.numeric(dim(mixtures)[1])))
+  # timeline$chr_pos <- c(rep(binData$chr_pos, each=as.numeric(dim(mixtures)[1])))
 
   # assigning changepoints to chr_pos
   # chr_breaks <- c(1.1:24.1)
@@ -260,7 +260,7 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
   # }
   # cpPos <- base::cbind(cpPos1, cpPos2)
 
-  cpPos <- base::cbind(phis[phis %in% changepoints], phis[phis %in% (changepoints+1)])
+  cpPos <- base::cbind(phis[phis %in% changepoints], phis[phis %in% (changepoints-1)])
 
 }
   # TODO: have truncate x range as option
@@ -281,7 +281,7 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
 
   #add changepoints
   if (!is.null(changepoints)) {
-
+    print(cpPos)
     for (i in 1:dim(cpPos)[1]) {
       g <- g + ggplot2::annotate("rect", xmax=cpPos[i,1], xmin=cpPos[i,2],
                                  ymin=-Inf, ymax=Inf, alpha=0.3, fill = "black")
