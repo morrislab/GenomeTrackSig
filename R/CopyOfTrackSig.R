@@ -28,7 +28,7 @@
 
 detectActiveSigsCopy <- function(path, purity = 1,
                                    threshold = 0.05, prior = NULL, binSize,
-                                   referenceSignatures = readr::read_delim('~/Desktop/CBSP2021/TrackSigFreq-dev/COSMIC_v3.2_SBS_CRCh37.txt', delim="t"),
+                                   referenceSignatures,
                                    refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19){
 
   # group mutations into bins with specified size

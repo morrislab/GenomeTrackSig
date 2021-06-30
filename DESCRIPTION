@@ -34,7 +34,10 @@ Imports:
     GenomeInfoDb,
     IRanges,
     S4Vectors,
-    tidyr
+    tidyr,
+    data.table,
+    foreach,
+    doParallel
 LinkingTo: 
 Suggests:
     testthat,

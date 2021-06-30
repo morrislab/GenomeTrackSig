@@ -191,7 +191,12 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
   change_phis <- c(1)
   for (i in nrow(binData):2) {
     if (binData$start_chrom[i] < binData$start_chrom[i-1]) {
-      change_phis <- c(change_phis, binData$bin[i])
+      if (binData$end_chrom[i] > binData$start_chrom[i]) {
+        change_phis <- c(change_phis, binData$bin[i]+0.5)
+      }
+      else {
+        change_phis <- c(change_phis, binData$bin[i-1])
+      }
     }
   }
   # if (length(change_phis) == 23) {
@@ -281,7 +286,6 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
 
   #add changepoints
   if (!is.null(changepoints)) {
-    print(cpPos)
     for (i in 1:dim(cpPos)[1]) {
       g <- g + ggplot2::annotate("rect", xmax=cpPos[i,1], xmin=cpPos[i,2],
                                  ymin=-Inf, ymax=Inf, alpha=0.3, fill = "black")

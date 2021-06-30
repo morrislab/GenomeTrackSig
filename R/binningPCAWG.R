@@ -21,6 +21,12 @@ poolSamples <- function(archivePath, typesPath, cancerType) {
 
   # list of sample filenames for desired cancer type
   get_files <- c(types$guid[types$type == cancerType])
+  # get_files <- c()
+  # for (i in nrow(types)) {
+  #   if (types$type[i] %in% cancerType) {
+  #     get_files <- c(get_files, types$guid[i])
+  #   }
+  # }
 
   # initialize counts dataframe
   master <- readr::read_csv(as.character(paste(archivePath, "/", get_files[1], ".MBcounts.csv", sep = "")),

@@ -13,7 +13,7 @@ trackParallel <- function (counts, i, activeInSample) {
   if (i == 23) {
     temp <- counts[counts$start_chrom >= i, ]
     temp$temp_bin <- rep(1:nrow(temp))
-    traj <- TrackSigCopy(temp, binSize = 200, activeInSample = activeInSample, sampleID = "test")
+    traj <- TrackSigCopy(temp, binSize = 100, activeInSample = activeInSample, sampleID = "test")
 
     # assigning changepoints to chr_pos
     # if (!is.null(traj[['changepoints']])) {
@@ -29,14 +29,13 @@ trackParallel <- function (counts, i, activeInSample) {
         cp <- c(cp, as.numeric(colnames(traj[['mixtures']])[i]))
       }
       traj[['changepoints']] <- cp
-      traj[['mixtures']] <- traj[['mixtures']][, ncol(traj[['mixtures']]):1]
-
     }
+    traj[['mixtures']] <- traj[['mixtures']][, ncol(traj[['mixtures']]):1]
   }
   else {
     temp <- counts[counts$start_chrom == i, ]
     temp$temp_bin <- rep(nrow(temp):1)
-    traj <- TrackSigCopy(temp, binSize = 200, activeInSample = activeInSample, sampleID = "test")
+    traj <- TrackSigCopy(temp, binSize = 100, activeInSample = activeInSample, sampleID = "test")
 
     # assigning changepoints to chr_pos
     # if (!is.null(traj[['changepoints']])) {
@@ -52,10 +51,8 @@ trackParallel <- function (counts, i, activeInSample) {
         cp <- c(cp, as.numeric(colnames(traj[['mixtures']])[i]))
       }
       traj[['changepoints']] <- cp
-      traj[['mixtures']] <- traj[['mixtures']][, ncol(traj[['mixtures']]):1]
-
     }
-
+    traj[['mixtures']] <- traj[['mixtures']][, ncol(traj[['mixtures']]):1]
   }
   return (traj)
 }
@@ -91,5 +88,10 @@ combineTraj <- function (traj) {
   }
 
   combined_traj <- list(mixtures = mixtures, changepoints = changepoints, sampleID = sampleID, binData = binData)
+
+  combined_traj[['changepoints']] <- sort(combined_traj[['changepoints']])
+  combined_traj[['binData']] <- combined_traj[['binData']] %>%
+    dplyr::arrange(dplyr::desc(bin))
+
   return (combined_traj)
 }
