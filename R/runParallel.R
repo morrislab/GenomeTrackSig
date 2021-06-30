@@ -9,19 +9,11 @@
 ##
 ## @name trackParallel
 
-trackParallel <- function (counts, i, activeInSample) {
+trackParallel <- function (master, i, activeInSample, binSize) {
   if (i == 23) {
-    temp <- counts[counts$start_chrom >= i, ]
-    temp$temp_bin <- rep(1:nrow(temp))
-    traj <- TrackSigCopy(temp, binSize = 100, activeInSample = activeInSample, sampleID = "test")
-
-    # assigning changepoints to chr_pos
-    # if (!is.null(traj[['changepoints']])) {
-    #   for (i in length(traj[['changepoints']])) {
-    #     traj[['changepoints']][i] <- traj[['binData']]$chr_pos[traj[['binData']]$temp_bin==traj[['changepoints']][i]]
-    #   }
-    #
-    # }
+    temp <- master[master$start_chrom >= i, ]
+    counts <- binningNmut(temp, binSize)
+    traj <- TrackSigCopy(counts, binSize = binSize, activeInSample = activeInSample, sampleID = "sample")
 
     if (!is.null(traj[['changepoints']])) {
       cp <- c()
@@ -33,17 +25,9 @@ trackParallel <- function (counts, i, activeInSample) {
     traj[['mixtures']] <- traj[['mixtures']][, ncol(traj[['mixtures']]):1]
   }
   else {
-    temp <- counts[counts$start_chrom == i, ]
-    temp$temp_bin <- rep(nrow(temp):1)
-    traj <- TrackSigCopy(temp, binSize = 100, activeInSample = activeInSample, sampleID = "test")
-
-    # assigning changepoints to chr_pos
-    # if (!is.null(traj[['changepoints']])) {
-    #   for (i in length(traj[['changepoints']])) {
-    #     traj[['changepoints']][i] <- traj[['binData']]$chr_pos[traj[['binData']]$temp_bin==traj[['changepoints']][i]]
-    #   }
-    #
-    # }
+    temp <- master[master$start_chrom == i, ]
+    counts <- binningNmut(temp, binSize)
+    traj <- TrackSigCopy(counts, binSize = binSize, activeInSample = activeInSample, sampleID = "test")
 
     if (!is.null(traj[['changepoints']])) {
       cp <- c()

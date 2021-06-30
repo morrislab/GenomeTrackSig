@@ -1,58 +1,42 @@
-library(foreach)
-library(doParallel)
+
 myCluster <- makeCluster(2, type = "FORK")
 registerDoParallel(myCluster)
 ############
 
 library(ggplot2)
 
-# Cervix-SCC
-path <- "~/Desktop/CBSP2021/Cervix-SCC_pooled.csv"
-
-cervical_sigs <- c("SBS1", "SBS2.13", "SBS5", "SBS18", "SBS40")
-counts <- binningNmut(path, binSize = 200)
-
-cervix_results_bin <- foreach(i = c(1:23), .combine = 'c') %dopar% trackParallel(counts, i, cervical_sigs)
-
-cervix_traj <- combineTraj(cervix_results_bin)
-cervix_traj[['changepoints']] <- sort(cervix_traj[['changepoints']])
-cervix_traj[['binData']] <- cervix_traj[['binData']] %>%
-  dplyr::arrange(dplyr::desc(bin))
-
 plotTrajectory(cervix_traj, linearX = T) + labs(title = "Cervix-SCC (n=18), Binsize = 200 mutations")
+plotTrajectory(oligo_traj, linearX = T) + labs(title = "CNS-Oligo (n=18), Binsize = 200 mutations")
+plotTrajectory(thyroid_traj, linearX = T) + labs(title = "Thyroid-AdenoCA (n = 48), Binsize = 200 mutations")
 
-# CNS-Oligo
+# Lymph-CLL
 
-oligo_sigs <- c("SBS1", "SBS5", "SBS8", "SBS40")
+lymph_sigs <- c("SBS1", "SBS5", "SBS9", "SBS40")
+lymph_master <- poolSamples(archivePath = "~/Desktop/CBSP2021/archive", typesPath = "~/Desktop/CBSP2021/pcawg_cancer_types.csv",
+                              cancerType = "Lymph-CLL")
 
-oligo_master <- poolSamples(archivePath = "~/Desktop/CBSP2021/archive", typesPath = "~/Desktop/CBSP2021/pcawg_cancer_types.csv",
-                            cancerType = "CNS-Oligo")
-oligo_counts <- binningNmut(path = "~/Desktop/CBSP2021/CNS-Oligo_pooled.csv", binSize = 200)
-
-oligo_results <- foreach(i = c(1:23), .combine = 'c') %do% trackParallel(oligo_counts, i, oligo_sigs)
-oligo_traj <- combineTraj(oligo_results)
-oligo_traj[['changepoints']] <- sort(oligo_traj[['changepoints']])
-oligo_traj[['binData']] <- oligo_traj[['binData']] %>%
+lymph_traj <- trackParallel(lymph_master, 1, lymph_sigs, 200)
+lymph_traj <- combineTraj(lymph_traj)
+lymph_traj[['changepoints']] <- sort(lymph_traj[['changepoints']])
+lymph_traj[['binData']] <- lymph_traj[['binData']] %>%
   dplyr::arrange(dplyr::desc(bin))
 
-plotTrajectory(oligo_traj, linearX = T) + labs(title = "CNS-Oligo (n=18), Binsize = 200 mutations")
+plotTrajectory(lymph_traj, linearX = T) + labs(title = "Lymph-CLL (n = 94), Binsize = 200 mutations")
 
-# Prostate Adeno-CA
-prostate_sigs <- c("SBS1", "SBS2.13", "SBS5", "SBS8", "SBS18", "SBS33", "SBS37", "SBS40", 'SBS41')
-
-prostate_master <- poolSamples(archivePath = "~/Desktop/CBSP2021/archive", typesPath = "~/Desktop/CBSP2021/pcawg_cancer_types.csv",
-                             cancerType = "Prost-AdenoCA")
-
-prostate_counts <- binningNmut(path = "Prost-AdenoCA_pooled.csv", binSize = 200)
-
-prostate_results <- foreach(i = c(1:23), .combine = 'c') %dopar% trackParallel(prostate_counts, i, prostate_sigs)
-
-prostate_traj <- combineTraj(prostate_results)
-prostate_traj[['changepoints']] <- sort(prostate_traj[['changepoints']])
+lymph_counts <- binningNmut(lymph_master, 200)
 
 
 
-pcawg_cancer_types <- read_csv("~/Desktop/CBSP2021/pcawg_cancer_types.csv") %>%
-  dplyr::group_by(X1) %>%
-  dplyr::summarise(n = dplyr::n()) %>%
-  dplyr::arrange(n)
+# # iteratively collapse rows of dataframe into bins with ~binSize total mutations per row
+# for (i in 1:nrow(counts)) {
+#   row_sums <- base::sum(base::colSums(counts[i,6:101]))
+#   if (i==nrow(counts)) {break}
+#   while (row_sums < binSize) {
+#     counts[i, 5:101] <- as.list(base::colSums(counts[c(i,i+1),c(5:101)]))
+#     counts[i,3:4] <- counts[i+1,3:4]
+#     row_sums <- base::sum(base::colSums(counts[i,6:101]))
+#     counts <- counts[-c(i+1), ]
+#     if (i == nrow(counts)-1) {break}
+#   }
+# }
+

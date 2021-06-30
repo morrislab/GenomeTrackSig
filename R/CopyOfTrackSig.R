@@ -120,7 +120,7 @@ TrackSigCopy <- function(df,
   binCounts <- df
 
   # form counts matrix where each row is a mutation type and each column is a bin
-  counts_subset <- binCounts[,8:103]
+  counts_subset <- binCounts[,7:102]
   countsPerBin <- data.table::transpose(counts_subset)
   colnames(countsPerBin) <- rownames(counts_subset)
   rownames(countsPerBin) <- colnames(counts_subset)
