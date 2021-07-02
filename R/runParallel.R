@@ -15,31 +15,65 @@ trackParallel <- function (master, i, activeInSample, binSize) {
     counts <- binningNmut(temp, binSize)
     traj <- TrackSigCopy(counts, binSize = binSize, activeInSample = activeInSample, sampleID = "sample")
 
-    if (!is.null(traj[['changepoints']])) {
-      cp <- c()
-      for (i in traj[['changepoints']]) {
-        cp <- c(cp, as.numeric(colnames(traj[['mixtures']])[i]))
-      }
-      traj[['changepoints']] <- cp
-    }
-    traj[['mixtures']] <- traj[['mixtures']][, ncol(traj[['mixtures']]):1]
+    # if (!is.null(traj[['changepoints']])) {
+    #   cp <- c()
+    #   for (i in traj[['changepoints']]) {
+    #     cp <- c(cp, as.numeric(colnames(traj[['mixtures']])[i]))
+    #   }
+    #   traj[['changepoints']] <- cp
+    # }
+    #traj[['mixtures']] <- traj[['mixtures']][, ncol(traj[['mixtures']]):1]
   }
   else {
     temp <- master[master$start_chrom == i, ]
     counts <- binningNmut(temp, binSize)
     traj <- TrackSigCopy(counts, binSize = binSize, activeInSample = activeInSample, sampleID = "test")
 
-    if (!is.null(traj[['changepoints']])) {
-      cp <- c()
-      for (i in traj[['changepoints']]) {
-        cp <- c(cp, as.numeric(colnames(traj[['mixtures']])[i]))
-      }
-      traj[['changepoints']] <- cp
-    }
-    traj[['mixtures']] <- traj[['mixtures']][, ncol(traj[['mixtures']]):1]
+    # if (!is.null(traj[['changepoints']])) {
+    #   cp <- c()
+    #   for (i in traj[['changepoints']]) {
+    #     cp <- c(cp, as.numeric(colnames(traj[['mixtures']])[i]))
+    #   }
+    #   traj[['changepoints']] <- cp
+    # }
+    #traj[['mixtures']] <- traj[['mixtures']][, ncol(traj[['mixtures']]):1]
   }
   return (traj)
 }
+
+cleanTraj <- function(traj) {
+
+  start_index <- 1
+  for (i in 1:length(traj)) {
+    if (typeof(traj[[i]]) == 'list') {
+      traj[[i]]$actual_bin <- rep(start_index:((nrow(traj[[i]])+start_index)-1))
+      start_index <- start_index + nrow(traj[[i]])
+    }
+  }
+
+  for (i in 1:length(traj)) {
+    if (typeof(traj[[i]]) == 'double') {
+      if (!is.null(dim(traj[[i]])[2])) {
+        colnames(traj[[i]]) <- c(traj[[i+3]]$actual_bin)
+      }
+      else {
+        cp <- c()
+        if (!is.null(traj[[i]])) {
+          for (j in traj[[i]]) {
+            bin <- traj[[i+2]]$actual_bin[j]
+            cp <- c(cp, as.numeric(bin))
+          }
+          traj[[i]] <- cp
+        }
+      }
+    }
+  }
+
+  return (traj)
+}
+
+
+
 
 ## \code{combineTraj} Merge trajectories for all chromosomes into a single trajectory.
 ##
@@ -75,7 +109,8 @@ combineTraj <- function (traj) {
 
   combined_traj[['changepoints']] <- sort(combined_traj[['changepoints']])
   combined_traj[['binData']] <- combined_traj[['binData']] %>%
-    dplyr::arrange(dplyr::desc(bin))
+    dplyr::arrange(dplyr::desc(actual_bin))
 
   return (combined_traj)
 }
+

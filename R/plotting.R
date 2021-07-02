@@ -163,7 +163,7 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
   assertthat::assert_that(!is.null(mixtures), msg = "Could not find mixtures for timeline, please supply through results or mixtures paramter.\n")
 
   # set the phis to colnames(mixtures) - note: used when anmac = T
-  phis <- as.numeric(binData$bin)
+  phis <- as.numeric(colnames(mixtures))
 
   # mixtures and phis are binned the same way100
   assertthat::assert_that(length(phis) == dim(mixtures)[2],
@@ -177,31 +177,21 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
   colnames(mixtures) <- 1:dim(mixtures)[2]
   timeline <- reshape2::melt(mixtures)
   colnames(timeline) <- c("Signatures", "xBin", "exposure")
-  # timeline$xBin <- c(rep(colnames(mixtures)), each = as.numeric(dim(mixtures)[1])))
   timeline$exposure <- as.numeric(timeline$exposure)
-  # timeline$chrom <- c(rep(binData$start_chrom, each=as.numeric(dim(mixtures)[1])))
-  # timeline$start <- c(rep(binData$start, each = as.numeric(dim(mixtures)[1])))
-  # timeline$chr_pos <- c(rep(binData$chr_pos, each=as.numeric(dim(mixtures)[1])))
 
-  # assigning changepoints to chr_pos
-  # chr_breaks <- c(1.1:24.1)
-  # chr_labels <- c(1:22, "X", "Y")
-
-  # assigning changepoints to bin
+  # assigning chromosome breaks to bin
   change_phis <- c(1)
   for (i in nrow(binData):2) {
     if (binData$start_chrom[i] < binData$start_chrom[i-1]) {
       if (binData$end_chrom[i] > binData$start_chrom[i]) {
-        change_phis <- c(change_phis, binData$bin[i]+0.5)
+        change_phis <- c(change_phis, binData$actual_bin[i]+0.5)
       }
       else {
-        change_phis <- c(change_phis, binData$bin[i-1])
+        change_phis <- c(change_phis, binData$actual_bin[i-1])
       }
     }
   }
-  # if (length(change_phis) == 23) {
-  #   change_phis <- c(change_phis, binData$bin[1])
-  #}
+
   chr_breaks <- change_phis
   chr_labels <- as.character(c(1:22, "X", "Y"))
 
@@ -243,29 +233,8 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
           + ggplot2::scale_x_continuous(breaks = chr_breaks, labels = chr_labels)
   )
 
-  # slice changepoints (reverse axis means max to min)
-  # dt = data.table::data.table(phis, val = phis)
-  # data.table::setattr(dt, "sorted", "phis")
-  # dt <- as.data.table(dt)
-  # cpPos1 <- NULL
-  # cpPos2 <- NULL
-  # for (cp in changepoints) {
-  #   if (cp %in% phis){
-  #     cpPos1 <- c(cpPos1, cp)
-  #     cpPos2 <- c(cpPos2, phis[match(cp, phis)+1])
-  #   }
-  #   else {
-  #     print(typeof(cp))
-  #     print(typeof(i))
-  #     print(typeof(dt))
-  #     i <- dt[data.table::SJ(cp), roll = "nearest", which = TRUE]
-  #     cpPos1 <- c(cpPos1, phis[i])
-  #     cpPos2 <- c(cpPos2, phis[i+1])
-  #   }
-  # }
-  # cpPos <- base::cbind(cpPos1, cpPos2)
 
-  cpPos <- base::cbind(phis[phis %in% changepoints], phis[phis %in% (changepoints-1)])
+  cpPos <- base::cbind(phis[phis %in% changepoints], phis[phis %in% (changepoints+1)])
 
 }
   # TODO: have truncate x range as option
@@ -287,7 +256,7 @@ plotTrajectory <- function(trajectory, linearX = F, anmac = F, show = T){
   #add changepoints
   if (!is.null(changepoints)) {
     for (i in 1:dim(cpPos)[1]) {
-      g <- g + ggplot2::annotate("rect", xmax=cpPos[i,1], xmin=cpPos[i,2],
+      g <- g + ggplot2::annotate("rect", xmax=cpPos[i,2], xmin=cpPos[i,1],
                                  ymin=-Inf, ymax=Inf, alpha=0.3, fill = "black")
 
     }

@@ -1,6 +1,6 @@
 
-myCluster <- makeCluster(2, type = "FORK")
-registerDoParallel(myCluster)
+myCluster <- parallel::makeCluster(2, type = "FORK")
+doParallel::registerDoParallel(myCluster)
 ############
 
 library(ggplot2)
@@ -16,27 +16,29 @@ lymph_master <- poolSamples(archivePath = "~/Desktop/CBSP2021/archive", typesPat
                               cancerType = "Lymph-CLL")
 
 lymph_traj <- trackParallel(lymph_master, 1, lymph_sigs, 200)
+lymph_traj <- foreach(i = c(1:23), .combine = 'c') %dopar% trackParallel(lymph_master, i, lymph_sigs, 200)
 lymph_traj <- combineTraj(lymph_traj)
-lymph_traj[['changepoints']] <- sort(lymph_traj[['changepoints']])
-lymph_traj[['binData']] <- lymph_traj[['binData']] %>%
-  dplyr::arrange(dplyr::desc(bin))
-
-plotTrajectory(lymph_traj, linearX = T) + labs(title = "Lymph-CLL (n = 94), Binsize = 200 mutations")
-
-lymph_counts <- binningNmut(lymph_master, 200)
 
 
+plotTrajectory(lymph_final, linearX = T) + labs(title = "Lymph-CLL (n = 94), Total mutations = 228,153, Binsize = 200 mutations")
 
-# # iteratively collapse rows of dataframe into bins with ~binSize total mutations per row
-# for (i in 1:nrow(counts)) {
-#   row_sums <- base::sum(base::colSums(counts[i,6:101]))
-#   if (i==nrow(counts)) {break}
-#   while (row_sums < binSize) {
-#     counts[i, 5:101] <- as.list(base::colSums(counts[c(i,i+1),c(5:101)]))
-#     counts[i,3:4] <- counts[i+1,3:4]
-#     row_sums <- base::sum(base::colSums(counts[i,6:101]))
-#     counts <- counts[-c(i+1), ]
-#     if (i == nrow(counts)-1) {break}
-#   }
-# }
+
+traj <- cleanTraj(lymph_copy)
+lymph_final <- combineTraj(traj)
+
+# CNS-Oligo
+oligo_sigs <- c("SBS1", "SBS5", "SBS8", 'SBS40')
+lymph_bootstraps <- bootstrapActivities(lymph_master, lymph_sigs, 200, nSamples = 5)
+
+# Bootstrapping
+
+cervix_sigs <- c("SBS1", "SBS2.13", "SBS5", "SBS18", "SBS40")
+cervix_master <- poolSamples("~/Desktop/CBSP2021/archive", "~/Desktop/CBSP2021/pcawg_cancer_types.csv",
+                             "Cervix-SCC")
+cervix_bootstraps <- bootstrapActivities(master = cervix_master, activeInSample = cervix_sigs,
+                                         binSize = 200, nSamples = 5)
+
+plotBootstrap(lymph_bootstraps) +
+  labs(title = "Lymph-CLL (n = 94) | Total mutations = 228,153 | Binsize = 200 mutations | 5 bootstrap samples")
+
 
