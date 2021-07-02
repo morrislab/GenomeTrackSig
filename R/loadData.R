@@ -59,7 +59,7 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
 
 parseVcfFile <- function(vcfFile, cutoff = 10000, refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19){
 
-  vcf <- VariantAnnotation::readVcf(vcfFile, genome = GenomeInfoDb::providerVersion(refGenome))
+  vcf <- VariantAnnotation::readVcf(vcfFile, genome = GenomeInfoDb::bsgenomeName(refGenome))
   GenomeInfoDb::seqlevelsStyle(vcf) <- "UCSC"
 
   # TODO: remove any duplicates
@@ -366,7 +366,7 @@ getBinCounts <- function(vcaf, binSize, context, verbose = F){
   vcaf %>%
     dplyr::mutate(cat = paste(.data$ref, .data$alt, .data$mutType, sep = "_")) %>%
     dplyr::group_by(.data$bin, .data$cat) %>% dplyr::summarize(sum(.data$bin)) %>%
-    reshape2::dcast(.data$bin~.data$cat) -> binCounts
+    tidyr::spread(cat, sum) -> binCounts
 
   # replace NAs with 0
   binCounts[is.na(binCounts)] <- 0
