@@ -46,7 +46,7 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
 
   # clean up unecessary vcaf features
   extras <- setdiff(colnames(VariantAnnotation::info(vcf)), c("t_alt_count", "t_ref_count", "cn"))
-  vcaf <- vcaf[,c(extras, "chr", "pos", "chr_pos", "cn", "mutType", "alt", "phi", "qi", "bin")]
+  vcaf <- vcaf[,c(extras, "chr", "pos", "cn", "mutType", "alt", "phi", "qi", "bin")]
   rownames(vcaf) <- NULL
 
   return( list(vcaf = vcaf, countsPerBin = countsPerBin) )
@@ -349,8 +349,6 @@ getTrinuc <- function(vcaf, refGenome, verbose = F){
 getBinCounts <- function(vcaf, binSize, context, verbose = F){
   # replaces make_hundreds.py script
 
-  chr_pos <- NULL
-
   if(verbose){ print("Making counts...") }
 
   nMut <- dim(vcaf)[1]
@@ -362,18 +360,12 @@ getBinCounts <- function(vcaf, binSize, context, verbose = F){
   nFullBins <- floor( (nMut / binSize) )
   sizePartialBin <- round(((nMut / binSize) %% 1) * binSize)
 
-  # order mutations by position in the genome
-  vcaf <- vcaf %>%
-    dplyr::mutate(chr_pos = as.numeric(paste(.data$chr, .data$pos, sep = "."))) %>%
-    dplyr::arrange(dplyr::desc(chr_pos))
-
   vcaf$bin <- c(rep(1:nFullBins, each = binSize), rep( (nFullBins + 1) , times = sizePartialBin))
 
   # get count of each mutation type for each bin
   vcaf %>%
     dplyr::mutate(cat = paste(.data$ref, .data$alt, .data$mutType, sep = "_")) %>%
-    dplyr::group_by(.data$bin, .data$cat) %>%
-    dplyr::summarize(sum = sum(.data$bin)) %>%
+    dplyr::group_by(.data$bin, .data$cat) %>% dplyr::summarize(sum(.data$bin)) %>%
     tidyr::spread(cat, sum) -> binCounts
 
   # replace NAs with 0
