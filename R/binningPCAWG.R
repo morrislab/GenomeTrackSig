@@ -14,6 +14,9 @@
 ## @name poolSamples
 
 poolSamples <- function(archivePath, typesPath, cancerType) {
+
+  seqnames <- strand <- NULL
+
   # read in dataframe of file IDs with corresponding cancer types
   types <- readr::read_csv(typesPath,
                            col_names = c('type', 'guid'))
@@ -81,11 +84,13 @@ binningNmut <- function(counts, binSize) {
     }
   }
 
+  start_chrom <- start <- end_chrom <- end <- width <- NULL
+
   # vars <- as.character(colnames(counts)[8:103])
   dup <- data.table::copy(counts)
   dup <- dup %>%
     dplyr::group_by(bin) %>%
-    dplyr::summarize_at(dplyr::vars(C_A_ACA:T_G_TTT), sum) %>%
+    dplyr::summarize_at(dplyr::vars(counts$C_A_ACA:counts$T_G_TTT), sum) %>%
     dplyr::select(-bin)
 
   counts <- counts %>%

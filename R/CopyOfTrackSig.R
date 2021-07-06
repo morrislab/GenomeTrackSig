@@ -12,8 +12,6 @@
 #' all mutations in the sample.
 #'
 #' @param path path to mutation counts (csv) file.
-#' @param cnaFile path to copy number abberation (cna) file. If not provided,
-#'   all copy numbers default to 2.
 #' @param threshold minimum activity level that signature must have to be
 #'   detected
 #' @param prior prior on the likelihood of observing a given signature (must
@@ -26,7 +24,7 @@
 #' @return Names of signatures active in sample.
 #' @export
 
-detectActiveSigsCopy <- function(path, purity = 1,
+detectActiveSigsCopy <- function(path,
                                    threshold = 0.05, prior = NULL, binSize,
                                    referenceSignatures,
                                    refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19){
@@ -55,13 +53,12 @@ detectActiveSigsCopy <- function(path, purity = 1,
 #'
 #'
 #' @description
-#' \code{TrackSig} will take an input VCF file and corresponding annotation, and determine an eveolutionary trajectory for the sample, based on changepoints found using the PELT segmentation algorithm.
+#' \code{TrackSigCopy} will take an input VCF file and corresponding annotation, and determine an eveolutionary trajectory for the sample, based on changepoints found using the PELT segmentation algorithm.
 #'
-#' @param path path to mutation counts (csv) file
+#' @param df dataframe of mutation counts from which we can fit activity trajectories
 #' @param activeInSample list of signatures names to fit the exposures of. All listed signatures must be present in the referenceSignatures dataframe.
 #' @param sampleID name to call sample. If none provided, name will be automatically drawn from the provided vcf file name.
 #' @param referenceSignatures dataframe containing definitions of mutational signatures.
-#' @param purity number between 0 and 1 of the percentage of cells in the sample that are cancerous
 #' @param scoreMethod string to indicate what scoring method to apply when finding changepoints. Default = "Signature"
 #' @param binSize number of mutations per bin
 #' @param nCutoff maximum number of total mutations to consider (samples with more than nCutoff muations will be down-sampled)
@@ -73,7 +70,6 @@ detectActiveSigsCopy <- function(path, purity = 1,
 TrackSigCopy <- function(df,
                          binSize,
                          activeInSample,
-                         purity = 1,
                          sampleID = NULL,
                          referenceSignatures = TrackSig::alex_merged,
                          scoreMethod = "Signature",
@@ -89,27 +85,24 @@ TrackSigCopy <- function(df,
     assertthat::assert_that(all(activeInSample %in% colnames(referenceSignatures)))
   }
 
-  assertthat::assert_that(is.numeric(purity) & (0 < purity) & (purity <= 1),
-                          msg = "Purity should be a proportion between 0 and 1\n")
-
 
   # TODO: activeSignatures %in% colnames(referenceSignatures) must be TRUE
   # TODO: length(activeInSample) >1 should be true, else no mixture to fit
   # TODO: binSize has to make sense; positive, not larger than nMut, maybe throw warning if it's some ratio too large for low-resolution.
   # TODO: generateContext and mut types in referenceSignatures should make sense together.
 
-  # take sampleID from file name if not provided
-  if (is.null(sampleID)){
-
-    if (grepl(".txt$", vcfFile)){
-      sampleID <- strsplit( unlist(strsplit(vcfFile, "/"))[ length( strsplit(vcfFile, "/")[[1]] ) ] , ".txt")[[1]]
-    }
-
-    if (grepl(".vcf$", vcfFile)){
-      sampleID <- strsplit( unlist(strsplit(vcfFile, "/"))[ length( strsplit(vcfFile, "/")[[1]] ) ] , ".vcf")[[1]]
-    }else{stop("Failed setting sampleID. Please check input vcf file.")}
-
-  }
+  # # take sampleID from file name if not provided
+  # if (is.null(sampleID)){
+  #
+  #   if (grepl(".txt$", vcfFile)){
+  #     sampleID <- strsplit( unlist(strsplit(vcfFile, "/"))[ length( strsplit(vcfFile, "/")[[1]] ) ] , ".txt")[[1]]
+  #   }
+  #
+  #   if (grepl(".vcf$", vcfFile)){
+  #     sampleID <- strsplit( unlist(strsplit(vcfFile, "/"))[ length( strsplit(vcfFile, "/")[[1]] ) ] , ".vcf")[[1]]
+  #   }else{stop("Failed setting sampleID. Please check input vcf file.")}
+  #
+  # }
 
   # TODO: get context from supplied referenceSignatures
   context <- generateContext(c("CG", "TA"))
