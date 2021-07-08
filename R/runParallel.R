@@ -13,12 +13,12 @@ trackParallel <- function (master, i, activeInSample, binSize) {
   if (i == 23) {
     temp <- master[master$start_chrom >= i, ]
     counts <- binningNmut(temp, binSize)
-    traj <- TrackSigCopy(counts, binSize = binSize, activeInSample = activeInSample, sampleID = "sample")
+    traj <- TrackSig(counts, binSize = binSize, activeInSample = activeInSample, sampleID = "sample")
   }
   else {
     temp <- master[master$start_chrom == i, ]
     counts <- binningNmut(temp, binSize)
-    traj <- TrackSigCopy(counts, binSize = binSize, activeInSample = activeInSample, sampleID = "test")
+    traj <- TrackSig(counts, binSize = binSize, activeInSample = activeInSample, sampleID = "test")
   }
   return (traj)
 }

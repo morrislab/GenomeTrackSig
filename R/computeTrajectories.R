@@ -352,11 +352,6 @@ getChangepointsPELT <- function(binCounts, countsPerBin, referenceSignatures, sc
   mixtures <- fitMixturesInTimeline(countsPerBin, changepoints, referenceSignatures)
 
   # mixtures should also contain binned phi
-
-  # mapping changepoints to chr_pos
-  # binned_pos <- stats::aggregate(binCounts$chr_pos, by = list(binCounts$bin), FUN = min)$x
-  # colnames(mixtures) <- binned_pos
-
   # mapping changepoints to bin
   colnames(mixtures) <- binCounts$bin
 

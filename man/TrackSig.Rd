@@ -4,36 +4,23 @@
 \alias{TrackSig}
 \title{Determine an evolutionary trajectory.}
 \usage{
-TrackSig(
-  vcfFile,
-  activeInSample,
-  cnaFile = NULL,
-  purity = 1,
-  sampleID = NULL,
-  referenceSignatures = TrackSig:::alex_merged,
-  scoreMethod = "SigFreq",
-  binSize = 100,
-  nCutoff = 10000,
-  desiredMinSegLen = 1,
-  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19
-)
+TrackSig(df, binSize, activeInSample, sampleID = NULL,
+  referenceSignatures = TrackSig::alex_merged,
+  scoreMethod = "Signature", nCutoff = 10000, desiredMinSegLen = 1,
+  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
 }
 \arguments{
-\item{vcfFile}{path to variant calling format (vcf) file}
+\item{df}{dataframe of mutation counts from which we can fit activity trajectories}
+
+\item{binSize}{number of mutations per bin}
 
 \item{activeInSample}{list of signatures names to fit the exposures of. All listed signatures must be present in the referenceSignatures dataframe.}
-
-\item{cnaFile}{path to copy number abberation (cna) file. If not provided, all copy numbers default to 2.}
-
-\item{purity}{number between 0 and 1 of the percentage of cells in the sample that are cancerous}
 
 \item{sampleID}{name to call sample. If none provided, name will be automatically drawn from the provided vcf file name.}
 
 \item{referenceSignatures}{dataframe containing definitions of mutational signatures.}
 
-\item{scoreMethod}{string to indicate what scoring method to apply when finding changepoints. Options are "Signature", "SigFreq" and "Frequency"}
-
-\item{binSize}{number of mutations per bin (default 100)}
+\item{scoreMethod}{string to indicate what scoring method to apply when finding changepoints. Default = "Signature"}
 
 \item{nCutoff}{maximum number of total mutations to consider (samples with more than nCutoff muations will be down-sampled)}
 

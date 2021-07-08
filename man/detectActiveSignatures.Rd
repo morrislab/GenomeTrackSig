@@ -4,25 +4,12 @@
 \alias{detectActiveSignatures}
 \title{Get a list of signatures active in a sample}
 \usage{
-detectActiveSignatures(
-  vcfFile,
-  cnaFile = NULL,
-  purity = 1,
-  threshold = 0.05,
-  prior = NULL,
-  binSize = 100,
-  referenceSignatures = alex_merged,
-  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19
-)
+detectActiveSignatures(df, threshold = 0.05, prior = NULL, binSize,
+  referenceSignatures = TrackSig::alex_merged,
+  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
 }
 \arguments{
-\item{vcfFile}{path to variant calling format (vcf) file}
-
-\item{cnaFile}{path to copy number abberation (cna) file. If not provided,
-all copy numbers default to 2.}
-
-\item{purity}{number between 0 and 1 of the percentage of cells in the sample
-that are cancerous}
+\item{df}{dataframe of mutation counts in 1 Mb segments across the genome}
 
 \item{threshold}{minimum activity level that signature must have to be
 detected}
@@ -30,7 +17,7 @@ detected}
 \item{prior}{prior on the likelihood of observing a given signature (must
 match signatures present in referenceSignatures)}
 
-\item{binSize}{number of mutations per bin (default 100)}
+\item{binSize}{number of mutations per bin}
 
 \item{referenceSignatures}{dataframe containing definitions of mutational
 signatures.}

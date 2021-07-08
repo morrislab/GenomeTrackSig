@@ -15,8 +15,6 @@
 
 poolSamples <- function(archivePath, typesPath, cancerType) {
 
-  seqnames <- strand <- NULL
-
   # read in dataframe of file IDs with corresponding cancer types
   types <- readr::read_csv(typesPath,
                            col_names = c('type', 'guid'))
@@ -34,8 +32,8 @@ poolSamples <- function(archivePath, typesPath, cancerType) {
   # add counts from remaining samples into master file and delete remaining files from memory
   for (i in 2:length(get_files)) {
     temp <- readr::read_csv(as.character(paste(archivePath, "/", get_files[i], ".MBcounts.csv", sep = "")),
-                            col_types = readr::cols(seqnames = "c",
-                                             strand = "c",
+                            col_types = readr::cols("seqnames" = "c",
+                                             "strand" = "c",
                                              .default = "d"))
     master[, 6:101] <- master[, 6:101] + temp[, 6:101]
     base::remove(temp)
@@ -84,13 +82,11 @@ binningNmut <- function(counts, binSize) {
     }
   }
 
-  start_chrom <- start <- end_chrom <- end <- width <- NULL
-
   # vars <- as.character(colnames(counts)[8:103])
   dup <- data.table::copy(counts)
   dup <- dup %>%
     dplyr::group_by(bin) %>%
-    dplyr::summarize_at(dplyr::vars(counts$C_A_ACA:counts$T_G_TTT), sum) %>%
+    dplyr::summarize_at(dplyr::vars(C_A_ACA:T_G_TTT), sum) %>%
     dplyr::select(-bin)
 
   counts <- counts %>%

@@ -4,7 +4,8 @@
 \alias{addPhiHist}
 \title{Display a histogram of mutation phi and signature exposure for a signature trajectory}
 \usage{
-addPhiHist(trajectory, trajPlot, truncateStrategy = c("exclude", "stack"))
+addPhiHist(trajectory, trajPlot, truncateStrategy = c("exclude",
+  "stack"))
 }
 \arguments{
 \item{trajectory}{a list containing named elements "mixtures", "changepoints",

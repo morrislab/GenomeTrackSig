@@ -50,16 +50,6 @@ poolSamples <- function(archivePath, typesPath, cancerType) {
   return (master)
 }
 
-## \code{binningNmut} Group mutation counts dataframe into bins with specified # of mutations per bin.
-##
-## @param path file path to sample counts dataframe
-## @param binSize desired number of mutations per bin (should be >= 100 for optimal results)
-##
-## @examples
-## binCounts <- binningNmut(path = '~/Desktop/Breast-AdenoCA_pooled.csv',
-##                          binSize = 100)
-##
-## @name binningNmut
 
 # assignBins <- function(data, binSize) {
 #   data <- data %>%
@@ -81,7 +71,51 @@ poolSamples <- function(archivePath, typesPath, cancerType) {
 #
 #   return (data)
 # }
-#
+
+## \code{bootstrapSample} Sample with replacement from the mutations in each bin
+##
+## @param master binned dataframe of mutation counts
+##
+## @examples
+## breast_bootstrap1 <- bootstrapSample(binCounts)
+##
+## @name bootstrapSample
+
+bootstrapSample <- function(master) {
+  master_counts <- master[,7:102]
+  new_counts <- data.frame()
+  for (i in 1:nrow(master_counts)) {
+    vectors <- c()
+    zeros <- c()
+    for (j in 1:ncol(master_counts)) {
+      vector <- rep(j, each=master_counts[i,j])
+      vectors <- c(vectors, vector)
+    }
+    samples <- as.data.frame(sample(vectors, size=sum(base::colSums(master_counts[i,])), replace=TRUE, prob=NULL))
+    colnames(samples) <- c('index')
+    samples <- samples %>%
+      dplyr::group_by(index) %>%
+      dplyr::summarize(n = dplyr::n())
+
+    for (i in 1:96) {
+      if (i %in% samples$index == FALSE) {
+        zeros <- c(zeros, i)
+      }
+    }
+
+    zeros <- cbind(zeros, rep(0, each=length(zeros)))
+    colnames(zeros) <- c('index', 'n')
+
+    samples_full <- base::rbind(samples, zeros) %>%
+      dplyr::arrange(index)
+
+    new_counts <- base::rbind(new_counts, samples_full$n)
+  }
+  master[,7:102] <- new_counts
+  base::remove(new_counts, master_counts, samples, samples_full, zeros, vector, vectors)
+  return (master)
+}
+
 # miniBoot <- function(data, bin) {
 #   minidata <- data[data$bin==bin, 8:103]
 #   bootstrap <- minidata[sample(nrow(minidata), nrow(minidata), replace=TRUE, prob=NULL), ]
@@ -169,26 +203,20 @@ poolSamples <- function(archivePath, typesPath, cancerType) {
 #   return (trajectories)
 # }
 
-
 trackParallelBootstrap <- function (master, i, activeInSample, binSize) {
-  seed <- sample(1:1000, 1, replace = TRUE)
   if (i == 23) {
     temp <- master[master$start_chrom >= i, ]
     counts <- binningNmut(temp, binSize)
+    bootstrap_counts <- bootstrapSample(counts)
 
-    # seed <- sample(1:1000, 1, replace=TRUE)
-    # set.seed(seed)
-
-    traj <- TrackSigCopy(counts, binSize = binSize, activeInSample = activeInSample, sampleID = "sample")
+    traj <- TrackSig(bootstrap_counts, binSize = binSize, activeInSample = activeInSample, sampleID = "sample")
   }
   else {
     temp <- master[master$start_chrom == i, ]
     counts <- binningNmut(temp, binSize)
+    bootstrap_counts <- bootstrapSample(counts)
 
-    # seed <- sample(1:1000, 1, replace=TRUE)
-    # set.seed(seed)
-
-    traj <- TrackSigCopy(counts, binSize = binSize, activeInSample = activeInSample, sampleID = "test")
+    traj <- TrackSig(bootstrap_counts, binSize = binSize, activeInSample = activeInSample, sampleID = "test")
 
   }
   return (traj)
@@ -196,6 +224,7 @@ trackParallelBootstrap <- function (master, i, activeInSample, binSize) {
 
 bootstrapActivities <- function(master, activeInSample, binSize, nSamples) {
   j <- NULL
+  `%dopar%` <- foreach::`%dopar%`
   trajectories <- c()
   for (i in 1:nSamples) {
     traj <- foreach::foreach(j = c(1:23), .combine = 'c') %dopar% trackParallelBootstrap(master, j, activeInSample, binSize)
@@ -226,12 +255,13 @@ bootstrapActivities <- function(master, activeInSample, binSize, nSamples) {
 plotBootstrap <- function(trajectory, show=TRUE){
 
   # define centromere locations
+  # source for locations: https://learn.familytreedna.com/autosomal-ancestry/universal-dna-matching/centromeres-located-autosomal-chromosome/
   chrom <- c(1:23)
-  start <- c(121535434,92326171,90504854,49660117,46405641,58830166,58054331,43838887,47367679,39254935,51644205,
-             34856694,16000000,16000000,17000000,35335801,22263006,15460898,24681782,26369569,11288129,13000000,58632012)
-  end <- c(124535434,95326171,93504854,52660117,49405641,61830166,61054331,46838887,50367679,42254935,
-           54644205,37856694,19000000,19000000,20000000,38335801,25263006,18460898,27681782,29369569,
-           14288129,16000000,61632012)
+  start <- c(121048139,89877778,89392096,48694599,45793062,58276111,57399776,43186096,46276246,38779433,51382454,
+             33199289,13500000,13600000,14100000,34375290,22066299,15365878,24354405,25678968,9935312,9600000,58632012)
+  end <- c(142185031,95709245,95019980,52401027,50501672,63405808,61385229,48105627,65360007,42104979,
+           56400162,36514518,18400000,19100000,18400000,45007538,23203917,17315223,32455280,29267954,
+           13290191,16300000,61632012)
   centromeres <- cbind(chrom,start,end)
   centromeres <- as.data.frame(centromeres)
   centromeres <- centromeres %>%
@@ -243,21 +273,24 @@ plotBootstrap <- function(trajectory, show=TRUE){
   i <- 1
   count <- 1
   timelines <- list()
+  cpPos <- c()
   while (i <= length(trajectory)) {
     if(!is.null(trajectory[[i]])){
       mixtures <- trajectory[[i]]
       changepoints <- trajectory[[i+1]]
       binData <- trajectory[[i+1]]
 
+      cpPos <- c(cpPos, changepoints)
+
       # input checking
       assertthat::assert_that(!is.null(mixtures), msg = "Could not find mixtures for timeline, please supply through results or mixtures paramter.\n")
 
-      # set the phis to colnames(mixtures) - note: used when anmac = T
-      phis <- as.numeric(colnames(mixtures))
+      # set the bins to colnames(mixtures)
+      bins <- as.numeric(colnames(mixtures))
 
-      # mixtures and phis are binned the same way100
-      assertthat::assert_that(length(phis) == dim(mixtures)[2],
-                              msg = "The mixtures object is mal-specified. Column names should correspond to binned phis.\n")
+      # mixtures and bins are binned the same way
+      assertthat::assert_that(length(bins) == dim(mixtures)[2],
+                              msg = "The mixtures object is mal-specified. Column names should correspond to binned bins.\n")
 
       # Plotting the change of mutational signature weights across the genome specified as the order of bin
       colnames(mixtures) <- 1:dim(mixtures)[2]
@@ -279,27 +312,29 @@ plotBootstrap <- function(trajectory, show=TRUE){
     }
   }
 
+  # append mean activity dataframe to list of bootstrap dataframes
   timelines[[length(timelines)+1]] <- timelines[[1]]
   timelines[[length(timelines)+1]] <- timelines[[2]]
   timelines[[length(timelines)+1]] <- colMeans(ex)
 
 
-  # assigning chromosome breaks to bin
-  # TODO: create list of centromere locations and plot in different color using vline
-  change_phis <- c(1)
+  # assigning chromosome breaks to bins
+  change_bins <- c(1)
   binData <- trajectory[[4]]
   for (i in nrow(binData):2) {
     if (binData$start_chrom[i] < binData$start_chrom[i-1]) {
       if (binData$end_chrom[i] > binData$start_chrom[i]) {
-        change_phis <- c(change_phis, binData$actual_bin[i]+0.5)
+        change_bins <- c(change_bins, binData$actual_bin[i]+0.5)
       }
       else {
-        change_phis <- c(change_phis, binData$actual_bin[i-1])
+        change_bins <- c(change_bins, binData$actual_bin[i-1])
       }
     }
   }
-
-  chr_breaks <- change_phis
+  if (length(change_bins) != 24) {
+    change_bins <- c(change_bins, binData$actual_bin[1])
+  }
+  chr_breaks <- change_bins
   chr_labels <- as.character(c(1:22, "X", "Y"))
 
   # assigning centromere locations to bins
@@ -307,21 +342,21 @@ plotBootstrap <- function(trajectory, show=TRUE){
   centromere2 <- c()
   for (i in centromeres$chrom) {
     binData_subset <- binData[binData$start_chrom==i, ]
-    for (j in nrow(binData_subset):1) {
-      if (binData_subset$start[j] <= centromeres$start[i]) {
-        if (binData_subset$end[j] >= centromeres$end[i]) {
-          centromere1 <- c(centromere1, binData_subset$actual_bin[j])
-          centromere2 <- c(centromere2, binData_subset$actual_bin[j-1])
-          break
-        }
-        else if (binData_subset$start[j-1] < centromeres$end[i]) {
-          if (binData_subset$end[j-1] >= centromeres$end[i]) {
-            centromere1 <- c(centromere1, binData_subset$actual_bin[j])
-            centromere2 <- c(centromere2, binData_subset$actual_bin[j-1])
-            break
-          }
-        }
-      }
+    start_id <- base::which.min(abs(c(binData_subset$start)-centromeres$start[i]))
+    end_id <- base::which.min(abs(c(binData_subset$end)-centromeres$end[i]))
+
+    if (binData_subset$start[start_id] > centromeres$start[i]) {
+      centromere1 <- c(centromere1, binData_subset$actual_bin[start_id+1])
+    }
+    else {
+      centromere1 <- c(centromere1, binData_subset$actual_bin[start_id])
+    }
+
+    if (binData_subset$end[end_id] < centromeres$end[i]) {
+      centromere2 <- c(centromere2, binData_subset$actual_bin[end_id-1])
+    }
+    else {
+      centromere2 <- c(centromere2, binData_subset$actual_bin[end_id])
     }
   }
 
@@ -332,9 +367,6 @@ plotBootstrap <- function(trajectory, show=TRUE){
   colnames(avg_df) <- c('Signatures', "xBin", "exposure")
 
   g <- (  ggplot2::ggplot(data = avg_df)
-          + ggplot2::geom_vline(xintercept = chr_breaks, alpha = 0.3, col = "red")
-          + ggplot2::geom_vline(xintercept = centromere1, alpha = 0.3, col = "orange")
-          + ggplot2::geom_vline(xintercept = centromere2, alpha = 0.3, col = 'orange')
           + ggplot2::aes(x = .data$xBin, y = .data$exposure * 100, group = .data$Signatures, color = .data$Signatures)
           + ggplot2::scale_x_continuous(breaks = chr_breaks, labels = chr_labels)
 
@@ -342,8 +374,10 @@ plotBootstrap <- function(trajectory, show=TRUE){
 
   # general ggplot formatting
   g <- (   g
-           #+ ggplot2::geom_point()
+           + ggplot2::geom_point()
            + ggplot2::geom_line()
+           + ggplot2::geom_vline(xintercept = crPos[,1], col = 'lightblue', alpha=0.7)
+           + ggplot2::geom_vline(xintercept = crPos[,2], col = "lightblue", alpha=0.7)
            + ggplot2::theme_bw()
            + ggplot2::theme(panel.grid.major.x = ggplot2::element_blank(),
                             panel.grid.minor.x = ggplot2::element_blank())
@@ -361,24 +395,40 @@ plotBootstrap <- function(trajectory, show=TRUE){
   }
   for (i in indices) {
     g <- (g
-          + ggplot2::geom_line(ggplot2::aes_string(x = avg_df$xBin, y = (timelines[[i]]*100)), alpha=0.4))
+          + ggplot2::geom_line(ggplot2::aes_string(x = avg_df$xBin, y = (timelines[[i]]*100)), alpha=0.3))
   }
 
   # add centromere locations
   for (i in 1:dim(crPos)[1]) {
     g <- g + ggplot2::annotate("rect", xmax=crPos[i,2], xmin=crPos[i,1],
-                               ymin=-Inf, ymax=Inf, alpha=0.3, fill = "orange")
+                                                                                                                                                                   ymin=-Inf, ymax=Inf, alpha=0.3, fill = "lightblue")
 
   }
 
   # add changepoints
-  cpPos <- base::cbind(phis[phis %in% changepoints], phis[phis %in% (changepoints+1)])
+  cpPos <- as.data.frame(cpPos)
+  colnames(cpPos) <- c('cpPos1')
+  cpPos <- cpPos %>%
+    dplyr::group_by(cpPos1) %>%
+    dplyr::summarize(prob = dplyr::n()/length(indices)) %>%
+    dplyr::mutate("cpPos2" = cpPos1+1)
+    #dplyr::filter(prob >= 0.5)
+
+  #cpPos <- base::cbind(bins[bins %in% changepoints], bins[bins %in% (changepoints+1)])
   if (!is.null(changepoints)) {
     for (i in 1:dim(cpPos)[1]) {
-      g <- g + ggplot2::annotate("rect", xmax=cpPos[i,2], xmin=cpPos[i,1],
-                                 ymin=-Inf, ymax=Inf, alpha=0.3, fill = "black")
+      g <- g + ggplot2::annotate("rect", xmax=cpPos$cpPos2[i], xmin=cpPos$cpPos1[i],
+                                 ymin=-Inf, ymax=Inf, alpha=cpPos$prob[i], fill = "red")
 
     }
+  }
+
+  # add stripes to distinguish chromosomes
+  for (i in 1:length(change_bins)) {
+    if (i %% 2 != 0) {
+      g <- g + ggplot2::annotate("rect", xmin=change_bins[i], xmax = change_bins[i+1],
+                             ymin=-Inf, ymax=Inf, alpha=0.3, fill='grey')
+      }
   }
 
   if (show){print(g)}
