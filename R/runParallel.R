@@ -20,7 +20,7 @@ trackChromosome <- function(master, activeInSample, binSize, nSamples, paralleli
 
   if (parallelize == TRUE) {
     # intialize cluster
-    cores <- base::floor(0.75*(parallel::detectCores()))
+    cores <- base::floor(0.9*(parallel::detectCores()))
     myCluster <- parallel::makeCluster(cores, type="FORK")
     doParallel::registerDoParallel(myCluster)
   }
@@ -60,7 +60,7 @@ trackChromosome <- function(master, activeInSample, binSize, nSamples, paralleli
   }
 
   if (parallelize==TRUE) {
-    stopCluster(myCluster)
+    parallel::stopCluster(myCluster)
   }
 
   if (nSamples > 0) {
@@ -104,7 +104,7 @@ trackGenome <- function(master, activeInSample, binSize, nSamples, parallelize) 
 
   if (parallelize == TRUE) {
     # intialize cluster
-    cores <- base::floor(0.75*(parallel::detectCores()))
+    cores <- base::floor(0.9*(parallel::detectCores()))
     myCluster <- parallel::makeCluster(cores, type="FORK")
     doParallel::registerDoParallel(myCluster)
   }
@@ -134,7 +134,7 @@ trackGenome <- function(master, activeInSample, binSize, nSamples, parallelize) 
   }
 
   if (parallelize == TRUE) {
-    stopCluster(myCluster)
+    parallel::stopCluster(myCluster)
   }
 
   return (traj)

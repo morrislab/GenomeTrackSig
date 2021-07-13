@@ -41,7 +41,6 @@ bootstrapSample <- function(counts, binSize) {
 ## @name bootstrapChromosomes
 
 bootstrapChromosomes <- function (master, i, activeInSample, binSize) {
-  set.seed(i)
   if (i == 23) { # run sex chromosomes in tandem
     temp <- master[master$start_chrom >= i, ]
     counts <- binningNmut(temp, binSize)
