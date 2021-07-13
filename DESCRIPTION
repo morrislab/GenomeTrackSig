@@ -36,12 +36,13 @@ Imports:
     S4Vectors,
     tidyr,
     data.table,
-    foreach,
-    doParallel
+    qpdf
 LinkingTo: 
 Suggests:
     testthat,
     knitr,
-    rmarkdown
+    rmarkdown,
+    foreach,
+    doParallel
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr

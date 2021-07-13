@@ -30,7 +30,7 @@ detectActiveSignatures <- function(df,
                                    refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19){
 
   # group mutations into bins with specified size
-  binCounts <- binningNmut(df, binSize)
+  binCounts <- binbyChrom(df, binSize)
 
   # form counts matrix where each row is a mutation type and each column is a bin
   counts_subset <- binCounts[,8:103]

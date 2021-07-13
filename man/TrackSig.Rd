@@ -4,10 +4,17 @@
 \alias{TrackSig}
 \title{Determine an evolutionary trajectory.}
 \usage{
-TrackSig(df, binSize, activeInSample, sampleID = NULL,
+TrackSig(
+  df,
+  binSize,
+  activeInSample,
+  sampleID = NULL,
   referenceSignatures = TrackSig::alex_merged,
-  scoreMethod = "Signature", nCutoff = 10000, desiredMinSegLen = 1,
-  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
+  scoreMethod = "Signature",
+  nCutoff = 10000,
+  desiredMinSegLen = 1,
+  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19
+)
 }
 \arguments{
 \item{df}{dataframe of mutation counts from which we can fit activity trajectories}

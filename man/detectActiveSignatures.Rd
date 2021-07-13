@@ -4,9 +4,14 @@
 \alias{detectActiveSignatures}
 \title{Get a list of signatures active in a sample}
 \usage{
-detectActiveSignatures(df, threshold = 0.05, prior = NULL, binSize,
+detectActiveSignatures(
+  df,
+  threshold = 0.05,
+  prior = NULL,
+  binSize,
   referenceSignatures = TrackSig::alex_merged,
-  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19)
+  refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19
+)
 }
 \arguments{
 \item{df}{dataframe of mutation counts in 1 Mb segments across the genome}
