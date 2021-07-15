@@ -61,6 +61,42 @@ poolSamples <- function(archivePath, typesPath, cancerType) {
   return (master)
 }
 
+getBinNumber <- function(master, binSize) {
+  counts <- data.frame()
+
+  start_bin <- 1
+
+  for (i in c(1:24)) {
+    # find mutation counts in each row
+    master_subset <- master %>%
+      dplyr::filter(start_chrom==i)
+    master_subset <- master_subset %>%
+      dplyr::mutate(rowsum = rowSums(master_subset[,6:101]),
+                    bin = 1) %>%
+      base::subset(select = c(1:5,102,103,6:101))
+
+    # assign bin numbers to rows--bin number changes when the sum of all mutations in
+    # the previous rows in that bin reaches or exceeds the desired bin size
+    bin <- start_bin
+    sums <- 0
+
+    for (i in 1:nrow(master_subset)) {
+      sums <- sums + master_subset$rowsum[i]
+      master_subset$bin[i] <- bin
+      if (sums >= binSize) {
+        sums <- 0
+        bin <- bin + 1
+      }
+    }
+    start_bin <- bin + 1
+    counts <- rbind(counts, master_subset)
+  }
+
+
+
+  return (counts)
+}
+
 ## \code{binningNmut} Group mutation counts dataframe into bins with specified # of mutations per bin.
 ##
 ## @param master dataframe of mutation counts in your sample/s
@@ -136,7 +172,7 @@ binByChrom <- function(master, binSize) {
   # initialize empty dataframe
   counts <- data.frame()
   # iterate through chromosomes
-  for (i in c(1:23)) {
+  for (i in c(1:24)) {
     master_subset <- master %>%
       dplyr::filter(start_chrom==i)
     # bin the counts for each chromosome

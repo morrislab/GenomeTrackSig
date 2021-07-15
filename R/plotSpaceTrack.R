@@ -280,7 +280,7 @@ plotSpaceTrajectory <- function(trajectory, show=TRUE, chr_level=F, cutoff=0) {
   # add changepoints to plot
   for (i in 1:dim(cpPos)[1]) {
     g <- g + ggplot2::annotate("rect", xmax=cpPos$cpPos2[i], xmin=cpPos$cpPos1[i],
-                               ymin=-Inf, ymax=Inf, alpha=cpPos$prob[i], fill = "red")
+                               ymin=-Inf, ymax=Inf, alpha=cpPos$prob[i]-.1, fill = "red")
   }
 
   # add stripes to distinguish chromosomes
