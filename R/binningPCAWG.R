@@ -35,7 +35,7 @@ poolSamples <- function(archivePath, typesPath, cancerType) {
                                                     .default = "d"))
 
   # add counts from remaining samples into master file and delete remaining files from memory
-  for (i in 2:length(get_files)) {
+  for (i in 2:4) {
     temp <- readr::read_csv(as.character(paste(archivePath, "/", get_files[i], ".MBcounts.csv", sep = "")),
                             col_types = readr::cols(seqnames = "c",
                                                     strand = "c",
@@ -63,9 +63,6 @@ poolSamples <- function(archivePath, typesPath, cancerType) {
 
 getBinNumber <- function(master, binSize) {
   counts <- data.frame()
-
-  start_bin <- 1
-
   for (i in c(1:24)) {
     # find mutation counts in each row
     master_subset <- master %>%
@@ -75,9 +72,7 @@ getBinNumber <- function(master, binSize) {
                     bin = 1) %>%
       base::subset(select = c(1:5,102,103,6:101))
 
-    # assign bin numbers to rows--bin number changes when the sum of all mutations in
-    # the previous rows in that bin reaches or exceeds the desired bin size
-    bin <- start_bin
+    bin <- 1
     sums <- 0
 
     for (i in 1:nrow(master_subset)) {
@@ -88,11 +83,12 @@ getBinNumber <- function(master, binSize) {
         bin <- bin + 1
       }
     }
-    start_bin <- bin + 1
     counts <- rbind(counts, master_subset)
   }
 
-
+  for (i in c(2:24)) {
+    counts$bin[counts$start_chrom==i] <- counts$bin[counts$start_chrom==i] + max(counts$bin[counts$start_chrom==i-1])
+  }
 
   return (counts)
 }

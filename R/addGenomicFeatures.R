@@ -1,3 +1,14 @@
+# library(BiocFileCache)
+# bfc <- BiocFileCache::BiocFileCache(ask=FALSE)
+# K562.hmm.file <- BiocFileCache::bfcrpath(bfc, "http://hgdownload.soe.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHmm/wgEncodeBroadHmmK562HMM.bed.gz")
+# K562.hmm <- regioneR::toGRanges(K562.hmm.file)
+# K562.hmm
+#
+# kp <- karyoploteR::plotKaryotype(cex=2, plot.type = 4)
+# kpPlotGenes(kp, data=genes.data, r0=0, r1=0.15, gene.name.cex = 2)
+# karyoploteR::kpPlotRegions(kp, K562.hmm, col=K562.hmm$itemRgb, r0=0.22, r1=0.3)
+
+
 
 makeDensityPlot <- function(master, binSize, trajectory, chr_level, cutoff){
   txdb <-TxDb.Hsapiens.UCSC.hg19.knownGene::TxDb.Hsapiens.UCSC.hg19.knownGene
@@ -6,13 +17,15 @@ makeDensityPlot <- function(master, binSize, trajectory, chr_level, cutoff){
   kp <- karyoploteR::kpPlotDensity(kp, all.genes)
   kp_data <- kp$latest.plot$computed.values
 
-  density_data <- data.frame(start = kp_data[["windows"]]@ranges@start, density = kp_data[["density"]])
   binned_master <- getBinNumber(master, binSize)
+
+  density_data <- data.frame(start = kp_data[["windows"]]@ranges@start, density = kp_data[["density"]])
+
   density_data <- density_data %>%
     dplyr::mutate(start_chrom = binned_master$start_chrom,
                   bin = binned_master$bin) %>%
     dplyr::group_by(bin) %>%
-    dplyr::summarize(mean_density = mean(density))
+    dplyr::summarize(mean_density = base::mean(density))
 
   change_bins <- assignChromosomeBounds(trajectory, chr_level)
   crPos <- assignCentromereBounds(trajectory, chr_level)
@@ -32,7 +45,7 @@ makeDensityPlot <- function(master, binSize, trajectory, chr_level, cutoff){
     ggplot2::geom_vline(xintercept = crPos[,2], col = "lightblue", alpha=0.7)
 
 
-  # add stripes to distinguish chromosomes
+  # # add stripes to distinguish chromosomes
   for (i in 1:length(change_bins)) {
     if (i %% 2 != 0) {
       densityPlot <- densityPlot + ggplot2::annotate("rect", xmin=change_bins[i], xmax = change_bins[i+1],
@@ -40,14 +53,14 @@ makeDensityPlot <- function(master, binSize, trajectory, chr_level, cutoff){
     }
   }
 
-  # add centromere locations
+  # # add centromere locations
   for (i in 1:dim(crPos)[1]) {
     densityPlot <- densityPlot + ggplot2::annotate("rect", xmax=crPos[i,2], xmin=crPos[i,1],
                                          ymin=-Inf, ymax=Inf, alpha=0.5, fill = "lightblue")
 
   }
 
-  # add changepoints to plot
+  # # add changepoints to plot
   for (i in 1:dim(cpPos)[1]) {
     densityPlot <- densityPlot + ggplot2::annotate("rect", xmax=cpPos$cpPos2[i], xmin=cpPos$cpPos1[i],
                                          ymin=-Inf, ymax=Inf, alpha=cpPos$prob[i]-.1, fill = "red")
@@ -73,8 +86,10 @@ makeGCPlot <- function(master, binSize, trajectory, chr_level, cutoff) {
   counts <- Biostrings::alphabetFrequency(seqs, baseOnly=TRUE)
   freqs <- counts/rowSums(counts)
 
+  binned_master <- getBinNumber(master, binSize)
+
   nuc_freqs <- data.frame(freqs[,1:4]) %>%
-    dplyr::mutate(bin = getBinNumber(master, binSize)$bin,
+    dplyr::mutate(bin = binned_master$bin,
                   GC = G + C) %>%
     dplyr::group_by(bin) %>%
     dplyr::summarize(meanGC = mean(GC))
@@ -97,7 +112,7 @@ makeGCPlot <- function(master, binSize, trajectory, chr_level, cutoff) {
     ggplot2::geom_vline(xintercept = crPos[,2], col = "lightblue", alpha=0.7)
 
 
-  # add stripes to distinguish chromosomes
+  # # add stripes to distinguish chromosomes
   for (i in 1:length(change_bins)) {
     if (i %% 2 != 0) {
       gcPlot <- gcPlot + ggplot2::annotate("rect", xmin=change_bins[i], xmax = change_bins[i+1],
@@ -105,14 +120,14 @@ makeGCPlot <- function(master, binSize, trajectory, chr_level, cutoff) {
     }
   }
 
-  # add centromere locations
+  # # add centromere locations
   for (i in 1:dim(crPos)[1]) {
     gcPlot <- gcPlot + ggplot2::annotate("rect", xmax=crPos[i,2], xmin=crPos[i,1],
                                          ymin=-Inf, ymax=Inf, alpha=0.5, fill = "lightblue")
 
   }
 
-  # add changepoints to plot
+  # # add changepoints to plot
   for (i in 1:dim(cpPos)[1]) {
     gcPlot <- gcPlot + ggplot2::annotate("rect", xmax=cpPos$cpPos2[i], xmin=cpPos$cpPos1[i],
                                ymin=-Inf, ymax=Inf, alpha=cpPos$prob[i]-.1, fill = "red")
