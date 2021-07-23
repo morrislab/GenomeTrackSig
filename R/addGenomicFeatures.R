@@ -1,13 +1,3 @@
-# library(BiocFileCache)
-# bfc <- BiocFileCache::BiocFileCache(ask=FALSE)
-# K562.hmm.file <- BiocFileCache::bfcrpath(bfc, "http://hgdownload.soe.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHmm/wgEncodeBroadHmmK562HMM.bed.gz")
-# K562.hmm <- regioneR::toGRanges(K562.hmm.file)
-# K562.hmm
-#
-# kp <- karyoploteR::plotKaryotype(cex=2, plot.type = 4)
-# kpPlotGenes(kp, data=genes.data, r0=0, r1=0.15, gene.name.cex = 2)
-# karyoploteR::kpPlotRegions(kp, K562.hmm, col=K562.hmm$itemRgb, r0=0.22, r1=0.3)
-
 
 
 makeDensityPlot <- function(master, binSize, trajectory, chr_level, cutoff){
@@ -24,6 +14,7 @@ makeDensityPlot <- function(master, binSize, trajectory, chr_level, cutoff){
   density_data <- density_data %>%
     dplyr::mutate(start_chrom = binned_master$start_chrom,
                   bin = binned_master$bin) %>%
+    dplyr::filter(bin <= max(trajectory[[4]]$bin)) %>%
     dplyr::group_by(bin) %>%
     dplyr::summarize(mean_density = base::mean(density))
 
@@ -91,6 +82,7 @@ makeGCPlot <- function(master, binSize, trajectory, chr_level, cutoff) {
   nuc_freqs <- data.frame(freqs[,1:4]) %>%
     dplyr::mutate(bin = binned_master$bin,
                   GC = G + C) %>%
+    dplyr::filter(bin <= max(trajectory[[4]]$bin)) %>%
     dplyr::group_by(bin) %>%
     dplyr::summarize(meanGC = mean(GC))
 
@@ -135,6 +127,7 @@ makeGCPlot <- function(master, binSize, trajectory, chr_level, cutoff) {
 
   return (gcPlot)
 }
+
 
 addGenomicFeatures <- function(trajPlot, master, binSize, trajectory, chr_level=F, cutoff=0) {
 

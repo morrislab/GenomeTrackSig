@@ -30,11 +30,12 @@
 
 SpaceTrack <- function(path, chr_level = FALSE, bootstrapSamples = 0,
                        parallelize = FALSE, activeInSample, binSize,
-                       referenceSignatures = TrackSig::alex_merged,
+                       referenceSignatures = readr::read_csv('cosmicV3.csv'),
                        refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19) {
 
   # read in mutation counts file
-  counts <- readr::read_csv(path)
+  #counts <- readr::read_csv(path)
+  counts <- path
 
   # run TrackSig either on entire genome or on individual chromosomes
   if (chr_level == TRUE) {

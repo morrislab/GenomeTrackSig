@@ -1,3 +1,60 @@
+# Bootstrap shuffles
+
+binByChromShuffle <- function(master, binSize) {
+  start_chrom <- NULL
+  chrom_data = list()
+  # initialize empty dataframe
+  counts <- data.frame()
+  # iterate through chromosomes
+  for (i in c(1:23)) {
+    master_subset <- master %>%
+      dplyr::filter(start_chrom==i)
+    # bin the counts for each chromosome
+    counts_subset <- list(binningNmut(master_subset, binSize))
+    # append binned chromosome data to final dataframe of bin counts
+    chrom_data <- c(chrom_data, counts_subset)
+  }
+
+  return (chrom_data)
+}
+
+
+bootstrapShuffle <- function(master, binSize, activeInSample, i) {
+  set.seed(i)
+  chrs <- c(1:23)
+  order <- base::sample(chrs, size = length(chrs), replace=FALSE)
+
+  chrom_data <- binByChromShuffle(master, binSize)
+
+  start_bin <- 1
+  for (i in 1:length(chrom_data)) {
+    chrom_data[[i]]$genome_bin <- rep(start_bin:((start_bin+nrow(chrom_data[[i]]))-1), each=1)
+    start_bin <- start_bin + (nrow(chrom_data[[i]]))
+  }
+
+
+  shuffle_counts <- data.frame()
+  for (i in order) {
+    shuffle_counts <- rbind(shuffle_counts, chrom_data[[i]])
+  }
+  shuffle_counts$bin <- rep(1:nrow(shuffle_counts))
+
+  traj <- TrackSig(df = shuffle_counts, activeInSample = activeInSample, binSize = binSize)
+
+  colnames(traj[[1]]) <- traj[[4]]$genome_bin
+  traj[[1]] <- traj[[1]][,order(nchar(colnames(traj[[1]])), colnames(traj[[1]]))]
+
+  if (!is.null(traj[[2]])) {
+    for (i in 1:length(traj[[2]])) {
+      traj[[2]][i] <- traj[[4]]$genome_bin[traj[[4]]$bin == traj[[2]][i]]
+    }
+  }
+
+  return (traj)
+}
+
+
+
 ## \code{bootstrapSample} Sample with replacement from the mutations in each bin
 ##
 ## @param master binned dataframe of mutation counts

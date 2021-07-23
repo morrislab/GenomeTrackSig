@@ -1,105 +1,44 @@
-# AUTHORS: Yulia Rubanova and Nil Sahin
-# Modified for package trackSig by Cait Harrigan
+# Plotting modifications
 
-
-##### Plotting helper functions:
-##### reshapeTraj(), assignChromosomeBounds(), assignCentromereBounds(),
-##### assignChangepoints()
-
-reshapeTraj <- function(traj) {
-
-  ### reshape list of trajectories into format that can be used for plotting
-  i <- 1
-  maps <- list()
-
-  while (i <= length(traj)) {
-    if(!is.null(traj[[i]])){
-      mixtures <- traj[[i]]
-      binData <- traj[[i+1]]
-
-      # input checking
-      assertthat::assert_that(!is.null(mixtures), msg = "Could not find mixtures for timeline, please supply through results or mixtures paramter.\n")
-
-      # set the bins to colnames(mixtures)
-      bins <- as.numeric(colnames(mixtures))
-
-      # mixtures and bins are binned the same way
-      assertthat::assert_that(length(bins) == dim(mixtures)[2],
-                              msg = "The mixtures object is mal-specified. Column names should correspond to binned bins.\n")
-
-      # Plotting the change of mutational signature weights across the genome specified as the order of bin
-      #colnames(mixtures) <- 1:dim(mixtures)[2]
-      colnames(mixtures) <- bins
-      map <- reshape2::melt(mixtures)
-      colnames(map) <- c("Signatures", "xBin", "exposure")
-      map$exposure <- as.numeric(map$exposure)
-
-      maps <- append(maps, map)
-
-      i <- i + 4
-    }
-  }
-
-  #calculate mean activity of signatures at each bin over all bootstrap samples
-  make_means <- NULL
-  for (i in 1:length(maps)) {
-    if (typeof(maps[[i]])=="double") {
-      make_means <- rbind(make_means, maps[[i]])
-    }
-  }
-
-  # append mean activity dataframe to list of bootstrap dataframes
-  maps[[length(maps)+1]] <- maps[[1]]
-  maps[[length(maps)+1]] <- maps[[2]]
-  maps[[length(maps)+1]] <- colMeans(make_means)
-
-  return (maps)
-}
-
-assignChromosomeBounds <- function (traj, chr_level) {
+assignChromosomeBoundsShuffle <- function (traj, chr_level) {
 
   # Assign chromosome breaks to bins
 
   if (chr_level==F) {
-    change_bins <- c(1)
     binData <- traj[[4]]
+    change_bins <- c(binData$genome_bin[1])
     for (i in 2:nrow(binData)-1) {
-      if (binData$start_chrom[i] < binData$start_chrom[i+1]) {
-        if (binData$end_chrom[i] > binData$start_chrom[i]) {
-          change_bins <- c(change_bins, binData$bin[i]+0.5)
+      if (binData$start_chrom[i] != binData$start_chrom[i+1]) {
+        if (binData$end_chrom[i] != binData$start_chrom[i]) {
+          change_bins <- c(change_bins, binData$genome_bin[i]+0.5)
         }
         else {
-          change_bins <- c(change_bins, binData$bin[i+1])
+          change_bins <- c(change_bins, binData$genome_bin[i+1])
         }
       }
-    }
-    if (length(change_bins) != 24) {
-      change_bins <- c(change_bins, binData$bin[nrow(binData)])
     }
   }
 
   else {
     change_bins <- c(1)
-      binData <- traj[[4]]
-      for (i in nrow(binData):2) {
-        if (binData$start_chrom[i] < binData$start_chrom[i-1]) {
-          if (binData$end_chrom[i] > binData$start_chrom[i]) {
-            change_bins <- c(change_bins, binData$actual_bin[i]+0.5)
-          }
-          else {
-            change_bins <- c(change_bins, binData$actual_bin[i-1])
-          }
+    binData <- traj[[4]]
+    for (i in nrow(binData):2) {
+      if (binData$start_chrom[i] != binData$start_chrom[i-1]) {
+        if (binData$end_chrom[i] != binData$start_chrom[i]) {
+          change_bins <- c(change_bins, binData$actual_bin[i]+0.5)
+        }
+        else {
+          change_bins <- c(change_bins, binData$actual_bin[i-1])
         }
       }
-      if (length(change_bins) != 24) {
-        change_bins <- c(change_bins, binData$actual_bin[1])
-      }
+    }
   }
   return (change_bins)
 }
 
 
-assignCentromereBounds <- function (traj, chr_level) {
+
+assignCentromereBoundsShuffle <- function (traj, chr_level) {
 
   # assign centromere locations to bins
 
@@ -169,67 +108,18 @@ assignCentromereBounds <- function (traj, chr_level) {
   return (crPos)
 
 }
-
-assignChangepoints <- function (traj, cutoff) {
-  # assign changepoint locations to bins and calculate proportion of bootstrap
-  # samples that agree on each changepoint
-
-  i <- 2
-  count <- 0
-  cpPos <- c()
-  cpPos1 <- cpPos2 <- prob <- NULL
-
-  while (i <= length(traj)) {
-    cpPos <- c(cpPos, traj[[i]])
-    i <- i + 4
-    count <- count + 1
-  }
-
-  cpPos <- as.data.frame(cpPos)
-  colnames(cpPos) <- c('cpPos1')
-  cpPos <- cpPos %>%
-    dplyr::group_by(cpPos1) %>%
-    dplyr::summarize(prob = dplyr::n()/count) %>%
-    dplyr::mutate("cpPos2" = cpPos1+1) %>%
-    dplyr::filter(prob >= cutoff)
-
-  return (cpPos)
-}
-
-# Plotting using helper functions
-
-
-#' Plot the genomic trajectory of a tumor.
-#'
-#' @description
-#' \code{plotSpaceTrajectory} For each bin in a set of signature
-#' mixtures, the mixture is plotted across the genome. Provided changepoints
-#' will be highlighted.
-#'
-#' @param trajectory a list containing named elements "mixtures",
-#' "changepoints", and 'binData'. See @seealso \link{TrackSig}.
-#' @param show logical whether to print the plot.
-#' @param chr_level logical whether TrackSig was run on each chromosome
-#' separately; default is FALSE.
-#' @param cutoff minimum proportion of bootstrap samples that must agree on a
-#' changepoint location in order for that changepoint to be plotted; default is
-#' 0.
-#' @return ggplot object
-#' @import rlang
-#' @export
-
-plotSpaceTrajectory <- function(trajectory, show=TRUE, chr_level=F, cutoff=0) {
+plotSpaceTrajectoryShuffle <- function(trajectory, show=TRUE, chr_level=F, cutoff=0) {
 
   # reshape list of trajectories into format that can be used for plotting
   maps <- reshapeTraj(trajectory)
 
   # assign chromosome breaks to bins
-  change_bins <- assignChromosomeBounds(trajectory, chr_level)
-  chr_breaks <- change_bins
-  chr_labels <- as.character(c(1:22, "X", "Y"))
+  change_bins <- assignChromosomeBoundsShuffle(trajectory, chr_level)
+  chr_breaks <- sort(change_bins)
+  chr_labels <- as.character(c(1:22, "X"))
 
   # assign centromere locations to bins
-  crPos <- assignCentromereBounds(trajectory, chr_level)
+  crPos <- assignCentromereBoundsShuffle(trajectory, chr_level)
 
   # assign changepoint locations to bins
   if (!is.null(trajectory[['changepoints']])) {
@@ -284,20 +174,24 @@ plotSpaceTrajectory <- function(trajectory, show=TRUE, chr_level=F, cutoff=0) {
     # add changepoints to plot
     for (i in 1:dim(cpPos)[1]) {
       g <- g + ggplot2::annotate("rect", xmax=cpPos$cpPos2[i], xmin=cpPos$cpPos1[i],
-                                 ymin=-Inf, ymax=Inf, alpha=cpPos$prob[i]-.1, fill = "red")
+                                 ymin=-Inf, ymax=Inf, alpha=cpPos$prob[i], fill = "red")
     }
   }
 
 
   # add stripes to distinguish chromosomes
-  for (i in 1:length(change_bins)) {
+  for (i in 1:length(sort(change_bins))-1) {
     if (i %% 2 != 0) {
-      g <- g + ggplot2::annotate("rect", xmin=change_bins[i], xmax = change_bins[i+1],
+      g <- g + ggplot2::annotate("rect", xmin=sort(change_bins)[i], xmax = sort(change_bins)[i+1],
                                  ymin=-Inf, ymax=Inf, alpha=0.3, fill='grey')
     }
   }
+  g <- g + ggplot2::annotate("rect", xmin=sort(change_bins)[length(change_bins)], xmax = max(avg_df$xBin),
+                             ymin=-Inf, ymax=Inf, alpha=0.3, fill='grey')
 
   if (show){print(g)}
 
   return(g)
 }
+
+

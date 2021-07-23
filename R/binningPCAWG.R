@@ -35,7 +35,7 @@ poolSamples <- function(archivePath, typesPath, cancerType) {
                                                     .default = "d"))
 
   # add counts from remaining samples into master file and delete remaining files from memory
-  for (i in 2:4) {
+  for (i in 2:length(get_files)) {
     temp <- readr::read_csv(as.character(paste(archivePath, "/", get_files[i], ".MBcounts.csv", sep = "")),
                             col_types = readr::cols(seqnames = "c",
                                                     strand = "c",
@@ -63,31 +63,60 @@ poolSamples <- function(archivePath, typesPath, cancerType) {
 
 getBinNumber <- function(master, binSize) {
   counts <- data.frame()
-  for (i in c(1:24)) {
+
+  for (i in c(1:23)) {
     # find mutation counts in each row
-    master_subset <- master %>%
-      dplyr::filter(start_chrom==i)
-    master_subset <- master_subset %>%
-      dplyr::mutate(rowsum = rowSums(master_subset[,6:101]),
-                    bin = 1) %>%
-      base::subset(select = c(1:5,102,103,6:101))
+    if (i == 23) {
+      master_subset <- master %>%
+        dplyr::filter(start_chrom>=i)
+      master_subset <- master_subset %>%
+        dplyr::mutate(rowsum = rowSums(master_subset[,6:101]),
+                      bin = 1) %>%
+        base::subset(select = c(1:5,102,103,6:101))
 
-    bin <- 1
-    sums <- 0
+      bin <- 1
+      sums <- 0
 
-    for (i in 1:nrow(master_subset)) {
-      sums <- sums + master_subset$rowsum[i]
-      master_subset$bin[i] <- bin
-      if (sums >= binSize) {
-        sums <- 0
-        bin <- bin + 1
+      for (i in 1:nrow(master_subset)) {
+        sums <- sums + master_subset$rowsum[i]
+        master_subset$bin[i] <- bin
+        if (sums >= binSize) {
+          sums <- 0
+          bin <- bin + 1
+        }
       }
+      counts <- rbind(counts, master_subset)
     }
-    counts <- rbind(counts, master_subset)
+    else {
+      master_subset <- master %>%
+        dplyr::filter(start_chrom==i)
+      master_subset <- master_subset %>%
+        dplyr::mutate(rowsum = rowSums(master_subset[,6:101]),
+                      bin = 1) %>%
+        base::subset(select = c(1:5,102,103,6:101))
+
+      bin <- 1
+      sums <- 0
+
+      for (i in 1:nrow(master_subset)) {
+        sums <- sums + master_subset$rowsum[i]
+        master_subset$bin[i] <- bin
+        if (sums >= binSize) {
+          sums <- 0
+          bin <- bin + 1
+        }
+      }
+      counts <- rbind(counts, master_subset)
+    }
   }
 
-  for (i in c(2:24)) {
-    counts$bin[counts$start_chrom==i] <- counts$bin[counts$start_chrom==i] + max(counts$bin[counts$start_chrom==i-1])
+  for (i in c(2:23)) {
+    if (i == 23) {
+      counts$bin[counts$start_chrom>=i] <- counts$bin[counts$start_chrom>=i] + max(counts$bin[counts$start_chrom==i-1])
+    }
+    else {
+      counts$bin[counts$start_chrom==i] <- counts$bin[counts$start_chrom==i] + max(counts$bin[counts$start_chrom==i-1])
+    }
   }
 
   return (counts)
@@ -168,13 +197,23 @@ binByChrom <- function(master, binSize) {
   # initialize empty dataframe
   counts <- data.frame()
   # iterate through chromosomes
-  for (i in c(1:24)) {
-    master_subset <- master %>%
-      dplyr::filter(start_chrom==i)
-    # bin the counts for each chromosome
-    counts_subset <- binningNmut(master_subset, binSize)
-    # append binned chromosome data to final dataframe of bin counts
-    counts <- rbind(counts, counts_subset)
+  for (i in c(1:23)) {
+    if (i == 23) {
+      master_subset <- master %>%
+        dplyr::filter(start_chrom>=i)
+      # bin the counts for each chromosome
+      counts_subset <- binningNmut(master_subset, binSize)
+      # append binned chromosome data to final dataframe of bin counts
+      counts <- rbind(counts, counts_subset)
+    }
+    else {
+      master_subset <- master %>%
+        dplyr::filter(start_chrom==i)
+      # bin the counts for each chromosome
+      counts_subset <- binningNmut(master_subset, binSize)
+      # append binned chromosome data to final dataframe of bin counts
+      counts <- rbind(counts, counts_subset)
+    }
   }
   # define bins in relation to whole genome rather than whole chromosome
   counts$bin <- c(1:nrow(counts))

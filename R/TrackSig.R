@@ -26,7 +26,7 @@
 
 detectActiveSignatures <- function(df,
                                    threshold = 0.05, prior = NULL, binSize,
-                                   referenceSignatures = TrackSig::alex_merged,
+                                   referenceSignatures = no_aging,
                                    refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19){
 
   # group mutations into bins with specified size
@@ -71,7 +71,7 @@ TrackSig <- function(df,
                          binSize,
                          activeInSample,
                          sampleID = NULL,
-                         referenceSignatures = TrackSig::alex_merged,
+                         referenceSignatures = utils::read.csv("cosmicV3.csv", row.names = 1),
                          scoreMethod = "Signature",
                          nCutoff = 10000,
                          desiredMinSegLen = 1,
