@@ -26,7 +26,7 @@
 
 detectActiveSignatures <- function(df,
                                    threshold = 0.05, prior = NULL, binSize,
-                                   referenceSignatures = no_aging,
+                                   referenceSignatures = TrackSig:::cosmicV3,
                                    refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19){
 
   # group mutations into bins with specified size
@@ -71,7 +71,7 @@ TrackSig <- function(df,
                          binSize,
                          activeInSample,
                          sampleID = NULL,
-                         referenceSignatures = utils::read.csv("cosmicV3.csv", row.names = 1),
+                         referenceSignatures = TrackSig:::cosmicV3,
                          scoreMethod = "Signature",
                          nCutoff = 10000,
                          desiredMinSegLen = 1,
@@ -126,14 +126,14 @@ TrackSig <- function(df,
                                                       scoreMethod = scoreMethod,
                                                       binSize = binSize,
                                                       desiredMinSegLen = desiredMinSegLen)
-  # assign mutations to clusters
-  if(is.null(changepoints)){
-    binCounts$clust = 1
-  }else{
-    clustIdx = rep(1:(length(changepoints) + 1),
-                   times = c(changepoints, max(binCounts$bin)) - c(0, changepoints))
-    binCounts$clust = clustIdx[binCounts$bin]
-  }
+  # # assign mutations to clusters
+  # if(is.null(changepoints)){
+  #   binCounts$clust = 1
+  # }else{
+  #   clustIdx = rep(1:(length(changepoints) + 1),
+  #                  times = c(changepoints, max(binCounts$bin)) - c(0, changepoints))
+  #   binCounts$clust = clustIdx[binCounts$bin]
+  # }
 
   return (list(mixtures = mixtures, changepoints = changepoints, sampleID = sampleID, binData = binCounts))
 }

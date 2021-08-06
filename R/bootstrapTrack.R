@@ -1,6 +1,7 @@
 # Bootstrap shuffles
 
 binByChromShuffle <- function(master, binSize) {
+  # Bin mutations on each chromosome separately, excluding Y chromosome
   start_chrom <- NULL
   chrom_data = list()
   # initialize empty dataframe
@@ -18,20 +19,32 @@ binByChromShuffle <- function(master, binSize) {
   return (chrom_data)
 }
 
+## \code{bootstrapShuffle} Randomly order chromosomes across the genome
+## and fit genomic trajectory on that randomly-ordered genome
+##
+## @param master un-binned dataframe of mutation counts
+## @param binSize desired number of mutations per bin
+## @param activeInSample vector of signatures to fit activity estimates to
+## @param i integer; represents bootstrap sample number
+##
+## @name bootstrapShuffle
 
 bootstrapShuffle <- function(master, binSize, activeInSample, i) {
   set.seed(i)
   chrs <- c(1:23)
+  # get random ordering of chromosomes
   order <- base::sample(chrs, size = length(chrs), replace=FALSE)
 
+  # get list of dataframes, each dataframe representing the binned mutations
+  # of an individual chromosome
   chrom_data <- binByChromShuffle(master, binSize)
 
+  # splice chromosomal binned counts dataframes into single dataframe in random order
   start_bin <- 1
   for (i in 1:length(chrom_data)) {
     chrom_data[[i]]$genome_bin <- rep(start_bin:((start_bin+nrow(chrom_data[[i]]))-1), each=1)
     start_bin <- start_bin + (nrow(chrom_data[[i]]))
   }
-
 
   shuffle_counts <- data.frame()
   for (i in order) {
@@ -39,8 +52,10 @@ bootstrapShuffle <- function(master, binSize, activeInSample, i) {
   }
   shuffle_counts$bin <- rep(1:nrow(shuffle_counts))
 
+  # Run TrackSig over randomly-ordered genome
   traj <- TrackSig(df = shuffle_counts, activeInSample = activeInSample, binSize = binSize)
 
+  # clean up names of mixture columns and changepoints for plotting ease
   colnames(traj[[1]]) <- traj[[4]]$genome_bin
   traj[[1]] <- traj[[1]][,order(nchar(colnames(traj[[1]])), colnames(traj[[1]]))]
 
@@ -52,8 +67,6 @@ bootstrapShuffle <- function(master, binSize, activeInSample, i) {
 
   return (traj)
 }
-
-
 
 ## \code{bootstrapSample} Sample with replacement from the mutations in each bin
 ##

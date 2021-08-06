@@ -4,7 +4,7 @@
 \alias{plotSpaceTrajectory}
 \title{Plot the genomic trajectory of a tumor.}
 \usage{
-plotSpaceTrajectory(trajectory, show = TRUE, chr_level, cutoff = 0)
+plotSpaceTrajectory(trajectory, show = TRUE, chr_level, cutoff)
 }
 \arguments{
 \item{trajectory}{a list containing named elements "mixtures",
@@ -13,11 +13,10 @@ plotSpaceTrajectory(trajectory, show = TRUE, chr_level, cutoff = 0)
 \item{show}{logical whether to print the plot.}
 
 \item{chr_level}{logical whether TrackSig was run on each chromosome
-separately; default is F.}
+separately}
 
 \item{cutoff}{minimum proportion of bootstrap samples that must agree on a
-changepoint location in order for that changepoint to be plotted; default is
-0.}
+changepoint location in order for that changepoint to be plotted}
 }
 \value{
 ggplot object

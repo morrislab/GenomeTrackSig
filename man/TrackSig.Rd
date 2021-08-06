@@ -9,7 +9,7 @@ TrackSig(
   binSize,
   activeInSample,
   sampleID = NULL,
-  referenceSignatures = TrackSig::alex_merged,
+  referenceSignatures = TrackSig:::cosmicV3,
   scoreMethod = "Signature",
   nCutoff = 10000,
   desiredMinSegLen = 1,

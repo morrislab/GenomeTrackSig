@@ -1,13 +1,43 @@
-## Contains functions used to aggregate PCAWG mutation counts data and represent counts data
-## as 'bins,' each bin containing a user-defined number of mutations and spanning a variable
-## segment of the genome.
+#' Format file of mutation counts
+#'
+#' @description
+#' \code{readFormat} takes in a csv of mutation counts and returns a data frame in a
+#' format compatible with TrackSig().
+#'
+#' @param path file path to csv of mutation counts
+#'
+#' @return dataframe of mutation counts
+#' @export
+
+readFormat <- function(path) {
+  seqnames <- strand <- NULL
+  # read in dataframe of file IDs with corresponding cancer types
+
+
+  # initialize counts dataframe
+  master <- utils::read.csv(path, header=T, sep=',')
+
+  # make data type consistent in seqnames column
+  # split seqnames column into start chrom and end chrom
+  # remove unnecessary variables
+  master <- master %>%
+    dplyr::mutate(seqnames = dplyr::case_when(seqnames == "X" ~ 23,
+                                              seqnames == "Y" ~ 24,
+                                              TRUE ~ as.numeric(seqnames)),
+                  start_chrom = seqnames,
+                  end_chrom = seqnames) %>%
+    dplyr::select(-seqnames, -strand) %>%
+    base::subset(select = c(100,1,101,2:99))
+
+  # save output into csv and return dataframe
+  return (master)
+}
 
 #' Summarize mutation counts across all samples of interest
 #'
 #' @description
-#' \code{poolSamples} will take an input CSV file of mutation counts, and
-#' determine a trajectory over the genome for the sample, based on changepoints
-#' found using the PELT segmentation algorithm.
+#' \code{poolSamples} groups together the mutation counts for multiple cancer
+#' samples of the same type and returns a data frame in a format compatible with TrackSig().
 #'
 #' @param archivePath file path to folder containing all cancer samples
 #' @param typesPath file path to dataframe (csv) containing file IDs and
@@ -21,25 +51,21 @@
 poolSamples <- function(archivePath, typesPath, cancerType) {
   seqnames <- strand <- NULL
   # read in dataframe of file IDs with corresponding cancer types
-  types <- readr::read_csv(typesPath,
-                           col_names = c('type', 'guid'))
+  types <- utils::read.csv(typesPath, sep=',', header=T,
+                           col.names = c('type', 'guid'))
   types <- types[2:nrow(types), ]
 
   # list of sample filenames for desired cancer type
   get_files <- c(types$guid[types$type == cancerType])
 
   # initialize counts dataframe
-  master <- readr::read_csv(as.character(paste(archivePath, "/", get_files[1], ".MBcounts.csv", sep = "")),
-                            col_types = readr::cols("seqnames" = "c",
-                                                    "strand" = "c",
-                                                    .default = "d"))
+  master <- utils::read.csv(as.character(paste(archivePath, "/", get_files[1], ".MBcounts.csv", sep = "")),
+                            header=T)
 
   # add counts from remaining samples into master file and delete remaining files from memory
   for (i in 2:length(get_files)) {
-    temp <- readr::read_csv(as.character(paste(archivePath, "/", get_files[i], ".MBcounts.csv", sep = "")),
-                            col_types = readr::cols(seqnames = "c",
-                                                    strand = "c",
-                                                    .default = "d"))
+    temp <- utils::read.csv(as.character(paste(archivePath, "/", get_files[i], ".MBcounts.csv", sep = "")),
+                            header=T, sep=',')
     master[, 6:101] <- master[, 6:101] + temp[, 6:101]
     base::remove(temp)
   }
@@ -57,15 +83,25 @@ poolSamples <- function(archivePath, typesPath, cancerType) {
     base::subset(select = c(100,1,101,2:99))
 
   # save output into csv and return dataframe
-  readr::write_csv(master, paste(cancerType, "_pooled.csv", sep=""))
+  utils::write.csv(master, file = paste(cancerType, "_pooled.csv", sep=""))
   return (master)
 }
 
+## \code{getBinNumber} Identify which bin each Mb region of the genome belongs to,
+## depending on the desired bin size.
+##
+## @param master Un-binned data frame of mutation counts
+## @param binSize Desired number of mutations in each bin
+##
+## @name getBinNumber
+
 getBinNumber <- function(master, binSize) {
   counts <- data.frame()
+  start_chrom <- NULL
 
   for (i in c(1:23)) {
     # find mutation counts in each row
+    # bin sex chromosomes together
     if (i == 23) {
       master_subset <- master %>%
         dplyr::filter(start_chrom>=i)
@@ -76,7 +112,7 @@ getBinNumber <- function(master, binSize) {
 
       bin <- 1
       sums <- 0
-
+      # add up counts in each row until desired bin size is reached
       for (i in 1:nrow(master_subset)) {
         sums <- sums + master_subset$rowsum[i]
         master_subset$bin[i] <- bin
@@ -88,6 +124,7 @@ getBinNumber <- function(master, binSize) {
       counts <- rbind(counts, master_subset)
     }
     else {
+      # bin autosomal chromosomes individually
       master_subset <- master %>%
         dplyr::filter(start_chrom==i)
       master_subset <- master_subset %>%
@@ -97,7 +134,7 @@ getBinNumber <- function(master, binSize) {
 
       bin <- 1
       sums <- 0
-
+      # add up counts in each row until desired bin size is reached
       for (i in 1:nrow(master_subset)) {
         sums <- sums + master_subset$rowsum[i]
         master_subset$bin[i] <- bin
@@ -109,7 +146,7 @@ getBinNumber <- function(master, binSize) {
       counts <- rbind(counts, master_subset)
     }
   }
-
+  # define bins in relation to the whole genome
   for (i in c(2:23)) {
     if (i == 23) {
       counts$bin[counts$start_chrom>=i] <- counts$bin[counts$start_chrom>=i] + max(counts$bin[counts$start_chrom==i-1])

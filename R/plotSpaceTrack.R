@@ -126,17 +126,17 @@ assignCentromereBounds <- function (traj, chr_level) {
       end_id <- base::which.min(abs(c(binData_subset$end)-centromeres$end[i]))
 
       if (binData_subset$start[start_id] > centromeres$start[i]) {
-        centromere1 <- c(centromere1, binData_subset$genome_bin[start_id-1])
+        centromere1 <- c(centromere1, binData_subset$bin[start_id-1])
       }
       else {
-        centromere1 <- c(centromere1, binData_subset$genome_bin[start_id])
+        centromere1 <- c(centromere1, binData_subset$bin[start_id])
       }
 
       if (binData_subset$end[end_id] < centromeres$end[i]) {
-        centromere2 <- c(centromere2, binData_subset$genome_bin[end_id+1])
+        centromere2 <- c(centromere2, binData_subset$bin[end_id+1])
       }
       else {
-        centromere2 <- c(centromere2, binData_subset$genome_bin[end_id])
+        centromere2 <- c(centromere2, binData_subset$bin[end_id])
       }
     }
   }
@@ -186,12 +186,14 @@ assignChangepoints <- function (traj, cutoff) {
   }
 
   cpPos <- as.data.frame(cpPos)
-  colnames(cpPos) <- c('cpPos1')
-  cpPos <- cpPos %>%
-    dplyr::group_by(cpPos1) %>%
-    dplyr::summarize(prob = dplyr::n()/count) %>%
-    dplyr::mutate("cpPos2" = cpPos1+1) %>%
-    dplyr::filter(prob >= cutoff)
+  if (nrow(cpPos) != 0) {
+    colnames(cpPos) <- c('cpPos1')
+    cpPos <- cpPos %>%
+      dplyr::group_by(cpPos1) %>%
+      dplyr::summarize(prob = dplyr::n()/count) %>%
+      dplyr::mutate("cpPos2" = cpPos1+1) %>%
+      dplyr::filter(prob >= cutoff)
+  }
 
   return (cpPos)
 }
@@ -210,94 +212,96 @@ assignChangepoints <- function (traj, cutoff) {
 #' "changepoints", and 'binData'. See @seealso \link{TrackSig}.
 #' @param show logical whether to print the plot.
 #' @param chr_level logical whether TrackSig was run on each chromosome
-#' separately; default is FALSE.
+#' separately
 #' @param cutoff minimum proportion of bootstrap samples that must agree on a
-#' changepoint location in order for that changepoint to be plotted; default is
-#' 0.
+#' changepoint location in order for that changepoint to be plotted
 #' @return ggplot object
 #' @import rlang
 #' @export
 
-plotSpaceTrajectory <- function(trajectory, show=TRUE, chr_level=F, cutoff=0) {
+plotSpaceTrajectory <- function(trajectory, show=TRUE, chr_level, cutoff) {
 
   # reshape list of trajectories into format that can be used for plotting
   maps <- reshapeTraj(trajectory)
 
   # assign chromosome breaks to bins
-  change_bins <- assignChromosomeBounds(trajectory, chr_level)
-  chr_breaks <- change_bins
-  chr_labels <- as.character(c(1:22, "X", "Y"))
+  if (!is.null(trajectory[[4]]$genome_bin)) {
+    g <- plotSpaceTrajectoryShuffle(trajectory, show, chr_level, cutoff)
+    if (show){print(g)}
+  }
 
-  # assign centromere locations to bins
-  crPos <- assignCentromereBounds(trajectory, chr_level)
+  else {
+    change_bins <- assignChromosomeBounds(trajectory, chr_level)
+    chr_breaks <- change_bins
+    chr_labels <- as.character(c(1:22, "X", "Y"))
 
-  # assign changepoint locations to bins
-  if (!is.null(trajectory[['changepoints']])) {
+    # assign centromere locations to bins
+    crPos <- assignCentromereBounds(trajectory, chr_level)
+
+
+    # # assign changepoint locations to bins
     cpPos <- assignChangepoints(trajectory, cutoff)
-  }
 
-  # find mean activities at each bin across all bootstrap samples
-  avg_df <- as.data.frame(maps[(length(maps)-2):length(maps)])
-  colnames(avg_df) <- c('Signatures', "xBin", "exposure")
+    # find mean activities at each bin across all bootstrap samples
+    avg_df <- as.data.frame(maps[(length(maps)-2):length(maps)])
+    colnames(avg_df) <- c('Signatures', "xBin", "exposure")
 
-  g <- (  ggplot2::ggplot(data = avg_df)
-          + ggplot2::aes(x = .data$xBin, y = .data$exposure * 100, group = .data$Signatures, color = .data$Signatures)
-          + ggplot2::scale_x_continuous(breaks = chr_breaks, labels = chr_labels)
+    g <- (  ggplot2::ggplot(data = avg_df)
+            + ggplot2::aes(x = .data$xBin, y = .data$exposure * 100, group = .data$Signatures, color = .data$Signatures)
+            + ggplot2::scale_x_continuous(breaks = sort(chr_breaks), labels = chr_labels)
 
-  )
+    )
 
-  # general ggplot formatting
-  g <- (   g
-           + ggplot2::geom_point()
-           + ggplot2::geom_line()
-           + ggplot2::geom_vline(xintercept = crPos[,1], col = 'lightblue', alpha=0.7)
-           + ggplot2::geom_vline(xintercept = crPos[,2], col = "lightblue", alpha=0.7)
-           + ggplot2::theme_bw()
-           + ggplot2::theme(panel.grid.major.x = ggplot2::element_blank(),
-                            panel.grid.minor.x = ggplot2::element_blank())
-           + ggplot2::ylab("Signature Exposure (%)")
-           + ggplot2::xlab("Chromosome")
-           + ggplot2::labs(group="Signatures", color = "Signatures")
-  )
-
-  # add bootstrapped activities, if applicable
-  indices <- c()
-  for (i in 1:(length(maps)-3)) {
-    if (i %% 3 == 0) {
-      indices <- c(indices, i)
+    # # add stripes to distinguish chromosomes
+    for (i in 1:length(change_bins)-1) {
+      if (i %% 2 != 0) {
+        g <- g + ggplot2::annotate("rect", xmin=change_bins[i], xmax = change_bins[i+1],
+                                   ymin=-Inf, ymax=Inf, alpha=0.3, fill='grey')
+      }
     }
-  }
-  for (i in indices) {
-    g <- (g
-          + ggplot2::geom_line(ggplot2::aes_string(x = avg_df$xBin, y = (maps[[i]]*100)), alpha=0.3))
-  }
 
+    # general ggplot formatting
+    g <- (   g
+             + ggplot2::geom_point()
+             + ggplot2::geom_line()
+             + ggplot2::geom_vline(xintercept = crPos[,1], col = 'lightblue', alpha=0.7)
+             + ggplot2::geom_vline(xintercept = crPos[,2], col = "lightblue", alpha=0.7)
+             + ggplot2::theme_bw()
+             + ggplot2::theme(panel.grid.major.x = ggplot2::element_blank(),
+                              panel.grid.minor.x = ggplot2::element_blank())
+             + ggplot2::ylab("Signature Exposure (%)")
+             + ggplot2::xlab("Chromosome")
+             + ggplot2::labs(group="Signatures", color = "Signatures")
+    )
 
-  # add centromere locations
-  for (i in 1:dim(crPos)[1]) {
-    g <- g + ggplot2::annotate("rect", xmax=crPos[i,2], xmin=crPos[i,1],
-                               ymin=-Inf, ymax=Inf, alpha=0.3, fill = "lightblue")
-
-  }
-
-  if (!is.null(trajectory[['changepoints']])) {
-    # add changepoints to plot
-    for (i in 1:dim(cpPos)[1]) {
-      g <- g + ggplot2::annotate("rect", xmax=cpPos$cpPos2[i], xmin=cpPos$cpPos1[i],
-                                 ymin=-Inf, ymax=Inf, alpha=cpPos$prob[i]-.1, fill = "red")
+    # add bootstrapped activities, if applicable
+    indices <- c()
+    for (i in 1:(length(maps)-3)) {
+      if (i %% 3 == 0) {
+        indices <- c(indices, i)
+      }
     }
-  }
-
-
-  # add stripes to distinguish chromosomes
-  for (i in 1:length(change_bins)) {
-    if (i %% 2 != 0) {
-      g <- g + ggplot2::annotate("rect", xmin=change_bins[i], xmax = change_bins[i+1],
-                                 ymin=-Inf, ymax=Inf, alpha=0.3, fill='grey')
+    for (i in indices) {
+      g <- (g
+            + ggplot2::geom_line(ggplot2::aes_string(x = avg_df$xBin, y = (maps[[i]]*100)), alpha=0.3))
     }
-  }
 
-  if (show){print(g)}
+    # add centromere locations
+    for (i in 1:dim(crPos)[1]) {
+      g <- g + ggplot2::annotate("rect", xmax=crPos[i,2], xmin=crPos[i,1],
+                                 ymin=-Inf, ymax=Inf, alpha=0.3, fill = "lightblue")
+
+    }
+
+    if (nrow(cpPos) > 0) {
+      # add changepoints to plot
+      for (i in 1:dim(cpPos)[1]) {
+        g <- g + ggplot2::annotate("rect", xmax=cpPos$cpPos2[i], xmin=cpPos$cpPos1[i],
+                                   ymin=-Inf, ymax=Inf, alpha=cpPos$prob[i], fill = "red")
+      }
+    }
+    if (show){print(g)}
+  }
 
   return(g)
 }

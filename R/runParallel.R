@@ -1,4 +1,4 @@
-## \code{trackChromosome} Run TrackSig on each chromosome.
+## \code{trackShuffle} Perform shuffle bootstrapping.
 ##
 ## @param master dataframe of mutation counts for your sample/s
 ## @param activeInSample list of active signatures to fit
@@ -7,12 +7,12 @@
 ## @param parallelize logical indicating whether functions should be run in parallel
 ##
 ## @examples
-## breastcancer_results <- trackChromosome(pooled_breastcancer_counts,
+## breastcancer_results <- trackShuffle(pooled_breastcancer_counts,
 ##                                        breastcancer_sigs, 200, 20, TRUE)
 ##
-## @name trackChromosome
+## @name trackShuffle
 
-trackChromosome <- function(master, activeInSample, binSize, nSamples, parallelize) {
+trackShuffle <- function(master, activeInSample, binSize, nSamples, parallelize) {
   j <- NULL
   `%dopar%` <- foreach::`%dopar%` # define parallelization functions
   `%do%` <- foreach::`%do%`
@@ -27,26 +27,91 @@ trackChromosome <- function(master, activeInSample, binSize, nSamples, paralleli
 
   # bootstrapping = True
   if (nSamples > 0) {
-    for (i in 1:nSamples) {
-      # parallelize = True
-      if (parallelize == TRUE) {
-        traj <- foreach::foreach(j = c(1:23), .combine = 'c') %dopar% bootstrapChromosomes(master, j, activeInSample, binSize)
-      }
-      # parallelize = False
-      else {
-        traj <- foreach::foreach(j = c(1:23), .combine = 'c') %do% bootstrapChromosomes(master, j, activeInSample, binSize)
-      }
-      # helper functions to organize trajectories and combine trajectories for each chromosome
-      # into a whole genome trajectory
-      cleaned_traj <- cleanTraj(traj)
-      combined_traj <- combineTraj(cleaned_traj)
-      # add to list of bootstrap trajectories
-      trajectories <- c(trajectories, base::assign(paste("traj", as.character(i), sep = ""), combined_traj))
+    # parallelize = True
+    if (parallelize == TRUE) {
+      traj <- foreach::foreach(j = c(1:nSamples), .combine = 'c') %dopar% bootstrapShuffle(master, binSize, activeInSample, j)
+    }
+    # parallelize = False
+    else {
+      traj <- foreach::foreach(j = c(1:nSamples), .combine = 'c') %do% bootstrapShuffle(master, binSize, activeInSample, j)
     }
   }
 
+
   # bootstrapping = False
   else {
+    traj <- bootstrapShuffle(master, binSize, activeInSample, 1)
+  }
+
+  if (parallelize==TRUE) {
+    parallel::stopCluster(myCluster)
+  }
+
+  return (traj)
+}
+
+
+
+## \code{trackChromosome} Run TrackSig on each chromosome.
+##
+## @param master dataframe of mutation counts for your sample/s
+## @param activeInSample list of active signatures to fit
+## @param binSize desired number of mutations per bin
+## @param bootstrapMethod type of bootstrapping to perform
+## @param nSamples number of bootstrap samples to take
+## @param parallelize logical indicating whether functions should be run in parallel
+##
+## @examples
+## breastcancer_results <- trackChromosome(pooled_breastcancer_counts,
+##                                        breastcancer_sigs, 200, "Mutation", 20, TRUE)
+##
+## @name trackChromosome
+
+trackChromosome <- function(master, activeInSample, binSize, bootstrapMethod, nSamples, parallelize) {
+  j <- NULL
+  `%dopar%` <- foreach::`%dopar%` # define parallelization functions
+  `%do%` <- foreach::`%do%`
+  trajectories <- c() # empty list of trajectories to add each bootstrap sample to
+
+  if (parallelize == TRUE) {
+    # intialize cluster
+    cores <- base::floor(0.9*(parallel::detectCores()))
+    myCluster <- parallel::makeCluster(cores, type="FORK")
+    doParallel::registerDoParallel(myCluster)
+  }
+
+  # bootstrapping = True
+  if (bootstrapMethod == "Mutation") {
+    if (nSamples > 0) {
+      for (i in 1:nSamples) {
+        # parallelize = True
+        if (parallelize == TRUE) {
+          traj <- foreach::foreach(j = c(1:23), .combine = 'c') %dopar% bootstrapChromosomes(master, j, activeInSample, binSize)
+        }
+        # parallelize = False
+        else {
+          traj <- foreach::foreach(j = c(1:23), .combine = 'c') %do% bootstrapChromosomes(master, j, activeInSample, binSize)
+        }
+        # helper functions to organize trajectories and combine trajectories for each chromosome
+        # into a whole genome trajectory
+        cleaned_traj <- cleanTraj(traj)
+        combined_traj <- combineTraj(cleaned_traj)
+        # add to list of bootstrap trajectories
+        trajectories <- c(trajectories, base::assign(paste("traj", as.character(i), sep = ""), combined_traj))
+      }
+      return (trajectories)
+    }
+    else {
+      print('Set bootstrapSamples > 0 to perform bootstrapping')
+    }
+  }
+
+  else if (bootstrapMethod == "Shuffle") {
+    print('Invalid bootstrap method; change bootstrap method or set chr_level = FALSE')
+  }
+
+  # bootstrapping = False
+  else if (bootstrapMethod == "None") {
     # parallelize = True
     if (parallelize == TRUE) {
       traj <- foreach::foreach(j = c(1:23), .combine = 'c') %dopar% chrLevel(master, j, activeInSample, binSize)
@@ -57,31 +122,17 @@ trackChromosome <- function(master, activeInSample, binSize, nSamples, paralleli
     }
     cleaned_traj <- cleanTraj(traj)
     combined_traj <- combineTraj(cleaned_traj)
+
+    return (combined_traj)
+  }
+
+  else {
+    print('Invalid bootstrap method, must be \'None\', \'Mutation\', or \'Shuffle\'')
   }
 
   if (parallelize==TRUE) {
     parallel::stopCluster(myCluster)
   }
-
-  if (nSamples > 0) {
-    return (trajectories)
-  }
-  else {
-    return (combined_traj)
-  }
-
-    # # parallelizing with bootstrap samples
-    # if (nSamples > 0) {
-    #   for (i in 1:nSamples) {
-    #     traj <- foreach::foreach(j = c(1:23), .combine = 'c') %dopar% bootstrapChromosomes(master, j, activeInSample, binSize)
-    #     # helper functions to organize trajectories and combine trajectories for each chromosome
-    #     # into a whole genome trajectory
-    #     cleaned_traj <- cleanTraj(traj)
-    #     combined_traj <- combineTraj(cleaned_traj)
-    #     # add to list of bootstrap trajectories
-    #     trajectories <- c(trajectories, base::assign(paste("traj", as.character(i), sep = ""), combined_traj))
-    #   }
-    # }
 }
 
 ## \code{trackGenome} Run TrackSig on the entire genome.
@@ -89,15 +140,16 @@ trackChromosome <- function(master, activeInSample, binSize, nSamples, paralleli
 ## @param master dataframe of mutation counts for your sample/s
 ## @param activeInSample list of active signatures to fit
 ## @param binSize desired number of mutations per bin
+## @param bootstrapMethod type of bootstrapping to perform
 ## @param nSamples number of bootstrap samples to take
 ## @param parallelize logical indicating whether functions should be run in parallel
 ##
 ## @examples
 ## breastcancer_results <- trackGenome(pooled_breastcancer_counts,
-##                                    breastcancer_sigs, 200, 30, TRUE)
+##                                    breastcancer_sigs, 200, "Mutation", 30, TRUE)
 ## @name trackGenome
 
-trackGenome <- function(master, activeInSample, binSize, nSamples, parallelize) {
+trackGenome <- function(master, activeInSample, binSize, bootstrapMethod, nSamples, parallelize) {
   j <- NULL
   `%dopar%` <- foreach::`%dopar%`
   `%do%` <- foreach::`%do%`
@@ -109,35 +161,54 @@ trackGenome <- function(master, activeInSample, binSize, nSamples, parallelize) 
     doParallel::registerDoParallel(myCluster)
   }
 
-  # bootstrapping = True
-  if(nSamples > 0) {
-    # parallelize = True
-    if (parallelize == TRUE) {
-      traj <- foreach::foreach(j = c(1:nSamples), .combine = 'c') %dopar% bootstrapGenome(master, j, activeInSample, binSize)
+  if (bootstrapMethod == 'Shuffle') {
+    if (nSamples > 0) {
+      traj <- trackShuffle(master, activeInSample, binSize, nSamples, parallelize)
+      return (traj)
     }
-    # parallelize = False
     else {
-      traj <- foreach::foreach(j = c(1:nSamples), .combine = 'c') %do% bootstrapGenome(master, j, activeInSample, binSize)
+      print('Set bootstrapSamples > 0 to perform bootstrapping')
     }
   }
 
-  # bootstrapping = False
-  else {
+  else if (bootstrapMethod == 'Mutation') {
+    # bootstrapping = True
+    if(nSamples > 0) {
+        # parallelize = True
+        if (parallelize == TRUE) {
+          traj <- foreach::foreach(j = c(1:nSamples), .combine = 'c') %dopar% bootstrapGenome(master, j, activeInSample, binSize)
+        }
+        # parallelize = False
+        else {
+          traj <- foreach::foreach(j = c(1:nSamples), .combine = 'c') %do% bootstrapGenome(master, j, activeInSample, binSize)
+        }
+      return (traj)
+    }
+    else {
+      print('Set bootstrapSamples > 0 to perform bootstrapping')
+    }
+  }
+
+  else if (bootstrapMethod == "None") {
+    # bootstrapping = False
     # print error message if user tries to parallelize a single task
     if (parallelize == TRUE) {
-      print("Error: parallelization requires that a function must be run multiple times. Set parallelize = FALSE or increase nSamples.")
+      print("Error: parallelization requires that a function must be run multiple times. Set parallelize = FALSE or increase bootstrapSamples")
     }
     # parallelize = False
     else {
       traj <- genomeLevel(master, activeInSample, binSize)
     }
+    return (traj)
+  }
+
+  else {
+    print('Invalid bootstrap method, must be \'None\', \'Mutation\', or \'Shuffle\'')
   }
 
   if (parallelize == TRUE) {
     parallel::stopCluster(myCluster)
   }
-
-  return (traj)
 }
 
 

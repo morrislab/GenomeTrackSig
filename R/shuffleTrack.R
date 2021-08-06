@@ -1,5 +1,9 @@
 # Plotting modifications
 
+# Adapts plotting functions to be compatible with 'shuffled' genomic trajectory.
+# Functions are only called when plotting a shuffled trajectory, which is identified
+# by a the presence of a column in binData called `genome_bin`.
+
 assignChromosomeBoundsShuffle <- function (traj, chr_level) {
 
   # Assign chromosome breaks to bins
@@ -122,9 +126,8 @@ plotSpaceTrajectoryShuffle <- function(trajectory, show=TRUE, chr_level=F, cutof
   crPos <- assignCentromereBoundsShuffle(trajectory, chr_level)
 
   # assign changepoint locations to bins
-  if (!is.null(trajectory[['changepoints']])) {
-    cpPos <- assignChangepoints(trajectory, cutoff)
-  }
+  cpPos <- assignChangepoints(trajectory, cutoff)
+
 
   # find mean activities at each bin across all bootstrap samples
   avg_df <- as.data.frame(maps[(length(maps)-2):length(maps)])
@@ -135,6 +138,17 @@ plotSpaceTrajectoryShuffle <- function(trajectory, show=TRUE, chr_level=F, cutof
           + ggplot2::scale_x_continuous(breaks = chr_breaks, labels = chr_labels)
 
   )
+
+  # add stripes to distinguish chromosomes
+  for (i in 1:length(sort(change_bins))-1) {
+    if (i %% 2 != 0) {
+      g <- g + ggplot2::annotate("rect", xmin=sort(change_bins)[i], xmax = sort(change_bins)[i+1],
+                                 ymin=-Inf, ymax=Inf, alpha=0.3, fill='grey')
+    }
+  }
+  g <- g + ggplot2::annotate("rect", xmin=sort(change_bins)[length(change_bins)], xmax = max(avg_df$xBin),
+                             ymin=-Inf, ymax=Inf, alpha=0.3, fill='grey')
+
 
   # general ggplot formatting
   g <- (   g
@@ -170,24 +184,14 @@ plotSpaceTrajectoryShuffle <- function(trajectory, show=TRUE, chr_level=F, cutof
 
   }
 
-  if (!is.null(trajectory[['changepoints']])) {
     # add changepoints to plot
+  if (nrow(cpPos) > 0) {
     for (i in 1:dim(cpPos)[1]) {
       g <- g + ggplot2::annotate("rect", xmax=cpPos$cpPos2[i], xmin=cpPos$cpPos1[i],
                                  ymin=-Inf, ymax=Inf, alpha=cpPos$prob[i], fill = "red")
     }
   }
 
-
-  # add stripes to distinguish chromosomes
-  for (i in 1:length(sort(change_bins))-1) {
-    if (i %% 2 != 0) {
-      g <- g + ggplot2::annotate("rect", xmin=sort(change_bins)[i], xmax = sort(change_bins)[i+1],
-                                 ymin=-Inf, ymax=Inf, alpha=0.3, fill='grey')
-    }
-  }
-  g <- g + ggplot2::annotate("rect", xmin=sort(change_bins)[length(change_bins)], xmax = max(avg_df$xBin),
-                             ymin=-Inf, ymax=Inf, alpha=0.3, fill='grey')
 
   if (show){print(g)}
 

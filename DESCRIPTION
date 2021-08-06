@@ -37,7 +37,6 @@ Imports:
     tidyr,
     data.table,
     qpdf
-LinkingTo: 
 Suggests:
     testthat,
     knitr,
@@ -45,6 +44,9 @@ Suggests:
     foreach,
     doParallel,
     karyoploteR,
-    TxDb.Hsapiens.USCS.hg19.knownGene
+    TxDb.Hsapiens.UCSC.hg19.knownGene,
+    GenomicFeatures
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr
+Depends: 
+    R (>= 2.10)
