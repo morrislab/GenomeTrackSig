@@ -18,7 +18,7 @@
 ## @export
 vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
                         context = generateContext(c("CG", "TA")),
-                        nCutoff = 10000, verbose = F,
+                        nCutoff = 10e7, verbose = F,
                         refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19) {
 
 
@@ -46,6 +46,7 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
 
   # clean up unecessary vcaf features
   extras <- setdiff(colnames(VariantAnnotation::info(vcf)), c("t_alt_count", "t_ref_count", "cn"))
+  colnames(vcaf) <- c("chr", "pos", "ref", extras, "alt", "cn", "vi", "ri", "phi", "qi", "mutType", "bin")
   vcaf <- vcaf[,c(extras, "chr", "pos", "cn", "mutType", "alt", "phi", "qi", "bin")]
   rownames(vcaf) <- NULL
 
@@ -57,14 +58,20 @@ vcfToCounts <- function(vcfFile, cnaFile = NULL, purity = 1, binSize = 100,
 ## @rdname loadData
 ## @name parseVcfFile
 
-parseVcfFile <- function(vcfFile, cutoff = 10000, refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19){
+parseVcfFile <- function(vcfFile, cutoff = 1e7, refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19){
 
   vcf <- VariantAnnotation::readVcf(vcfFile, genome = GenomeInfoDb::bsgenomeName(refGenome))
   GenomeInfoDb::seqlevelsStyle(vcf) <- "UCSC"
 
   # TODO: remove any duplicates
 
-  # TODO: remove samples with missing ref or alt counts (ri/vi)
+  # remove samples with missing ref or alt counts (ri/vi)
+  na_refs <- which(is.na(vcf@info@listData$t_ref_count))
+  na_alts <- which(is.na(vcf@info@listData$t_alt_count))
+  na_rows <- union(na_refs, na_alts)
+  warning(paste0("Dropped ", length(na_rows), " mutations from vcf containing missing ref or alt counts"))
+  vcf <- vcf[-na_rows, ]
+
   assertthat::assert_that("t_alt_count" %in% rownames(VariantAnnotation::info(VariantAnnotation::header(vcf))),
                           msg = "Tumor alternate variant count \"t_alt_count\" was not found in the vcf header. Please check formatting\n")
   assertthat::assert_that("t_ref_count" %in% rownames(VariantAnnotation::info(VariantAnnotation::header(vcf))),
@@ -241,6 +248,9 @@ vcafConstruction <- function(vcf, refGenome, verbose = F){
   vcaf$vi <- VariantAnnotation::info(vcf)$t_alt_count
   vcaf$ri <- VariantAnnotation::info(vcf)$t_ref_count
 
+  # check -
+
+
   # check - ref should not match alt in a mutation
   rmSel <- vcaf$ref == vcaf$alt
   if (sum(rmSel) > 0){
@@ -365,8 +375,15 @@ getBinCounts <- function(vcaf, binSize, context, verbose = F){
   # get count of each mutation type for each bin
   vcaf %>%
     dplyr::mutate(cat = paste(.data$ref, .data$alt, .data$mutType, sep = "_")) %>%
-    dplyr::group_by(.data$bin, .data$cat) %>% dplyr::summarize(sum(.data$bin)) %>%
-    tidyr::spread(cat, sum) -> binCounts
+    dplyr::group_by(bin, cat) %>%
+    dplyr::summarize(cat_sum = dplyr::n()) %>%
+    tidyr::pivot_wider(id_cols=bin, names_from = cat, values_from=cat_sum) -> binCounts
+
+  binCounts[is.na(binCounts)] <- 0
+  # vcaf %>%
+  #   dplyr::mutate(cat = paste(.data$ref, .data$alt, .data$mutType, sep = "_")) %>%
+  #   dplyr::group_by(.data$bin, .data$cat) %>% dplyr::summarize(sum = sum(.data$bin)) %>%
+  #   tidyr::spread(cat, sum) -> binCounts
 
   # replace NAs with 0
   binCounts[is.na(binCounts)] <- 0
