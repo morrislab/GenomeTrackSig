@@ -22,7 +22,6 @@ This package imports the following other R packages:
 + VariantAnnotation >= 1.20.3 (Bioconductor)
 + grid >= 3.3.3 (CRAN)
 + progress >= 1.2.2 (CRAN)
-+ cowplot >= 1.1.1 (CRAN)
 
 # Load the package in R
 `devtools::install_github("morrislab/GenomeTrackSig")`
