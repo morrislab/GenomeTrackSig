@@ -313,6 +313,7 @@ plotGenomeContext <- function(counts, trajectory, binSize, title='', chr_level=F
 
   # make individual plot components
   trajPlot <- plotGenomeProfile(trajectory, show=TRUE, chr_level, cutoff)
+  gcPlot <- makeGCPlot(counts, binSize, trajectory, chr_level)
   geneDensityPlot <- makeGeneDensityPlot(counts, binSize, trajectory, chr_level)
   mutDensityPlot <- makeMutDensityPlot(counts, binSize, trajectory, chr_level)
   chromatinPlot <- makeChromStatePlot(counts, trajectory, binSize,
@@ -328,15 +329,16 @@ plotGenomeContext <- function(counts, trajectory, binSize, title='', chr_level=F
   )
 
   # align plot components
-  plots <- cowplot::align_plots(chrom_mod, geneDensityPlot, mutDensityPlot, traj_mod, align='v', axis='tblr')
+  plots <- cowplot::align_plots(chrom_mod, geneDensityPlot, mutDensityPlot, gcPlot, traj_mod, align='v', axis='tblr')
 
   # make plot with all genomic features + trajectory
   fullPlot <- cowplot::plot_grid(plots[[1]],
                              plots[[2]],
                              plots[[3]],
                              plots[[4]],
+                             plots[[5]],
                              ncol=1,
-                             rel_heights = c(1,0.3,0.25,1.5))
+                             rel_heights = c(1,0.3,0.25,0.25,1.5))
 
   fullPlot <- cowplot::plot_grid(fullPlot, state_legend, nrow = 1, rel_widths = c(1, .05))
 
