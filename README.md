@@ -37,14 +37,14 @@ library(ggplot2)
 
 counts = system.file(package = "GenomeTrackSig", "extdata/Example_counts.csv")
 
-detectedSigs <- detectActiveSignatures(counts, binSize=200)
+detectedSigs <- detectActiveSignatures(counts, binSize = 200)
 ```
 2. Next, we compute the signature activity profile across all regions of the genome. 
 ```r
 set.seed(1224)
 
-traj <- GenomeTrackSig(sampleID = "example", activeInSample = detectedSigs,
-                 binSize = 200)
+traj <- GenomeTrackSig(counts = counts, sampleID = "example", activeInSample =     
+                      detectedSigs, binSize = 200)
 ```
 
 3. Plot the activity profile. 
