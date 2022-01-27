@@ -112,7 +112,7 @@ assignCentromereBoundsShuffle <- function (traj, chr_level) {
   return (crPos)
 
 }
-plotSpaceTrajectoryShuffle <- function(trajectory, show=TRUE, chr_level=F, cutoff=0) {
+plotGenomeProfileShuffle <- function(trajectory, show=TRUE, chr_level=F, cutoff=0) {
 
   # reshape list of trajectories into format that can be used for plotting
   maps <- reshapeTraj(trajectory)

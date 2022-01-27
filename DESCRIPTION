@@ -1,13 +1,13 @@
-Package: TrackSig
+Package: GenomeTrackSig
 Type: Package
-Title: TrackSig - cancer evolutionary trajectory estimation
-Version: 0.2.0
-Author: Cait Harrigan, implemented with reference to TrackSig by Yulia Rubanova
-Maintainer: Cait Harrigan <cait.harrigan@utoronto.ca>
-Description: TrackSig, to estimate the evolutionary trajectories of signatures
-             of somatic mutational processes. TrackSig uses cancer cell fraction (CCF) 
-             corrected by copy number to infer anapproximate order in which the somatic
-             mutations accumulate. TrackSig segments mutation ordering by CCF and fits 
+Title: GenomeTrackSig - regional mutational signature profiling in cancer
+Version: 0.1.0
+Author: Caitlin Timmons, implemented with reference to TrackSig by Yulia Rubanova and TrackSigFreq by Cait Harrigan
+Maintainer: Caitlin Timmons <ctimmons@smith.edu>
+Description: GenomeTrackSig, to estimate regional variation in signatures
+             of somatic mutational processes over large chromosomal domains. 
+             GenomeTrackSig orders mutations by chromosomal location. GenomeTrackSig 
+             segments mutation ordering by location and fits 
              signature exposures (activities) as a piece-wise constant function of the 
              mutation ordering. TrackSig uses optimal segmentation to find the points of
              change in signature activities.
@@ -43,10 +43,9 @@ Suggests:
     rmarkdown,
     foreach,
     doParallel,
-    karyoploteR,
     TxDb.Hsapiens.UCSC.hg19.knownGene,
     GenomicFeatures
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)

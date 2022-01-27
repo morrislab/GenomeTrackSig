@@ -1,6 +1,6 @@
-# TrackSig.R
-# Defines main functions for user to interact with package TrackSig.
-# Author: Cait Harrigan
+# Tracking.R
+# Defines functions that carry out core capabilities for GenomeTrackSig
+# Authors: Cait Harrigan and Caitlin Timmons
 
 
 #' Get a list of signatures active in a sample
@@ -26,7 +26,7 @@
 
 detectActiveSignatures <- function(df,
                                    threshold = 0.05, prior = NULL, binSize,
-                                   referenceSignatures = TrackSig:::cosmicV3,
+                                   referenceSignatures = GenomeTrackSig:::cosmicV3,
                                    refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19){
 
   # group mutations into bins with specified size
@@ -49,13 +49,13 @@ detectActiveSignatures <- function(df,
 }
 
 
-#' Determine an evolutionary trajectory.
+#' Determine a genomic signature profile.
 #'
 #'
 #' @description
-#' \code{TrackSig} will take an input VCF file and corresponding annotation, and determine an eveolutionary trajectory for the sample, based on changepoints found using the PELT segmentation algorithm.
+#' \code{TrackSig} will take an input CSV file of mutation counts and determine a genomic profile for the sample, based on changepoints found using the PELT segmentation algorithm.
 #'
-#' @param df dataframe of mutation counts from which we can fit activity trajectories
+#' @param df dataframe of mutation counts from which we can fit activity profiles.
 #' @param activeInSample list of signatures names to fit the exposures of. All listed signatures must be present in the referenceSignatures dataframe.
 #' @param sampleID name to call sample. If none provided, name will be automatically drawn from the provided vcf file name.
 #' @param referenceSignatures dataframe containing definitions of mutational signatures.
@@ -65,7 +65,7 @@ detectActiveSignatures <- function(df,
 #' @param desiredMinSegLen minimum number of mutations to include in a PELT segment (the desiredMinSegLen will be overridden if there are too few for accurate scoring)
 #' @param refGenome BSgenome to use as reference
 #'
-#' @export
+
 
 TrackSig <- function(df,
                          binSize,
@@ -126,20 +126,12 @@ TrackSig <- function(df,
                                                       scoreMethod = scoreMethod,
                                                       binSize = binSize,
                                                       desiredMinSegLen = desiredMinSegLen)
-  # # assign mutations to clusters
-  # if(is.null(changepoints)){
-  #   binCounts$clust = 1
-  # }else{
-  #   clustIdx = rep(1:(length(changepoints) + 1),
-  #                  times = c(changepoints, max(binCounts$bin)) - c(0, changepoints))
-  #   binCounts$clust = clustIdx[binCounts$bin]
-  # }
 
   return (list(mixtures = mixtures, changepoints = changepoints, sampleID = sampleID, binData = binCounts))
 }
 
 
-# list unpacker util: used internally in package TrackSig
+# list unpacker util: used internally in package GenomeTrackSig
 # source: https://stat.ethz.ch/pipermail/r-help/2004-June/053343.html
 
 list <- structure(NA,class="result")

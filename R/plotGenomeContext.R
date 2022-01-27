@@ -1,10 +1,10 @@
 makeGeneDensityPlot <- function(master, binSize, trajectory, chr_level){
-  # extract gene density data for human genome from karyoPloteR gene density ideogram
   txdb <-TxDb.Hsapiens.UCSC.hg19.knownGene::TxDb.Hsapiens.UCSC.hg19.knownGene
   all.genes <- base::suppressMessages(GenomicFeatures::genes(txdb))
-  kp <- karyoploteR::plotKaryotype(genome="hg19")
-  kp <- karyoploteR::kpPlotDensity(kp, all.genes)
-  kp_data <- kp$latest.plot$computed.values
+  chrom_lengths <- stats::setNames(object = all.genes@seqinfo@seqlengths[1:24], all.genes@seqinfo@seqnames[1:24])
+  windows <- GenomicRanges::tileGenome(seqlengths = chrom_lengths,
+                                       tilewidth = 1e6, cut.last.tile.in.chrom = TRUE)
+  dens <- GenomicRanges::countOverlaps(windows, all.genes)
 
   start_chrom <- bin <- density <- gene_density <- mean_density <- NULL
 
@@ -13,13 +13,12 @@ makeGeneDensityPlot <- function(master, binSize, trajectory, chr_level){
 
   # build dataframe of gene density values for each bin
 
-  density_data <- data.frame(start = kp_data[["windows"]]@ranges@start, density = kp_data[["density"]])
+  density_data <- data.frame(start_chrom = binned_master$start_chrom,
+                             bin = binned_master$bin, density = dens)
 
   if (!is.null(trajectory[[4]]$genome_bin)) {
     # if plottting a shuffle trajectory, exclude Y chromosome data
     density_data <- density_data %>%
-      dplyr::mutate(start_chrom = binned_master$start_chrom,
-                    bin = binned_master$bin) %>%
       dplyr::filter(start_chrom != 24) %>%
       dplyr::group_by(bin) %>%
       dplyr::summarize(mean_density = base::mean(density))
@@ -30,8 +29,6 @@ makeGeneDensityPlot <- function(master, binSize, trajectory, chr_level){
   }
   else {
     density_data <- density_data %>%
-      dplyr::mutate(start_chrom = binned_master$start_chrom,
-                    bin = binned_master$bin) %>%
       dplyr::group_by(bin) %>%
       dplyr::summarize(mean_density = base::mean(density))
 
@@ -63,66 +60,66 @@ makeGeneDensityPlot <- function(master, binSize, trajectory, chr_level){
   for (i in 1:length(sort(change_bins))-1) {
     if (i %% 2 != 0) {
       densityPlot <- densityPlot + ggplot2::annotate("rect", xmin=sort(change_bins)[i], xmax = sort(change_bins)[i+1],
-                                           ymin=-Inf, ymax=Inf, alpha=0.3, fill='grey')
+                                                     ymin=-Inf, ymax=Inf, alpha=0.3, fill='grey')
     }
   }
 
   if (!is.null(trajectory[[4]]$genome_bin)) {
     densityPlot <- densityPlot + ggplot2::annotate("rect", xmin=chr_breaks[length(chr_breaks)], xmax = max(trajectory[[4]]$genome_bin),
-                                                         ymin=-Inf, ymax=Inf, alpha=0.3, fill='grey')
+                                                   ymin=-Inf, ymax=Inf, alpha=0.3, fill='grey')
   }
 
   return (densityPlot)
 }
 
 
-# makeGCPlot <- function(master, binSize, trajectory, chr_level) {
-#   G <- C <- bin <- GC <- meanGC <- NULL
-#
-#   # assign bins to 1Mb regions of genome
-#   binned_master <- getBinNumber(master, binSize)
-#
-#   loci <- GenomicRanges::GRanges(GenomicRanges::seqinfo(BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19))
-#   loci <- loci[loci@seqnames@values %in% loci@seqnames@values[1:24]]
-#
-#   tiles <- GenomicRanges::tile(x = loci, width = 1000000)
-#   tiles <- unlist(tiles)
-#
-#   seqs <- Biostrings::getSeq(BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19, tiles)
-#   counts <- Biostrings::alphabetFrequency(seqs, baseOnly=TRUE)
-#   freqs <- counts/rowSums(counts)
-#
-#   nuc_freqs <- data.frame(freqs[,1:4]) %>%
-#     dplyr::mutate(bin = binned_master$bin,
-#                   GC = G + C) %>%
-#     dplyr::group_by(bin) %>%
-#     dplyr::summarize(meanGC = mean(GC))
-#
-#   change_bins <- assignChromosomeBounds(trajectory, chr_level)
-#   change_bins <- sort(change_bins)
-#
-#   gcPlot <- ggplot2::ggplot(data = nuc_freqs, ggplot2::aes(x = bin, y = meanGC)) +
-#     ggplot2::geom_area(fill = "darkgrey") +
-#     ggplot2::scale_y_continuous(limits=c(0,1)) +
-#     ggplot2::ylab("GC content") +
-#     ggplot2::theme_bw() +
-#     ggplot2::theme(axis.title.x = ggplot2::element_blank(),
-#                    axis.ticks.x = ggplot2::element_blank(),
-#                    axis.text.x = ggplot2::element_blank(),
-#                    panel.grid.major.x = ggplot2::element_blank(),
-#                    panel.grid.minor.x = ggplot2::element_blank())
-#
-#
-#   # # add stripes to distinguish chromosomes
-#   for (i in 1:length(change_bins)) {
-#     if (i %% 2 != 0) {
-#       gcPlot <- gcPlot + ggplot2::annotate("rect", xmin=change_bins[i], xmax = change_bins[i+1],
-#                                  ymin=-Inf, ymax=Inf, alpha=0.3, fill='grey')
-#     }
-#   }
-#
-#   return (gcPlot)
-# }
+makeGCPlot <- function(master, binSize, trajectory, chr_level) {
+  G <- C <- bin <- GC <- meanGC <- NULL
+
+  # assign bins to 1Mb regions of genome
+  binned_master <- getBinNumber(master, binSize)
+
+  loci <- GenomicRanges::GRanges(GenomicRanges::seqinfo(BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19))
+  loci <- loci[loci@seqnames@values %in% loci@seqnames@values[1:24]]
+
+  tiles <- GenomicRanges::tile(x = loci, width = 1000000)
+  tiles <- unlist(tiles)
+
+  seqs <- Biostrings::getSeq(BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19, tiles)
+  counts <- Biostrings::alphabetFrequency(seqs, baseOnly=TRUE)
+  freqs <- counts/rowSums(counts)
+
+  nuc_freqs <- data.frame(freqs[,1:4]) %>%
+    dplyr::mutate(bin = binned_master$bin,
+                  GC = G + C) %>%
+    dplyr::group_by(bin) %>%
+    dplyr::summarize(meanGC = mean(GC))
+
+  change_bins <- assignChromosomeBounds(trajectory, chr_level)
+  change_bins <- sort(change_bins)
+
+  gcPlot <- ggplot2::ggplot(data = nuc_freqs, ggplot2::aes(x = bin, y = meanGC)) +
+    ggplot2::geom_area(fill = "darkgrey") +
+    ggplot2::scale_y_continuous(limits=c(0,1)) +
+    ggplot2::ylab("GC content") +
+    ggplot2::theme_bw() +
+    ggplot2::theme(axis.title.x = ggplot2::element_blank(),
+                   axis.ticks.x = ggplot2::element_blank(),
+                   axis.text.x = ggplot2::element_blank(),
+                   panel.grid.major.x = ggplot2::element_blank(),
+                   panel.grid.minor.x = ggplot2::element_blank())
+
+
+  # # add stripes to distinguish chromosomes
+  for (i in 1:length(change_bins)) {
+    if (i %% 2 != 0) {
+      gcPlot <- gcPlot + ggplot2::annotate("rect", xmin=change_bins[i], xmax = change_bins[i+1],
+                                 ymin=-Inf, ymax=Inf, alpha=0.3, fill='grey')
+    }
+  }
+
+  return (gcPlot)
+}
 
 # mutation density
 
@@ -141,7 +138,7 @@ makeMutDensityPlot <- function(master, binSize, trajectory, chr_level) {
     dplyr::select(width, rowsum) %>%
     dplyr::mutate(mut_density = rowsum / width)
 
-  # assign the correct data column to bin number-- depends on SpaceTrack() parameters
+  # assign the correct data column to bin number-- depends on GenomeTrackSig() parameters
   if (!is.null(binData$genome_bin)) {
     widths$bin <- binData$genome_bin
     change_bins <- assignChromosomeBoundsShuffle(trajectory, chr_level)
@@ -282,21 +279,22 @@ makeChromStatePlot <- function(master, trajectory, binSize, chr_level,
   return (chromatinPlot)
 }
 
-#' Plot the genomic trajectory of a tumor and other
-#' structural features of the genome.
+# AUTHOR: Caitlin Timmons
+#' Plot the genomic profile of a tumor and other relevant genomic features.
+#'
 #'
 #' @description
-#' \code{plotGenomicFeaturesTrajectory} For each bin in a set of signature
+#' \code{plotGenomeContext} For each bin in a set of signature
 #' mixtures, the mixture is plotted across the genome. Provided changepoints
-#' will be highlighted. Normalized mutation density, normalized gene density,
-#' and the distribution of chromatin states are also plotted at each bin.
+#' will be highlighted. Normalized mutation density, normalized gene density, GC content,
+#' and the distribution of consensus chromatin states (https://github.com/gerstung-lab/tensorsignatures) are also plotted at each bin.
 #'
-#' @param master un-binned dataframe of mutation counts for the sample of interest;
-#' same dataframe as `counts` parameter in @seealso \link{SpaceTrack}
+#' @param counts un-binned dataframe of mutation counts for the sample of interest;
+#' same dataframe as `counts` parameter in @seealso \link{GenomeTrackSig}
 #' @param trajectory a list containing named elements "mixtures",
-#' "changepoints", and 'binData'. See @seealso \link{SpaceTrack}.
+#' "changepoints", and 'binData'. See @seealso \link{GenomeTrackSig}.
 #' @param binSize number of mutations in each bin; same value as
-#' `binSize` parameter in @seealso \link{SpaceTrack}.
+#' `binSize` parameter in @seealso \link{GenomeTrackSig}.
 #' @param title string containing desired plot title; default is blank
 #' @param chr_level logical whether TrackSig was run on each chromosome
 #' separately; default is FALSE.
@@ -310,14 +308,14 @@ makeChromStatePlot <- function(master, trajectory, binSize, chr_level,
 #' @import rlang
 #' @export
 
-plotGenomicFeaturesTrajectory <- function(master, trajectory, binSize, title='', chr_level=F,
+plotGenomeContext <- function(counts, trajectory, binSize, title='', chr_level=F,
                                cutoff=0, show=T, chrom_states = TrackSig:::roadmap_consensus_chromstates) {
 
   # make individual plot components
-  trajPlot <- plotSpaceTrajectory(trajectory, show=TRUE, chr_level, cutoff)
-  geneDensityPlot <- makeGeneDensityPlot(master, binSize, trajectory, chr_level)
-  mutDensityPlot <- makeMutDensityPlot(master, binSize, trajectory, chr_level)
-  chromatinPlot <- makeChromStatePlot(master, trajectory, binSize,
+  trajPlot <- plotGenomeProfile(trajectory, show=TRUE, chr_level, cutoff)
+  geneDensityPlot <- makeGeneDensityPlot(counts, binSize, trajectory, chr_level)
+  mutDensityPlot <- makeMutDensityPlot(counts, binSize, trajectory, chr_level)
+  chromatinPlot <- makeChromStatePlot(counts, trajectory, binSize,
                                       chr_level, chrom_states)
 
   # change default legend positions for final plot

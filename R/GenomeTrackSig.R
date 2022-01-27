@@ -1,17 +1,17 @@
-# SpaceTrack.R
-# Defines main functions for user to interact with package TrackSig, when calculating activity trajectory over genome.
+# GenomeTrackSig.R
+# Defines main functions for user to interact with package GenomeTrackSig, when calculating activity trajectory over genome.
 # Author: Caitlin Timmons
 
 
 #' Determine genomic trajectory
 #'
 #' @description
-#' \code{SpaceTrack} will take an input data frame of mutation counts, and
-#' determine a trajectory over the genome for the sample, based on changepoints
+#' \code{GenomeTrackSig} will take an input data frame of mutation counts, and
+#' determine a profile over the genome for the sample, based on changepoints
 #' found using the PELT segmentation algorithm.
 #'
 #' @param counts data frame containing mutation counts.
-#' @param chr_level logical whether TrackSig should be run separately on
+#' @param chr_level logical whether GenomeTrackSig should be run separately on
 #' each chromosome; default is FALSE
 #' @param bootstrapMethod string indicating desired bootstrapping method; default 'None'.
 #' 'Mutation' samples with replacement from mutations in each bin. 'Shuffle' samples a random
@@ -31,13 +31,13 @@
 #' @return trajectory object containing one trajectory per bootstrap sample.
 #' @export
 
-SpaceTrack <- function(counts, chr_level = FALSE, bootstrapMethod = 'None',
+GenomeTrackSig <- function(counts, chr_level = FALSE, bootstrapMethod = 'None',
                        bootstrapSamples = 0,
                        parallelize = FALSE, activeInSample, binSize,
-                       referenceSignatures = utils::read.csv("cosmicV3.csv", row.names = 1),
+                       referenceSignatures = GenomeTrackSig:::cosmicV3,
                        refGenome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19) {
 
-  # run TrackSig either on entire genome or on individual chromosomes
+  # run GenomeTrackSig either on entire genome or on individual chromosomes
   if (chr_level == TRUE) {
     traj <- trackChromosome(master = counts, activeInSample = activeInSample,
                             binSize = binSize,

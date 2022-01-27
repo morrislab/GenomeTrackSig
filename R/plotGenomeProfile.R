@@ -1,11 +1,12 @@
 # AUTHORS: Yulia Rubanova and Nil Sahin
-# Modified for package trackSig by Cait Harrigan
+# Modified for package GenomeTrackSig by Cait Harrigan and Caitlin Timmons
 
 
 ##### Plotting helper functions:
 ##### reshapeTraj(), assignChromosomeBounds(), assignCentromereBounds(),
 ##### assignChangepoints()
 
+#AUTHOR: Caitlin Timmons
 reshapeTraj <- function(traj) {
 
   ### reshape list of trajectories into format that can be used for plotting
@@ -56,6 +57,7 @@ reshapeTraj <- function(traj) {
   return (maps)
 }
 
+#AUTHOR: Caitlin Timmons
 assignChromosomeBounds <- function (traj, chr_level) {
 
   # Assign chromosome breaks to bins
@@ -98,7 +100,7 @@ assignChromosomeBounds <- function (traj, chr_level) {
   return (change_bins)
 }
 
-
+#AUTHOR: Caitlin Timmons
 assignCentromereBounds <- function (traj, chr_level) {
 
   # assign centromere locations to bins
@@ -170,6 +172,7 @@ assignCentromereBounds <- function (traj, chr_level) {
 
 }
 
+#AUTHOR: Caitlin Timmons
 assignChangepoints <- function (traj, cutoff) {
   # assign changepoint locations to bins and calculate proportion of bootstrap
   # samples that agree on each changepoint
@@ -200,18 +203,18 @@ assignChangepoints <- function (traj, cutoff) {
 
 # Plotting using helper functions
 
-
-#' Plot the genomic trajectory of a tumor.
+# AUTHOR: Caitlin Timmons
+#' Plot the genomic signature activity profile of a tumor.
 #'
 #' @description
-#' \code{plotSpaceTrajectory} For each bin in a set of signature
+#' \code{plotGenomeProfile} For each bin in a set of signature
 #' mixtures, the mixture is plotted across the genome. Provided changepoints
 #' will be highlighted.
 #'
 #' @param trajectory a list containing named elements "mixtures",
-#' "changepoints", and 'binData'. See @seealso \link{TrackSig}.
+#' "changepoints", and 'binData'. See @seealso \link{GenomeTrackSig}.
 #' @param show logical whether to print the plot.
-#' @param chr_level logical whether TrackSig was run on each chromosome
+#' @param chr_level logical whether GenomeTrackSig was run on each chromosome
 #' separately
 #' @param cutoff minimum proportion of bootstrap samples that must agree on a
 #' changepoint location in order for that changepoint to be plotted
@@ -219,14 +222,14 @@ assignChangepoints <- function (traj, cutoff) {
 #' @import rlang
 #' @export
 
-plotSpaceTrajectory <- function(trajectory, show=TRUE, chr_level, cutoff) {
+plotGenomeProfile <- function(trajectory, show=TRUE, chr_level, cutoff) {
 
   # reshape list of trajectories into format that can be used for plotting
   maps <- reshapeTraj(trajectory)
 
   # assign chromosome breaks to bins
   if (!is.null(trajectory[[4]]$genome_bin)) {
-    g <- plotSpaceTrajectoryShuffle(trajectory, show, chr_level, cutoff)
+    g <- plotGenomeProfileShuffle(trajectory, show, chr_level, cutoff)
     if (show){print(g)}
   }
 

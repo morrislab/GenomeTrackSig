@@ -358,6 +358,7 @@ getTrinuc <- function(vcaf, refGenome, verbose = F){
 #' @importFrom magrittr "%>%"
 getBinCounts <- function(vcaf, binSize, context, verbose = F){
   # replaces make_hundreds.py script
+  bin <- cat_sum <- NULL
 
   if(verbose){ print("Making counts...") }
 
