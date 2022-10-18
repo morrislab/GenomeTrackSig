@@ -46,14 +46,14 @@ makeGeneDensityPlot <- function(master, binSize, trajectory, chr_level){
   densityPlot <- ggplot2::ggplot(data = density_data, ggplot2::aes(x = bin, y = mean_density)) +
     ggplot2::geom_area(fill = "cornflowerblue") +
     ggplot2::scale_y_continuous(limits=c(0,1)) +
-    ggplot2::ylab("Gene Density") +
+    ggplot2::ylab("Normalized \nGene Density") +
     ggplot2::theme_bw() +
     ggplot2::theme(axis.title.x = ggplot2::element_blank(),
                    axis.ticks.x = ggplot2::element_blank(),
                    axis.text.x = ggplot2::element_blank(),
                    panel.grid.major.x = ggplot2::element_blank(),
                    panel.grid.minor.x = ggplot2::element_blank(),
-                   axis.title.y = ggplot2::element_blank(),
+                   axis.title.y = ggplot2::element_text(size=8),
                    axis.text.y = ggplot2::element_text(size=6))
 
   # # add stripes to distinguish chromosomes
@@ -101,11 +101,13 @@ makeGCPlot <- function(master, binSize, trajectory, chr_level) {
   gcPlot <- ggplot2::ggplot(data = nuc_freqs, ggplot2::aes(x = bin, y = meanGC)) +
     ggplot2::geom_area(fill = "darkgrey") +
     ggplot2::scale_y_continuous(limits=c(0,1)) +
-    ggplot2::ylab("GC content") +
+    ggplot2::labs(y = "GC content (%)") +
     ggplot2::theme_bw() +
     ggplot2::theme(axis.title.x = ggplot2::element_blank(),
+                   axis.title.y = ggplot2::element_text(size=8),
                    axis.ticks.x = ggplot2::element_blank(),
                    axis.text.x = ggplot2::element_blank(),
+                   axis.text.y = ggplot2::element_text(size=6),
                    panel.grid.major.x = ggplot2::element_blank(),
                    panel.grid.minor.x = ggplot2::element_blank())
 
@@ -173,7 +175,7 @@ makeMutDensityPlot <- function(master, binSize, trajectory, chr_level) {
                    panel.grid.major.x = ggplot2::element_blank(),
                    panel.grid.minor.x = ggplot2::element_blank(),
                    plot.margin = ggplot2::margin(0,6,0,6)) +
-    ggplot2::labs(x = "Chromosome", y = "Normalized Mutation Density, Gene Density")
+    ggplot2::labs(x = "Chromosome", y = "Normalized \nMutation Density")
 
   # add stripes to distinguish chromosomes
   for (i in 1:length(chr_breaks)-1) {
@@ -264,7 +266,7 @@ makeChromStatePlot <- function(master, trajectory, binSize, chr_level,
     ggplot2::geom_col(position=ggplot2::position_stack()) +
     ggplot2::scale_fill_manual(values = myColors) +
     ggplot2::theme_bw() +
-    ggplot2::labs(x = "Chromosome", y = "Bin Composition (%)", fill = "Chromatin State") +
+    ggplot2::labs(x = "Chromosome", y = "Bin Composition (%)", fill = "Chromatin \nState") +
     ggplot2::theme(axis.title.x = ggplot2::element_blank(),
                    axis.ticks.x = ggplot2::element_blank(),
                    axis.text.x = ggplot2::element_blank(),
@@ -291,7 +293,7 @@ makeChromStatePlot <- function(master, trajectory, binSize, chr_level,
 #'
 #' @param counts un-binned dataframe of mutation counts for the sample of interest;
 #' same dataframe as `counts` parameter in @seealso \link{GenomeTrackSig}
-#' @param trajectory a list containing named elements "mixtures",
+#' @param profile a list containing named elements "mixtures",
 #' "changepoints", and 'binData'. See @seealso \link{GenomeTrackSig}.
 #' @param binSize number of mutations in each bin; same value as
 #' `binSize` parameter in @seealso \link{GenomeTrackSig}.
@@ -308,8 +310,8 @@ makeChromStatePlot <- function(master, trajectory, binSize, chr_level,
 #' @import rlang
 #' @export
 
-plotGenomeContext <- function(counts, trajectory, binSize, title='', chr_level=F,
-                               cutoff=0, show=T, chrom_states = TrackSig:::roadmap_consensus_chromstates) {
+plotGenomeContext <- function(counts, profile, binSize, title='', chr_level=F,
+                               cutoff=0, show=T, chrom_states = GenomeTrackSig:::roadmap_consensus_chromstates) {
 
   # make individual plot components
   trajPlot <- plotGenomeProfile(trajectory, show=TRUE, chr_level, cutoff)
