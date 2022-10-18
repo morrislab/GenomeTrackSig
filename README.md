@@ -74,7 +74,7 @@ mutation counts for an individual sample. We recommend using
 `Example_counts.csv` to test basic package functionality since it has
 fewer mutations and will yield faster runtime. We recommend using
 `Example_counts_large.csv` , which has more mutations, to test
-functionalities described in .
+functionalities described in [Section 5](#sec-additionaloptions).
 
 1\. First, load the CSV dataset of mutation counts. In the example
 datasets provided, we classify mutations into one of 96 types based on

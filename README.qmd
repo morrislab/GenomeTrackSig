@@ -1,6 +1,7 @@
 ---
 title: "README"
 format: gfm
+number-sections: true
 editor: visual
 ---
 
@@ -64,7 +65,7 @@ devtools::install_github("morrislab/GenomeTrackSig")
 
 **Using the example data provided in `extdata/`, the following code will plot the signature profile, and return the fitted mixture of signatures for each bin, the bins where changepoints were detected, and create the ggplot object to visualize the signature profile with changepoints.**
 
-Two example datasets are provided, both of which contain genome-wide mutation counts for an individual sample. We recommend using `Example_counts.csv` to test basic package functionality since it has fewer mutations and will yield faster runtime. We recommend using `Example_counts_large.csv` , which has more mutations, to test functionalities described in \ref{AdditionalOptions}.
+Two example datasets are provided, both of which contain genome-wide mutation counts for an individual sample. We recommend using `Example_counts.csv` to test basic package functionality since it has fewer mutations and will yield faster runtime. We recommend using `Example_counts_large.csv` , which has more mutations, to test functionalities described in @sec-additionaloptions.
 
 1\. First, load the CSV dataset of mutation counts. In the example datasets provided, we classify mutations into one of 96 types based on the mutation type and trinucletotide context. We aggregate mutation counts by megabase, since 1 Mb is generally the smallest region across which GenomeTrackSig will demarcate with changepoints, but this step is not required. In this dataset, rows are 1 Mb genomic regions and columns represent region location (including starting chromosome, start position, ending chromosome, end position, region width) and mutation counts for each of 96 mutation types.
 
@@ -125,7 +126,7 @@ profileContextPlot <- plotGenomeContext(counts = large_counts,
 
 ![](inst/extdata/profileContextPlot.png){fig-align="center"}
 
-# Additional GenomeTrackSig Options {#AdditionalOptions}
+# Additional GenomeTrackSig Options  {#sec-additionaloptions}
 
 ### Segmentation on individual chromosomes
 
@@ -207,4 +208,3 @@ sigprofile_parallel <- GenomeTrackSig(counts = large_counts,
 ## Additional Notes
 
 We do not recommend running GenomeTrackSig on samples with fewer than 1,000 mutations.
-
