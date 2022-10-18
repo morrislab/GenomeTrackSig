@@ -85,7 +85,9 @@ large_counts = read.csv(system.file(package = "GenomeTrackSig", "extdata/Example
 set.seed(0811)
 
 # restrict signatures
-detectedSigs <- detectActiveSignatures(large_counts, threshold = 0.05, binSize = 100)
+detectedSigs <- detectActiveSignatures(counts = large_counts, 
+                                       threshold = 0.05, 
+                                       binSize = 100)
 ```
 
 2\. Next, we demonstrate the simplest use case by computing the signature activity profile across all regions of the genome. The minimal input for `GenomeTrackSig()` is a dataframe of mutation counts, a list of active signatures to fit, and the desired number of mutations per bin. We recommend a minimum bin size of 100 mutations. If signature activities differ between two bins, then a changepoint will be placed at the boundary between bins.
@@ -94,13 +96,17 @@ detectedSigs <- detectActiveSignatures(large_counts, threshold = 0.05, binSize =
 set.seed(0811)
 
 # construct genome-wide signature activity profile
-sigprofile <- GenomeTrackSig(counts = large_counts, activeInSample = c("SBS1", "SBS2", "SBS13", "SBS40"), binSize = 100)
+sigprofile <- GenomeTrackSig(counts = large_counts, 
+                             activeInSample = c("SBS1", "SBS2", "SBS13", "SBS40"), 
+                             binSize = 100)
 ```
 
 3\. Visualize the activity profile using the `plotGenomeProfile` function. The `chr_level` parameter specifies if segmentation was performed on each chromosome individually or on the entire genome.
 
 ```{r profile-plot, eval=FALSE}
-profilePlot <- plotGenomeProfile(profile=sigprofile, chr_level = F, cutoff = 0)
+profilePlot <- plotGenomeProfile(profile = sigprofile, 
+                                 chr_level = FALSE, 
+                                 cutoff = 0)
 ```
 
 ![](inst/extdata/profilePlot.png){fig-align="center"}
@@ -110,7 +116,9 @@ profilePlot <- plotGenomeProfile(profile=sigprofile, chr_level = F, cutoff = 0)
 ```{r context-plot, eval=FALSE}
 
 # plot profile alongside GC content, mutation density, gene density, and ChromHMM states for each bin
-profileContextPlot <- plotGenomeContext(counts = large_counts, profile = traj, binSize = 100)
+profileContextPlot <- plotGenomeContext(counts = large_counts, 
+                                        profile = sigprofile, 
+                                        binSize = 100)
 ```
 
 ![](inst/extdata/profileContextPlot.png){fig-align="center"}
@@ -125,10 +133,15 @@ For samples with large numbers of mutations (\>400 per chromosome), performing s
 set.seed(0811)
 
 # estimate signature activity profile
-sigprofile_chromosomewise <- GenomeTrackSig(counts = large_counts, chr_level = TRUE, binSize = 100, activeInSample = c("SBS1", "SBS2", "SBS13", "SBS40"))
+sigprofile_chromosomewise <- GenomeTrackSig(counts = large_counts, 
+                                            chr_level = TRUE, 
+                                            binSize = 100, 
+                                            activeInSample = c("SBS1", "SBS2", "SBS13", "SBS40"))
 
 # plot signature activity profile
-profilePlotChrLevel <- plotGenomeProfile(profile = sigprofile_chromosomewise, chr_level = TRUE, cutoff = 0)
+profilePlotChrLevel <- plotGenomeProfile(profile = sigprofile_chromosomewise, 
+                                         chr_level = TRUE, 
+                                         cutoff = 0)
 ```
 
 ![](inst/extdata/profilePlotChrLevel.png){fig-align="center"}
@@ -141,10 +154,17 @@ There are two bootstrapping options available within `GenomeTrackSig()`, control
 set.seed(0811)
 
 # estimate signature activity profile with bootstrapMethod = "Mutation"
-sigprofile_bootstrap1 <- GenomeTrackSig(counts = large_counts, chr_level = TRUE,  binSize = 100, activeInSample = c("SBS1", "SBS2", "SBS13", "SBS40"), bootstrapMethod = "Mutation", bootstrapSamples = 2)
+sigprofile_bootstrap1 <- GenomeTrackSig(counts = large_counts, 
+                                        chr_level = TRUE,  
+                                        binSize = 100, 
+                                        activeInSample = c("SBS1", "SBS2", "SBS13", "SBS40"), 
+                                        bootstrapMethod = "Mutation", 
+                                        bootstrapSamples = 2)
 
 # plot signature activity profile
-profilePlotBootstrap1 <- plotGenomeProfile(profile = sigprofile_bootstrap1, chr_level = TRUE, cutoff = 0)
+profilePlotBootstrap1 <- plotGenomeProfile(profile = sigprofile_bootstrap1, 
+                                           chr_level = TRUE, 
+                                           cutoff = 0)
 ```
 
 ![](inst/extdata/profilePlotBootstrap1.png){fig-align="center"}
@@ -153,10 +173,16 @@ profilePlotBootstrap1 <- plotGenomeProfile(profile = sigprofile_bootstrap1, chr_
 set.seed(0811)
 
 # estimate signature activity profile with bootstrapMethod = "Shuffle"
-sigprofile_bootstrap2 <- GenomeTrackSig(counts = large_counts, chr_level = FALSE,  binSize = 100, activeInSample = c("SBS1", "SBS2", "SBS13", "SBS40"), bootstrapMethod = "Shuffle", bootstrapSamples = 2)
+sigprofile_bootstrap2 <- GenomeTrackSig(counts = large_counts, 
+                                        chr_level = FALSE,  
+                                        binSize = 100, activeInSample = c("SBS1", "SBS2", "SBS13", "SBS40"), 
+                                        bootstrapMethod = "Shuffle", 
+                                        bootstrapSamples = 2)
 
 # plot signature activity profile
-profilePlotBootstrap2 <- plotGenomeProfile(profile = sigprofile_bootstrap2, chr_level = FALSE, cutoff = 0)
+profilePlotBootstrap2 <- plotGenomeProfile(profile = sigprofile_bootstrap2, 
+                                           chr_level = FALSE, 
+                                           cutoff = 0)
 ```
 
 ![](inst/extdata/profilePlotBootstrap2.png){fig-align="center"}
@@ -169,7 +195,11 @@ For very large samples, running multiple bootstrap samples or multiple chromosom
 set.seed(0811)
 
 # estimate signature activity profile by running multiple chromosomes in parallel
-sigprofile_parallel <- GenomeTrackSig(counts = large_counts, chr_level = TRUE, binSize = 100, activeInSample = c("SBS1", "SBS2", "SBS13", "SBS40"), parallelize = TRUE)
+sigprofile_parallel <- GenomeTrackSig(counts = large_counts, 
+                                      chr_level = TRUE, 
+                                      binSize = 100, 
+                                      activeInSample = c("SBS1", "SBS2", "SBS13", "SBS40"), 
+                                      parallelize = TRUE)
 ```
 
 ## Additional Notes
