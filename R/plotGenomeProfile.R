@@ -211,7 +211,7 @@ assignChangepoints <- function (traj, cutoff) {
 #' mixtures, the mixture is plotted across the genome. Provided changepoints
 #' will be highlighted.
 #'
-#' @param trajectory a list containing named elements "mixtures",
+#' @param profile a list containing named elements "mixtures",
 #' "changepoints", and 'binData'. See @seealso \link{GenomeTrackSig}.
 #' @param show logical whether to print the plot.
 #' @param chr_level logical whether GenomeTrackSig was run on each chromosome
@@ -222,7 +222,7 @@ assignChangepoints <- function (traj, cutoff) {
 #' @import rlang
 #' @export
 
-plotGenomeProfile <- function(trajectory, show=TRUE, chr_level, cutoff) {
+plotGenomeProfile <- function(profile, show=TRUE, chr_level, cutoff) {
 
   # reshape list of trajectories into format that can be used for plotting
   maps <- reshapeTraj(trajectory)
@@ -248,6 +248,8 @@ plotGenomeProfile <- function(trajectory, show=TRUE, chr_level, cutoff) {
     # find mean activities at each bin across all bootstrap samples
     avg_df <- as.data.frame(maps[(length(maps)-2):length(maps)])
     colnames(avg_df) <- c('Signatures', "xBin", "exposure")
+    avg_df$Signatures <- factor(avg_df$Signatures,
+                                levels = unique(sort(avg_df$Signatures)))
 
     g <- (  ggplot2::ggplot(data = avg_df)
             + ggplot2::aes(x = .data$xBin, y = .data$exposure * 100, group = .data$Signatures, color = .data$Signatures)
@@ -271,7 +273,11 @@ plotGenomeProfile <- function(trajectory, show=TRUE, chr_level, cutoff) {
              + ggplot2::geom_vline(xintercept = crPos[,2], col = "lightblue", alpha=0.7)
              + ggplot2::theme_bw()
              + ggplot2::theme(panel.grid.major.x = ggplot2::element_blank(),
-                              panel.grid.minor.x = ggplot2::element_blank())
+                              panel.grid.minor.x = ggplot2::element_blank(),
+                              axis.title = element_text(color="black", size=18),
+                              axis.text = element_text(color="black", size=14),
+                              legend.title=element_text(color="black", size=18),
+                              legend.text = element_text(color="black", size=16))
              + ggplot2::ylab("Signature Exposure (%)")
              + ggplot2::xlab("Chromosome")
              + ggplot2::labs(group="Signatures", color = "Signatures")

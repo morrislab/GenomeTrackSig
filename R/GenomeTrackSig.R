@@ -28,7 +28,7 @@
 #'   signatures.
 #' @param refGenome BSgenome to use as reference
 #'
-#' @return trajectory object containing one trajectory per bootstrap sample.
+#' @return profile object containing one profile per bootstrap sample (if applicable).
 #' @export
 
 GenomeTrackSig <- function(counts, chr_level = FALSE, bootstrapMethod = 'None',

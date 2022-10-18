@@ -20,7 +20,7 @@ trackShuffle <- function(master, activeInSample, binSize, nSamples, parallelize)
 
   if (parallelize == TRUE) {
     # intialize cluster
-    cores <- base::floor(0.9*(parallel::detectCores()))
+    cores <- base::floor(0.7*(parallel::detectCores()))
     myCluster <- parallel::makeCluster(cores, type="FORK")
     doParallel::registerDoParallel(myCluster)
   }
@@ -75,7 +75,7 @@ trackChromosome <- function(master, activeInSample, binSize, bootstrapMethod, nS
 
   if (parallelize == TRUE) {
     # intialize cluster
-    cores <- base::floor(0.9*(parallel::detectCores()))
+    cores <- base::floor(0.7*(parallel::detectCores()))
     myCluster <- parallel::makeCluster(cores, type="FORK")
     doParallel::registerDoParallel(myCluster)
   }
@@ -156,7 +156,7 @@ trackGenome <- function(master, activeInSample, binSize, bootstrapMethod, nSampl
 
   if (parallelize == TRUE) {
     # intialize cluster
-    cores <- base::floor(0.9*(parallel::detectCores()))
+    cores <- base::floor(0.7*(parallel::detectCores()))
     myCluster <- parallel::makeCluster(cores, type="FORK")
     doParallel::registerDoParallel(myCluster)
   }

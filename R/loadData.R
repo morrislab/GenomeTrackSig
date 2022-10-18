@@ -1,6 +1,95 @@
 # loadData.R
-# Author: Cait Harrigan
-# R functions to depricate make_corrected_vaf.py and call_scripts.R
+# Author: Cait Harrigan and Caitlin Timmons
+# R functions to import and process mutation data from either VCF file format or CSV counts
+
+#' Format file of mutation counts
+#'
+#' @description
+#' \code{readFormat} takes in a csv of mutation counts and returns a data frame in a
+#' format compatible with TrackSig().
+#'
+#' @param path file path to csv of mutation counts
+#'
+#' @return dataframe of mutation counts
+#' @export
+
+readFormat <- function(path) {
+  seqnames <- strand <- NULL
+  # read in dataframe of file IDs with corresponding cancer types
+
+
+  # initialize counts dataframe
+  master <- utils::read.csv(path, header=T, sep=',')
+
+  # make data type consistent in seqnames column
+  # split seqnames column into start chrom and end chrom
+  # remove unnecessary variables
+  master <- master %>%
+    dplyr::mutate(seqnames = dplyr::case_when(seqnames == "X" ~ 23,
+                                              seqnames == "Y" ~ 24,
+                                              TRUE ~ as.numeric(seqnames)),
+                  start_chrom = seqnames,
+                  end_chrom = seqnames) %>%
+    dplyr::select(-seqnames, -strand) %>%
+    base::subset(select = c(100,1,101,2:99))
+
+  # save output into csv and return dataframe
+  return (master)
+}
+
+#' Summarize mutation counts across all samples of interest
+#'
+#' @description
+#' \code{poolSamples} groups together the mutation counts for multiple cancer
+#' samples of the same type and returns a data frame in a format compatible with TrackSig().
+#'
+#' @param archivePath file path to folder containing all cancer samples
+#' @param typesPath file path to dataframe (csv) containing file IDs and
+#' corresponding cancer type
+#' @param cancerType string denoting cancer type for which all
+#' samples will be pooled
+#'
+#' @return dataframe of pooled mutation counts, csv file to working directory.
+#' @export
+
+poolSamples <- function(archivePath, typesPath, cancerType) {
+  seqnames <- strand <- NULL
+  # read in dataframe of file IDs with corresponding cancer types
+  types <- utils::read.csv(typesPath, sep=',', header=T,
+                           col.names = c('type', 'guid'))
+  types <- types[2:nrow(types), ]
+
+  # list of sample filenames for desired cancer type
+  get_files <- c(types$guid[types$type == cancerType])
+
+  # initialize counts dataframe
+  master <- utils::read.csv(as.character(paste(archivePath, "/", get_files[1], ".MBcounts.csv", sep = "")),
+                            header=T)
+
+  # add counts from remaining samples into master file and delete remaining files from memory
+  for (i in 2:length(get_files)) {
+    temp <- utils::read.csv(as.character(paste(archivePath, "/", get_files[i], ".MBcounts.csv", sep = "")),
+                            header=T, sep=',')
+    master[, 6:101] <- master[, 6:101] + temp[, 6:101]
+    base::remove(temp)
+  }
+
+  # make data type consistent in seqnames column
+  # split seqnames column into start chrom and end chrom
+  # remove unnecessary variables
+  master <- master %>%
+    dplyr::mutate(seqnames = dplyr::case_when(seqnames == "X" ~ 23,
+                                              seqnames == "Y" ~ 24,
+                                              TRUE ~ as.numeric(seqnames)),
+                  start_chrom = seqnames,
+                  end_chrom = seqnames) %>%
+    dplyr::select(-seqnames, -strand) %>%
+    base::subset(select = c(100,1,101,2:99))
+
+  # save output into csv and return dataframe
+  utils::write.csv(master, file = paste(cancerType, "_pooled.csv", sep=""))
+  return (master)
+}
 
 ## \code{vcfToCounts} Take an input vcf file and annotation and generate the counts data
 ##
