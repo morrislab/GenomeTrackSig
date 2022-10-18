@@ -5,8 +5,8 @@ README
 
 ### [Morris Lab](https://www.morrislab.ai/), Sloan Kettering Institute. R package for GenomeTrackSig.
 
-To cite, please see
-<https://www.biorxiv.org/content/10.1101/2022.01.23.477261v1>
+To cite, please visit this
+[link](https://www.biorxiv.org/content/10.1101/2022.01.23.477261v4).
 
 Please create an
 [Issue](https://github.com/morrislab/GenomeTrackSig/issues) or email
@@ -92,9 +92,11 @@ library(GenomeTrackSig)
 library(ggplot2)
 
 # read in example datasets
-counts = read.csv(system.file(package = "GenomeTrackSig", "extdata/Example_counts.csv"))
+counts = read.csv(system.file(package = "GenomeTrackSig", 
+                              "extdata/Example_counts.csv"))
 
-large_counts = read.csv(system.file(package = "GenomeTrackSig", "extdata/Example_counts_large.csv"))
+large_counts = read.csv(system.file(package = "GenomeTrackSig", 
+                                    "extdata/Example_counts_large.csv"))
 ```
 
 2\. Next, restrict the list of signatures to fit exposure for. This is
