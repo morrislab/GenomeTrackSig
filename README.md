@@ -10,7 +10,7 @@ To cite, please visit this
 
 Please create an
 [Issue](https://github.com/morrislab/GenomeTrackSig/issues) or email
-ctimmons@smith.edu with questions.
+caitlintimmons811@gmail.com with questions.
 
 # Dependencies
 
