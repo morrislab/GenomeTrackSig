@@ -6,7 +6,7 @@ README
 ### [Morris Lab](https://www.morrislab.ai/), Sloan Kettering Institute. R package for GenomeTrackSig.
 
 To cite, please visit this
-[link](https://www.biorxiv.org/content/10.1101/2022.01.23.477261v4).
+[link](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1010733).
 
 Please create an
 [Issue](https://github.com/morrislab/GenomeTrackSig/issues) or email
